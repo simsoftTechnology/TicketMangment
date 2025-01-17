@@ -14,6 +14,8 @@ builder.Services.AddDbContext<DataContext>(opt =>
   opt.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
   new MySqlServerVersion(new Version(8, 2, 0)));
 });
+builder.Services.AddCors();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -27,6 +29,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200"));
 app.MapControllers();
 
 app.Run();
