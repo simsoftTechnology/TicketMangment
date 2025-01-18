@@ -1,16 +1,15 @@
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.Entities;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestionTicketsAPI.Controllers
-{
-    [Route("api/[controller]")]
-    [ApiController]
-    public class UsersController(DataContext context) : ControllerBase
-    {
+namespace GestionTicketsAPI.Controllers;
 
+
+public class UsersController(DataContext context) : BaseApiController
+    {
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -19,6 +18,7 @@ namespace GestionTicketsAPI.Controllers
           return users;
         }
 
+        [Authorize]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
@@ -28,5 +28,5 @@ namespace GestionTicketsAPI.Controllers
 
           return user;
         }
-    }
 }
+
