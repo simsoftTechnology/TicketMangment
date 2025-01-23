@@ -6,13 +6,25 @@ namespace GestionTicketsAPI.DTOs;
 public class RegisterDto
 {
       [Required]
-      public required string Email { get; set; }
+      public string Email { get; set; } = string.Empty;
       [Required]
-      public required string Role { get; set; }
+      public string Role { get; set; } = string.Empty;
       [Required]
-      public required string Firstname { get; set; }
+      public string Firstname { get; set; } = string.Empty;
       [Required]
-      public required string Lastname { get; set; }
+      public string Lastname { get; set; } = string.Empty;
+
+
       [Required]
-      public required string Password { get; set; }
+      public string Numtelephone { get; set; } = string.Empty;
+
+      [Required]
+      public int Pays { get; set; }
+
+      public bool Actif { get; set; } = true;
+
+      [Required]
+      [StringLength(8, MinimumLength =6)]
+      public string Password { get; set; } = string.Empty;
 }
+

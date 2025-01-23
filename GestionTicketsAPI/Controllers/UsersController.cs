@@ -9,7 +9,7 @@ namespace GestionTicketsAPI.Controllers;
 
 public class UsersController(DataContext context) : BaseApiController
     {
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
@@ -27,6 +27,14 @@ public class UsersController(DataContext context) : BaseApiController
           if (user == null) return NotFound();
 
           return user;
+        }
+
+        [Authorize]
+        [HttpGet("pays")]
+        public async Task<ActionResult<IEnumerable<Pays>>> GetPays()
+        {
+            var pays = await context.Pays.ToListAsync();
+            return pays;
         }
 }
 

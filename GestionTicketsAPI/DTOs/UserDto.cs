@@ -4,9 +4,12 @@ namespace GestionTicketsAPI.DTOs;
 
 public class UserDto
 {
-  public required string Email { get; set; }      
-  public required string Role { get; set; }
-  public required string Firstname { get; set; }
-  public required string Lastname { get; set; }
-  public required string Token { get; set; }
+    public required string Email { get; set; }
+    public required string Role { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public required string NumTelephone { get; set; }
+    public required string Pays { get; set; }
+    public required bool Actif { get; set; }
+    public required string Token { get; set; }
 }
