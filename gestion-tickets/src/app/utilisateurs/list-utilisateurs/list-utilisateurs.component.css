@@ -1,0 +1,244 @@
+
+
+
+/* Container styles */
+.container {
+  padding: 50px 0px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-user-btn {
+  background-color: #fa9745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin-bottom: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.add-user-btn:hover {
+  background-color: #f38932;
+}
+
+.material-icons {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+h2 {
+  color: #333;
+  font-size: 1.7rem;
+  margin-bottom: 40px;
+  font-weight: 500;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: #f8f9fa;
+}
+
+th {
+  text-align: left;
+  padding: 12px 15px;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+}
+
+td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+/* Role badges */
+.role {
+  padding: 4px 8px;
+  font-weight: 500;
+  font-size: 0.9em;
+  background-color: #fce0c4;
+  color: #704b30;
+  border-radius: 14px;
+}
+
+
+
+
+
+/* Status indicators */
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.status.active {
+  color: #4caf50;
+}
+
+.status.inactive {
+  color: #f44336;
+}
+
+/* Action buttons */
+.edit-btn, .delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: 0 4px;
+  font-size: 1.1em;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.edit-btn:hover, .delete-btn:hover {
+  opacity: 1;
+}
+
+/* Contract icon */
+.contract-icon {
+  color: #666;
+  font-size: 1.1em;
+}
+
+/* Search bar styles */
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-container input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 250px;
+}
+
+
+
+.checkbox-column {
+  width: 40px;
+  text-align: center;
+  padding: 20px 25px !important;
+}
+
+/* Custom checkbox styles */
+.checkbox-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-label {
+  position: relative;
+  display: inline-block;
+  height: 18px;
+  width: 18px;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox:checked + .checkbox-label {
+  background-color: #f57c00;
+  border-color: #f57c00;
+}
+
+.custom-checkbox:checked + .checkbox-label::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label:hover {
+  border-color: #f57c00;
+}
+
+.filter-row {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eee;
+}
+
+.filter-actions {
+  text-align: right;
+  padding: 8px 15px;
+}
+
+.filter-btn, .view-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 8px;
+  border-radius: 4px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover, .view-btn:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.view-btn.active {
+  background-color: #f5f5f5;
+  color: #f57c00;
+}
+
+/* Import Material Icons */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+.material-icons {
+  font-size: 25px;
+  vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  td, th {
+    padding: 8px;
+  }
+  
+  .role {
+    padding: 2px 6px;
+  }
+}

@@ -1,0 +1,127 @@
+<!-- user-form.component.html -->
+<div class="form-container">
+  <h2>Créer Utilisateur</h2>
+
+  <form [formGroup]="registerForm" (ngSubmit)="register()">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="lastName">Nom <span class="required">*</span></label>
+        <input id="lastName" type="text" formControlName="lastName">
+      </div>
+
+      <div class="form-group">
+        <label for="firstName">Prénom <span class="required">*</span></label>
+        <input id="firstName" type="text" formControlName="firstName">
+      </div>
+
+
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input id="email" type="email" formControlName="email">
+      </div>
+      <div class="form-group">
+        <label for="pays">Pays <span class="required">*</span></label>
+        <select id="pays" formControlName="pays" class="form-control">
+          <option value="" disabled selected>-- Sélectionnez un pays --</option>
+          <option *ngFor="let pays of paysList" [value]="pays.idPays">{{ pays.nom }}</option>
+        </select>
+        <div *ngIf="registerForm.controls['pays'].invalid && registerForm.controls['pays'].touched" class="error">
+          Veuillez sélectionner un pays.
+        </div>
+      </div>
+      
+    </div>
+    <div class="form-row">
+
+      <div class="form-group">
+        <label for="role">Role <span class="required">*</span></label>
+        <select id="role" formControlName="role">
+          <option value="">Sélectionnez une option</option>
+          <option value="superAdmin">Super Admin</option>
+          <option value="chefProjet">Chef de Projet</option>
+          <option value="client">Client</option>
+          <option value="developpeur">Développeur</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="societe">Société <span class="required">*</span></label>
+        <select id="societe" formControlName="societe">
+          <option value="">Sélectionnez une option</option>
+          <option value="superAdmin">SIMSOFT</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="password">Mot de passe <span class="required">*</span></label>
+        <div class="password-container">
+          <input 
+            id="password" 
+            type="{{ passwordVisible ? 'text' : 'password' }}" 
+            formControlName="password">
+          <i 
+            class="fa" 
+            [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'" 
+            (click)="togglePasswordVisibility()"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="numTelephone">Numéro de Téléphone <span class="required">*</span></label>
+        <input id="numTelephone" type="tel" formControlName="numTelephone">
+      </div>
+
+
+    </div>
+
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="confirmPassword">Confirmer le mot de passe <span class="required">*</span></label>
+        <div class="password-container">
+          <input 
+            id="confirmPassword" 
+            type="{{ confirmPasswordVisible ? 'text' : 'password' }}" 
+            formControlName="confirmPassword">
+          <i 
+            class="fa" 
+            [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'" 
+            (click)="toggleConfirmPasswordVisibility()"></i>
+        </div>
+      </div>
+    
+
+      <div class="form-group toggle-container">
+        <div class="toggle-row">
+          <div class="toggle-group">
+            <label for="actif">Actif <span class="required">*</span></label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="actif" formControlName="actif">
+              <label for="actif" class="toggle-label"></label>
+            </div>
+          </div>
+          <div class="toggle-group">
+            <label for="contrat">Contrat <span class="required">*</span></label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="contrat" formControlName="contrat">
+              <label for="contrat" class="toggle-label"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <div class="button-group">
+      <button type="submit" class="btn-create">Créer</button>
+      <button type="button" class="btn-add">Créer & Ajouter un autre</button>
+      <button type="button" class="btn-cancel" routerLink="/utilisateurs">Annuler</button>
+    </div>
+  </form>
+</div>

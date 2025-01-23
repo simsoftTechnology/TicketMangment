@@ -1,0 +1,17 @@
+<div class="container mt-4">
+  <h4>Erreur interne du serveur</h4>
+  @if (error) {
+      <h5 class="text-danger">Erreur : {{error.message}}</h5>
+      <p class="font-weight-bold">Remarque : Si vous voyez cette erreur, Angular n'en est pas la cause !</p>
+      <p>Que faire ensuite ?</p>
+      <ol>
+          <li>Ouvrez les outils de développement de Chrome et vérifiez la requête échouée dans l'onglet Réseau</li>
+          <li>Examinez l'URL de la requête échouée</li>
+          <li>Reproduisez l'erreur dans Postman - si vous pouvez reproduire l'erreur, alors Angular n'est pas en cause</li>
+      </ol>
+      <p class="font-weight-bold">Voici la trace de la pile - vérifiez les 2 premières lignes, elles vous indiqueront exactement quelle ligne de code a causé le problème !</p>
+      <code class="mt-5" style="background-color: whitesmoke; display: block; padding: 15px; border-radius: 5px;">
+          {{error.details}}
+      </code>
+  }
+</div>

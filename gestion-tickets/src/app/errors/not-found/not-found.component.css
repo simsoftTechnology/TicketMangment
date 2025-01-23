@@ -1,0 +1,53 @@
+/* Styles globaux pour la page */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #fff;
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: flex-start; /* Aligne à gauche */
+  align-items: flex-start;    /* Aligne en haut */
+  padding: 20px 0 0 0;        /* Enlève l'espace à droite et en bas */
+}
+
+/* Style pour le conteneur */
+.container {
+  position: absolute;  /* Position absolue pour le placer contre le bord gauche */
+  left: 0;              /* Colle le conteneur au bord gauche de la page */
+  top: 20px;            /* Un petit espacement par rapport au haut */
+  text-align: left;     /* Aligne le texte à gauche */
+}
+
+/* Style pour le titre */
+h1 {
+  font-size: 100px;
+  font-weight: bold;
+  color: #202124;
+  margin: 0;
+}
+
+/* Style pour le sous-titre */
+h2 {
+  font-size: 24px;
+  color: #5f6368;
+  margin-top: 10px;
+}
+
+/* Style pour tout texte supplémentaire */
+p {
+  font-size: 16px;
+  color: #5f6368;
+  margin-top: 10px;
+}
+
+/* Style pour les liens */
+a {
+  color: #1a73e8;
+  text-decoration: none;
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+a:hover {
+  text-decoration: underline;
+}

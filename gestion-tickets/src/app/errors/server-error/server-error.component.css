@@ -1,0 +1,19 @@
+/* Ajoute une marge à gauche et du padding */
+.container {
+  margin-left: 20px;  /* Marge à gauche */
+}
+
+/* Responsivité : styles pour les petits écrans */
+@media (max-width: 768px) {
+  .container {
+      margin-left: 10px;  /* Réduit la marge à gauche sur les petits écrans */
+  }
+  
+  h4, h5, p, ol, code {
+      font-size: 14px;  /* Réduit la taille de la police sur les petits écrans */
+  }
+  
+  ol {
+      padding-left: 20px;  /* Espacement à gauche pour les éléments de la liste */
+  }
+}

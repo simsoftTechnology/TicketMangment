@@ -1,0 +1,87 @@
+<div class="container">
+  <div class="header">
+    <h2>Liste des utilisateurs</h2>
+    <button class="add-user-btn" routerLink="/AjouterUtilisateur">
+      <span class="material-icons" >person_add</span> Ajouter 
+    </button>
+  </div>
+  <table>
+    <thead>
+    <!-- Filter row -->
+    <tr class="filter-row">
+      <td class="checkbox-column"></td> <!-- Ajout de la cellule pour la colonne checkbox -->
+      <td colspan="5"></td>
+      <td colspan="3" class="filter-actions">
+        <button class="filter-btn">
+          <span class="material-icons">filter_list</span>
+        </button>
+        <button class="view-btn">
+          <span class="material-icons">grid_view</span>
+        </button>
+        <button class="view-btn active">
+          <span class="material-icons">view_list</span>
+        </button>
+      </td>
+    </tr>
+    
+      <tr>
+        <th class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" 
+                   id="selectAll" 
+                   class="custom-checkbox" 
+                   (change)="selectAll($event)">
+            <label for="selectAll" class="checkbox-label"></label>
+          </div>
+        </th>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Rôle</th>
+        <th>Actif</th>
+        <th>Contrat</th>
+        <th>Date Début</th>
+        <th>Date fin</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users; let i = index">
+        <td class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox"
+                   [id]="'user' + i"
+                   class="custom-checkbox"
+                   [(ngModel)]="user.selected"
+                   (change)="toggleSelection(user)">
+            <label [for]="'user' + i" class="checkbox-label"></label>
+          </div>
+        </td>
+        <td>{{ user.firstName }} {{ user.lastName }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+          <span class="role" [ngClass]="getRoleClass(user.role)">
+            {{ user.role }}
+          </span>
+        </td>
+        <td>
+          <span *ngIf="user.actif" class="status active">✔</span>
+          <span *ngIf="!user.actif" class="status inactive">✘</span>
+        </td>
+        <td>
+          <span *ngIf="user.contrat" class="status active">✔</span>
+          <span *ngIf="!user.contrat" class="status inactive">✘</span>
+        </td>
+        <td>
+          <span *ngIf="user.contrat" class="contract-icon">📄</span>
+        </td>
+        <td>
+          <span *ngIf="user.contrat" class="contract-icon">📄</span>
+        </td>
+        <td>
+          <button class="edit-btn">✏</button>
+          <button class="delete-btn">🗑</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
