@@ -1,0 +1,84 @@
+[33mcommit 403905563ac1c799dab352fe02ebcbe2197129b0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Dhouha36 <dhouha.regaieg@gmail.com>
+Date:   Thu Jan 23 12:22:50 2025 +0100
+
+    third
+
+ GestionTicketsAPI/Controllers/AccountController.cs | 126 [32m++++++++++++[m[31m---------[m
+ GestionTicketsAPI/Controllers/BuggyController.cs   |  42 [32m+++++++[m
+ GestionTicketsAPI/Controllers/UsersController.cs   |  10 [32m+[m[31m-[m
+ GestionTicketsAPI/DTOs/RegisterDto.cs              |  22 [32m+++[m[31m-[m
+ GestionTicketsAPI/DTOs/UserDto.cs                  |  13 [32m++[m[31m-[m
+ GestionTicketsAPI/Data/DataContext.cs              |  16 [32m+++[m
+ GestionTicketsAPI/Entities/Pays.cs                 |  15 [32m+++[m
+ GestionTicketsAPI/Entities/User.cs                 |  14 [32m++[m[31m-[m
+ GestionTicketsAPI/Errors/ApiException.cs           |  10 [32m++[m
+ GestionTicketsAPI/Interfaces/IUserRepository.cs    |  11 [32m++[m
+ .../Middleware/ExceptionMiddleware.cs              |  36 [32m++++++[m
+ GestionTicketsAPI/Program.cs                       |   3 [32m+[m
+ GestionTicketsAPI/Properties/launchSettings.json   |   2 [32m+[m[31m-[m
+ 13 files changed, 253 insertions(+), 67 deletions(-)
+
+[33mcommit ddc92e97b7801c6298a02f2f6bbb3edb2110a0f9[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Dhouha36 <dhouha.regaieg@gmail.com>
+Date:   Sat Jan 18 16:54:38 2025 +0100
+
+    second
+
+ .vscode/launch.json                                | 21 [32m++++++[m
+ GestionTicketsAPI/Controllers/AccountController.cs | 80 [32m++++++++++++++++++++++[m
+ GestionTicketsAPI/Controllers/AuthController.cs    | 42 [31m------------[m
+ GestionTicketsAPI/Controllers/BaseApiController.cs | 12 [32m++++[m
+ GestionTicketsAPI/Controllers/UsersController.cs   | 16 [32m++[m[31m---[m
+ GestionTicketsAPI/DTOs/LoginDto.cs                 |  9 [32m+++[m
+ GestionTicketsAPI/DTOs/RegisterDto.cs              | 18 [32m+++++[m
+ GestionTicketsAPI/DTOs/UserDto.cs                  | 12 [32m++++[m
+ .../20250117182938_UserEntityUpdated.Designer.cs   | 61 [32m+++++++++++++++++[m
+ .../Migrations/20250117182938_UserEntityUpdated.cs | 46 [32m+++++++++++++[m
+ .../Data/Migrations/DataContextModelSnapshot.cs    |  8 [32m++[m[31m-[m
+ GestionTicketsAPI/Entities/User.cs                 |  3 [32m+[m[31m-[m
+ .../Extensions/ApplicationServiceExtensions.cs     | 27 [32m++++++++[m
+ .../Extensions/IdentityServiceExtensions.cs        | 27 [32m++++++++[m
+ GestionTicketsAPI/GestionTicketsAPI.csproj         |  2 [32m+[m[31m-[m
+ GestionTicketsAPI/Interfaces/ITokenService.cs      |  9 [32m+++[m
+ GestionTicketsAPI/Program.cs                       | 21 [32m+++[m[31m---[m
+ GestionTicketsAPI/Services/TokenService.cs         | 38 [32m++++++++++[m
+ GestionTicketsAPI/appsettings.Development.json     |  3 [32m+[m
+ GestionTicketsAPI/sevices/JwtService.cs            | 36 [31m----------[m
+ 20 files changed, 388 insertions(+), 103 deletions(-)
+
+[33mcommit 7e3cdf499a2138b358001b5a4fd052f401315a48[m
+Author: Dhouha36 <dhouha.regaieg@gmail.com>
+Date:   Fri Jan 17 19:23:35 2025 +0100
+
+    second
+
+ GestionTicketsAPI/Program.cs | 3 [32m+++[m
+ 1 file changed, 3 insertions(+)
+
+[33mcommit 7851a2433f13e482f1e0f0f7801f52a1a52b7073[m
+Author: Dhouha36 <dhouha.regaieg@gmail.com>
+Date:   Fri Jan 17 18:29:48 2025 +0100
+
+    first
+
+ .gitignore                                         | 485 [32m+++++++++++++++++++++[m
+ .vscode/settings.json                              |   1 [32m+[m
+ GestionTickets.sln                                 |  22 [32m+[m
+ GestionTicketsAPI/Controllers/AuthController.cs    |  42 [32m++[m
+ GestionTicketsAPI/Controllers/UsersController.cs   |  32 [32m++[m
+ .../Controllers/WeatherForecastController.cs       |  32 [32m++[m
+ GestionTicketsAPI/Data/DataContext.cs              |  11 [32m+[m
+ .../20250117155526_InitialCreate.Designer.cs       |  57 [32m+++[m
+ .../Migrations/20250117155526_InitialCreate.cs     |  48 [32m++[m
+ .../Data/Migrations/DataContextModelSnapshot.cs    |  54 [32m+++[m
+ GestionTicketsAPI/Entities/User.cs                 |  13 [32m+[m
+ GestionTicketsAPI/GestionTicketsAPI.csproj         |  19 [32m+[m
+ GestionTicketsAPI/GestionTicketsAPI.http           |   6 [32m+[m
+ GestionTicketsAPI/Program.cs                       |  32 [32m++[m
+ GestionTicketsAPI/Properties/launchSettings.json   |  41 [32m++[m
+ GestionTicketsAPI/WeatherForecast.cs               |  12 [32m+[m
+ GestionTicketsAPI/appsettings.Development.json     |   8 [32m+[m
+ GestionTicketsAPI/sevices/JwtService.cs            |  36 [32m++[m
+ gestion-tickets                                    |   1 [32m+[m
+ 19 files changed, 952 insertions(+)

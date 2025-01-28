@@ -12,4 +12,8 @@ public class Pays
   [Required]
   [StringLength(100, ErrorMessage = "Le nom du pays ne peut pas dépasser 100 caractères.")]
   public string Nom { get; set; } = string.Empty;
+
+  public ICollection<User>? Utilisateurs { get; set; }
+
+  public Photo? paysPhoto { get; set;}
 }

@@ -229,16 +229,113 @@ td {
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1200px) {
   .container {
+    padding: 30px 15px;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  th, td {
     padding: 10px;
   }
-  
-  td, th {
+}
+
+@media (max-width: 992px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .add-user-btn {
+    margin-top: 15px;
+    width: 100%;
+  }
+
+  .search-container input {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  th, td {
     padding: 8px;
   }
-  
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px 10px;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
   .role {
     padding: 2px 6px;
+    font-size: 0.7em;
+  }
+
+  .edit-btn, .delete-btn {
+    font-size: 1em;
+    padding: 2px 4px;
   }
 }
+
+@media (max-width: 576px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-container, .add-user-btn {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  table {
+    font-size: 0.75rem;
+  }
+
+  th, td {
+    padding: 4px;
+  }
+
+  .status {
+    width: 20px;
+    height: 20px;
+  }
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+/* Additional responsive tweaks */
+.checkbox-column {
+  width: auto;
+  text-align: center;
+  padding: 10px !important;
+}
+
+/* Ensure input fields are responsive */
+input, select, button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+

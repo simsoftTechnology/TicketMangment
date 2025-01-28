@@ -6,6 +6,32 @@
   font-weight: 500;
 }
 
+/* Style global pour harmoniser les champs de formulaire */
+.form-container input,
+.form-container select,
+.form-container textarea {
+  border: 1px solid rgb(184, 183, 183); /* Bordure noire par défaut */
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none; /* Supprime la bordure bleue au focus */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Style au focus (tous les champs auront une bordure noire ou une bordure personnalisée au focus) */
+.form-container input:focus,
+.form-container select:focus,
+.form-container textarea:focus {
+  border-color: black; /* Bordure noire */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Effet ombré */
+}
+
+/* Optionnel : ajouter un style spécifique pour les champs invalides */
+.form-container input.is-invalid,
+.form-container select.is-invalid {
+  border-color: rgb(232, 2, 2);;
+}
+
 h2 {
   margin-bottom: 2rem;
   font-weight: 500;
@@ -149,10 +175,7 @@ input:checked + .toggle-label:before {
   background-color: #f5f5f5;
 }
 
-/* Styles pour les champs invalides */
-input.ng-invalid.ng-touched {
-  border-color: red;
-}
+
 
 
 .password-container {

@@ -1,0 +1,25 @@
+
+<div>
+  
+  <input 
+      [class.is-invalid]="control.touched && control.invalid"
+      [type]="type()"
+      class="form-control"
+      [formControl]="control"
+      placeholder={{label()}}
+  >
+  
+  <div *ngIf="control.hasError('required')" 
+    class="invalid-feedback text-start">{{label()}} est obligatoire</div>
+  <div *ngIf="control.hasError('minlength')" 
+    class="invalid-feedback text-start">
+      {{label()}} doit avoir au moins {{control.errors?.['minlength'].requiredLength}} charactéres
+  </div>
+  <div *ngIf="control.hasError('maxlength')" 
+    class="invalid-feedback text-start">
+    {{label()}} doit avoir au plus {{control.errors?.['maxlength'].requiredLength}} charactéres
+  </div>
+  <div *ngIf="control.hasError('isMatching')" 
+    class="invalid-feedback text-start">
+    Les mots de passe ne sont pas identiques
+  </div>

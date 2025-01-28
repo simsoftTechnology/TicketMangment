@@ -11,6 +11,9 @@ import { ServerErrorComponent } from './errors/server-error/server-error.compone
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { ListUtilisateursComponent } from './utilisateurs/list-utilisateurs/list-utilisateurs.component';
 import { AjouterUtilisateurComponent } from './utilisateurs/ajouter-utilisateur/ajouter-utilisateur.component';
+import { PaysComponent } from './PaysFile/pays/pays.component';
+import { ModifierPaysComponent } from './PaysFile/modifier-pays/modifier-pays.component';
+import { AjouterPaysComponent } from './PaysFile/ajouter-pays/ajouter-pays.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -27,6 +30,9 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'utilisateurs', component: ListUtilisateursComponent},
       { path: 'AjouterUtilisateur', component: AjouterUtilisateurComponent},
+      { path: 'Pays', component: PaysComponent},
+      { path: 'ajouterPays', component: AjouterPaysComponent},
+      { path : 'ModifierPays/:id', component: ModifierPaysComponent},
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ]
   },

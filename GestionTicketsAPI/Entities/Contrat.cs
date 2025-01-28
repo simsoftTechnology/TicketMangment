@@ -1,0 +1,43 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace GestionTicketsAPI.Entities;
+
+public class Contrat
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public DateTime DateDebut { get; set; }
+
+    public DateTime? DateFin { get; set; }
+
+    [Required]
+    [StringLength(100)]
+    public string Type { get; set; } = "Standard"; // Exemple : Standard, Premium, etc.
+
+    // Pour différencier les types de contrats (Client-Société ou Société-Société)
+    [Required]
+    [StringLength(50)]
+    public string TypeContrat { get; set; } = "Client-Societe"; // "Client-Societe" ou "Societe-Societe"
+
+    // Clé étrangère pour une société
+    [Required]
+    [ForeignKey("SocieteInitiatrice")]
+    public int SocieteInitiatriceId { get; set; }
+
+    public Societe? SocieteInitiatrice { get; set; }
+
+    // Clé étrangère pour une société partenaire (si le contrat est entre deux sociétés)
+    [ForeignKey("SocietePartenaire")]
+    public int? SocietePartenaireId { get; set; }
+
+    public Societe? SocietePartenaire { get; set; }
+
+    // Clé étrangère pour un client (si le contrat est entre une société et un client)
+    [ForeignKey("Client")]
+    public int? ClientId { get; set; }
+
+    public User? Client { get; set; }
+}

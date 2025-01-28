@@ -4,11 +4,12 @@ import { Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../_services/account.service';
 import { CommonModule } from '@angular/common';
 import { Pays } from '../../_models/pays';
+import { TextInputComponent } from '../../_forms/text-input/text-input.component';
 
 @Component({
   selector: 'app-ajouter-utilisateur',
   standalone: true,
-  imports: [ ReactiveFormsModule, RouterLink, CommonModule ],
+  imports: [ ReactiveFormsModule, RouterLink, CommonModule],
   templateUrl: './ajouter-utilisateur.component.html',
   styleUrl: './ajouter-utilisateur.component.css'
 })
@@ -39,11 +40,17 @@ export class AjouterUtilisateurComponent implements OnInit {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       pays: [null, Validators.required],
-      numTelephone: ['', Validators.required],
+      numTelephone: [
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^[+]?[\d\s-]{6,15}$/), // Numéro de téléphone valide : peut inclure "+" au début, chiffres, espaces, tirets
+        ],
+      ],
       role: ['', Validators.required],
       actif: [false],
       contrat: [false],
-      password: ['', [Validators.required, Validators.minLength(4), 
+      password: ['', [Validators.required, Validators.minLength(6), 
           Validators.maxLength(8)]],
       confirmPassword: ['', [Validators.required, this.matchValues('password')]],
     });
