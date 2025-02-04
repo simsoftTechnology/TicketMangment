@@ -1,32 +1,45 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { PaysService } from '../../_services/pays.service';
-import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router'; // Importer Router et ActivatedRoute
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { Pays } from '../../_models/pays';
 
 @Component({
   selector: 'app-modifier-pays',
   standalone: true,
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './modifier-pays.component.html',
   styleUrl: './modifier-pays.component.css',
 })
 export class ModifierPaysComponent implements OnInit {
-  paysUpdateDto = { nom: '' };
-  selectedFile: File | null = null;
-  paysId: number | null = null; // Variable pour stocker l'ID du pays
+  paysForm: FormGroup;
+  selectedFile: File | undefined;
+  paysId: number | null = null;
+  originalPays: Pays | null = null; // Stocker les données originales
 
   constructor(
+    private fb: FormBuilder,
     private paysService: PaysService,
     private router: Router,
-    private route: ActivatedRoute // Injecter ActivatedRoute pour accéder aux paramètres de l'URL
-  ) {}
+    private route: ActivatedRoute
+  ) {
+    this.paysForm = this.fb.group({
+      nom: [''],
+      file: [null],
+    });
+  }
 
   ngOnInit(): void {
-    // Récupérer l'ID du pays depuis l'URL
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
       if (id) {
-        this.paysId = +id; // Convertir l'ID en nombre
+        this.paysId = +id;
+        this.paysService.getPaysById(this.paysId).subscribe((pays: Pays) => {
+          this.originalPays = { ...pays }; // Copie des données originales
+          this.paysForm.patchValue({
+            nom: pays.nom,
+          });
+        });
       }
     });
   }
@@ -36,19 +49,30 @@ export class ModifierPaysComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.paysId === null) {
-      alert("Impossible de mettre à jour : l'ID du pays est introuvable.");
+    if (this.paysId === null || !this.originalPays) return;
+  
+    // Détecter les changements
+    const hasNomChanged = this.paysForm.value.nom.trim() !== this.originalPays.nom.trim();
+    const hasFileChanged = !!this.selectedFile;
+  
+    // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
+    if (!hasNomChanged && !hasFileChanged) {
+      this.router.navigate(['/Pays']);
       return;
     }
-
-    if (this.selectedFile) {
-      this.paysService.updatePays(this.paysId, this.paysUpdateDto, this.selectedFile).subscribe(() => {
-        this.router.navigate(['/Pays']); // Redirection vers /pays après mise à jour
-      });
-    } else {
-      this.paysService.updatePays(this.paysId, this.paysUpdateDto).subscribe(() => {
-        this.router.navigate(['/Pays']); // Redirection vers /pays après mise à jour
-      });
-    }
+  
+    // Toujours inclure le nom, même s'il n'a pas changé
+    const paysUpdateDto: any = {
+      nom: this.paysForm.value.nom || this.originalPays.nom, // Conserver l'ancien nom si non modifié
+    };
+  
+    // Envoyer le fichier seulement s'il a été modifié
+    const fileToSend = hasFileChanged ? this.selectedFile : undefined;
+  
+    this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
+      this.router.navigate(['/Pays']);
+    });
   }
+  
+  
 }

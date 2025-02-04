@@ -50,6 +50,30 @@ namespace GestionTicketsAPI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Photos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Url = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PublicId = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PaysId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Photos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Photos_Pays_PaysId",
+                        column: x => x.PaysId,
+                        principalTable: "Pays",
+                        principalColumn: "id_pays",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Projets",
                 columns: table => new
                 {
@@ -57,13 +81,18 @@ namespace GestionTicketsAPI.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nom = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    DateDebut = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    DateFin = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    SocieteId = table.Column<int>(type: "int", nullable: false)
+                    SocieteId = table.Column<int>(type: "int", nullable: false),
+                    id_pays = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Projets", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Projets_Pays_id_pays",
+                        column: x => x.id_pays,
+                        principalTable: "Pays",
+                        principalColumn: "id_pays",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Projets_Societes_SocieteId",
                         column: x => x.SocieteId,
@@ -180,6 +209,33 @@ namespace GestionTicketsAPI.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "ProjetUser",
+                columns: table => new
+                {
+                    ProjetId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Role = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProjetUser", x => new { x.ProjetId, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_ProjetUser_Projets_ProjetId",
+                        column: x => x.ProjetId,
+                        principalTable: "Projets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ProjetUser_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Tickets",
                 columns: table => new
                 {
@@ -277,9 +333,25 @@ namespace GestionTicketsAPI.Migrations
                 column: "UtilisateurId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Photos_PaysId",
+                table: "Photos",
+                column: "PaysId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Projets_id_pays",
+                table: "Projets",
+                column: "id_pays");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Projets_SocieteId",
                 table: "Projets",
                 column: "SocieteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProjetUser_UserId",
+                table: "ProjetUser",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tickets_ProjetId",
@@ -296,6 +368,10 @@ namespace GestionTicketsAPI.Migrations
                 table: "Users",
                 column: "Pays");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_PaysIdPays",
+                table: "Users",
+                column: "PaysIdPays");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_SocieteId",
@@ -314,6 +390,12 @@ namespace GestionTicketsAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Notifications");
+
+            migrationBuilder.DropTable(
+                name: "Photos");
+
+            migrationBuilder.DropTable(
+                name: "ProjetUser");
 
             migrationBuilder.DropTable(
                 name: "Tickets");

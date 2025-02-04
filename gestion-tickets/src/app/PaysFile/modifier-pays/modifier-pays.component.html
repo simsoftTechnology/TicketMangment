@@ -1,26 +1,30 @@
 <div class="update-form">
   <h2>Modifier le pays</h2>
-  <form (ngSubmit)="onSubmit()">
+  <form [formGroup]="paysForm" (ngSubmit)="onSubmit()">
+    <!-- Champ Nom -->
     <div class="form-group">
       <label for="nom">Nom du pays</label>
-      <input
-        type="text"
-        id="nom"
-        [(ngModel)]="paysUpdateDto.nom"
-        name="nom"
+      <input 
+        type="text" 
+        id="nom" 
+        formControlName="nom" 
         class="form-control"
-        required
       />
     </div>
+
+    <!-- Champ Fichier -->
     <div class="form-group">
       <label for="file">Photo du pays</label>
-      <input
-        type="file"
-        id="file"
-        (change)="onFileSelected($event)"
+      <input 
+        type="file" 
+        id="file" 
+        (change)="onFileSelected($event)" 
         class="form-control"
       />
     </div>
+
+    <!-- Boutons -->
     <button type="submit" class="btn btn-primary">Mettre à jour</button>
+    <button class="btn btn-secondary" routerLink="/Pays">Annuler</button>
   </form>
 </div>

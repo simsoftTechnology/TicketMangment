@@ -1,0 +1,134 @@
+.dialog-container {
+  width: 600px; /* Augmenté de 400px à 600px */
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dialog-header {
+  padding: 24px 30px; /* Augmenté de 16px 20px */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.dialog-header span {
+  font-size: 20px; /* Augmenté de 16px */
+  font-weight: 500;
+  color: #333;
+}
+
+.close-button {
+  border: none;
+  background: none;
+  font-size: 24px; /* Augmenté de 20px */
+  cursor: pointer;
+  color: #666;
+}
+
+.dialog-content {
+  padding: 30px; /* Augmenté de 20px */
+}
+
+.search-container {
+  width: 100%;
+}
+
+.search-field {
+  width: 100%;
+  padding: 15px 18px; /* Augmenté de 10px 12px */
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: white;
+  font-size: 16px; /* Ajouté pour augmenter la taille du texte */
+}
+
+.search-field:hover {
+  border-color: #ccc;
+}
+
+.dropdown-arrow {
+  color: #666;
+  font-size: 14px; /* Augmenté de 12px */
+}
+
+/* Styles pour le dropdown */
+.dropdown-container {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 540px;
+  overflow: hidden;
+}
+
+.search-input {
+  padding: 18px; /* Augmenté de 12px */
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 12px; /* Augmenté de 8px */
+  border: none;
+  outline: none;
+  font-size: 16px; /* Augmenté de 14px */
+}
+
+.options-list {
+  max-height: 400px; /* Augmenté de 300px */
+  overflow-y: auto;
+}
+
+.option-item {
+  padding: 16px 24px; /* Augmenté de 12px 16px */
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: 16px; /* Ajouté pour augmenter la taille du texte */
+}
+
+.option-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Style pour l'option "Super Admin" */
+.option-item:first-child {
+  background-color: #f4811e;
+  color: white;
+}
+
+.no-result {
+  padding: 16px 24px; /* Augmenté de 12px 16px */
+  color: #666;
+  text-align: center;
+  font-size: 16px; /* Ajouté pour augmenter la taille du texte */
+}
+
+.confirm-container {
+  margin-top: 30px; /* Augmenté de 20px */
+  text-align: right;
+}
+
+.confirm-button {
+  background-color: #f4811e;
+  color: white;
+  border: none;
+  padding: 12px 24px; /* Augmenté de 8px 16px */
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 16px; /* Ajouté pour augmenter la taille du texte */
+}
+
+.confirm-button:hover {
+  background-color: #e67816;
+}
+
+/* Style pour le backdrop transparent */
+.transparent-backdrop {
+  background: transparent;
+}

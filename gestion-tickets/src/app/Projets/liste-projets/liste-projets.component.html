@@ -1,0 +1,71 @@
+<div class="container">
+  <div class="header">
+    <h2>Liste des projets</h2>
+    <button class="add-user-btn" routerLink="/Projets/ajouterProjet">
+      <span class="material-icons">add</span> Ajouter
+    </button>
+  </div>
+  <table>
+    <thead>
+      <!-- Filter row -->
+      <tr class="filter-row">
+        <td class="checkbox-column"></td> <!-- Ajout de la cellule pour la colonne checkbox -->
+        <td colspan="3"></td>
+        <td colspan="3" class="filter-actions">
+          <button class="filter-btn">
+            <span class="material-icons">filter_list</span>
+          </button>
+          <button class="view-btn">
+            <span class="material-icons">grid_view</span>
+          </button>
+          <button class="view-btn active">
+            <span class="material-icons">view_list</span>
+          </button>
+        </td>
+      </tr>
+
+      <tr>
+        <th class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="selectAll" class="custom-checkbox" (change)="selectAll($event)">
+            <label for="selectAll" class="checkbox-label"></label>
+          </div>
+        </th>
+        <th>Nom du projet</th>
+        <th>Nom du pays</th>
+        <th>Nom de la société</th>
+        <th><button class="delete-btn">
+            <span class="material-icons">delete</span>
+          </button></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let projet of projets; let i = index">
+        <td class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" [id]="'user' + i" class="custom-checkbox" [(ngModel)]="projet.selected"
+              (change)="toggleSelection(projet)">
+            <label [for]="'user' + i" class="checkbox-label"></label>
+          </div>
+        </td>
+        <td>{{ projet.nom }}</td>
+        <td>{{ projet.nomPays || 'Non défini' }}</td>
+        <td>{{ projet.nomSociete || 'Non défini' }}</td>
+        <td class="actions">
+          <!-- Bouton Voir (Icône œil) -->
+          <button class="view-btn" [routerLink]="['/projets/details', projet.id]">
+            <span class="material-icons">visibility</span>
+          </button>
+
+          <!-- Bouton Supprimer -->
+          <button class="delete-btn" (click)="deleteProjet(projet.id)">
+            <span class="material-icons">delete</span>
+          </button>
+
+          
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  
+</div>

@@ -1,5 +1,6 @@
 
-
+/* Import Material Icons */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
 /* Container styles */
 .container {
@@ -106,15 +107,30 @@ td {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px 8px;
-  margin: 0 4px;
-  font-size: 1.1em;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  font-size: 1.2rem;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.delete-btn {
+  color: red;
+}
+
+.edit-btn {
+  color: #f38932;
 }
 
 .edit-btn:hover, .delete-btn:hover {
-  opacity: 1;
+  color: #f07d1f;
+  transform: scale(1.1);
+}
+.delete-btn:hover {
+  color: rgb(232, 3, 3);
+  transform: scale(1.1);
+}
+
+.material-icons {
+  vertical-align: middle;
+  font-size: 20px;
 }
 
 /* Contract icon */
@@ -220,8 +236,7 @@ td {
   color: #f57c00;
 }
 
-/* Import Material Icons */
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
 
 .material-icons {
   font-size: 25px;

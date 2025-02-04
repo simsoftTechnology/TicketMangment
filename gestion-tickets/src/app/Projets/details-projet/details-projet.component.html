@@ -1,0 +1,180 @@
+<div class="form-container">
+  <!-- Affichage en mode lecture -->
+  <h1 *ngIf="!editMode && projet">{{ projet.nom }}</h1>
+  
+  <!-- En mode édition, on enveloppe le champ Nom dans une info-item pour un style cohérent -->
+  <div *ngIf="editMode" class="info-item edit-name-container">
+    <span class="info-label">Nom</span>
+    <input type="text" [(ngModel)]="projet.nom" class="edit-field edit-name" />
+  </div>
+
+  <!-- Informations du projet -->
+  <div class="project-info info-grid">
+    <div class="info-item">
+      <span class="info-label">Pays</span>
+      <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomPays }}</span>
+      <div *ngIf="editMode">
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('pays')">
+            <div class="selected-item">
+              {{ getPaysName(projet.idPays) || 'Sélectionner un pays' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher un pays..."
+                [(ngModel)]="searchPays"
+                (input)="filterItems('pays')"
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let pays of filteredPays"
+                class="option-item"
+                (click)="selectItem(pays, 'pays')"
+              >
+                {{ pays.nom }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Société -->
+    <div class="info-item">
+      <span class="info-label">Société</span>
+      <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomSociete }}</span>
+      <div *ngIf="editMode">
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('societe')">
+            <div class="selected-item">
+              {{ getSocieteName(projet.societeId) || 'Sélectionner une société' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher une société..."
+                [(ngModel)]="searchSociete"
+                (input)="filterItems('societe')"
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let societe of filteredSocietes"
+                class="option-item"
+                (click)="selectItem(societe, 'societe')"
+              >
+                {{ societe.nom }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="info-item full-width">
+      <span class="info-label">Description</span>
+      <span class="info-value" *ngIf="!editMode && projet">
+        {{ projet.description || 'Aucune description' }}
+      </span>
+      <textarea *ngIf="editMode" [(ngModel)]="projet.description" class="edit-field description"></textarea>
+    </div>
+  </div>
+
+  <!-- Boutons pour passer en mode édition / sauvegarder ou annuler -->
+  <div class="buttons">
+    <button *ngIf="!editMode" class="edit-btn" (click)="editMode = true">
+      Modifier
+    </button>
+    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()">
+      Enregistrer
+    </button>
+    <button *ngIf="editMode" class="delete-btn" (click)="cancelEdit()">
+      Annuler
+    </button>
+  </div>
+
+  <div class="section-header">
+    <h3>Membres du Projet</h3>
+  </div>
+
+  <!-- Tableau des membres -->
+  <table class="user-table">
+    <thead>
+      <!-- Ligne d'actions regroupées -->
+      <tr class="filter-row">
+        <td colspan="4">
+          <div class="header-actions">
+            <div class="left-actions">
+              <button class="add-user-btn" (click)="openUserSelector()">
+                <span class="material-icons">person_add</span>
+              </button>
+            </div>
+            <div class="right-actions">
+              <button class="filter-btn">
+                <span class="material-icons">filter_list</span>
+              </button>
+              <button class="view-btn">
+                <span class="material-icons">grid_view</span>
+              </button>
+              <button class="view-btn active">
+                <span class="material-icons">view_list</span>
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <!-- En-tête des colonnes -->
+      <tr>
+        <th class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="selectAll2" class="custom-checkbox" (change)="selectAll($event)">
+            <label for="selectAll2" class="checkbox-label"></label>
+          </div>
+        </th>
+        <th>Nom</th>
+        <th>Rôle</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </thead>
+    
+    <tbody>
+      <tr *ngFor="let membre of membres; let i = index">
+        <td class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" [id]="'membre' + i" class="custom-checkbox" [(ngModel)]="membre.selected"
+              (change)="toggleSelection(membre)">
+            <label [for]="'membre' + i" class="checkbox-label"></label>
+          </div>
+        </td>
+        <td>{{ membre.firstName }} {{ membre.lastName }}</td>
+        <td>
+          <span class="role">{{ membre.role }}</span>
+        </td>
+        <td class="actions">
+          <button class="delet-btn" (click)="removeUser(membre.userId)">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Boutons Supprimer et Retourner en dessous du tableau -->
+  <div class="buttons">
+    <button class="delete-btn" (click)="deleteProjet(projet.id)">
+      Supprimer
+    </button>
+    <button class="back-btn" routerLink="/Projets">
+      Retourner
+    </button>
+  </div>
+</div>

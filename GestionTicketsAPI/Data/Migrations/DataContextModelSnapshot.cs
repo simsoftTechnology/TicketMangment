@@ -47,7 +47,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("UtilisateurId");
 
-                    b.ToTable("Commentaires", (string)null);
+                    b.ToTable("Commentaires");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Contrat", b =>
@@ -89,7 +89,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("SocietePartenaireId");
 
-                    b.ToTable("Contrats", (string)null);
+                    b.ToTable("Contrats");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Notification", b =>
@@ -112,7 +112,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("UtilisateurId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Pays", b =>
@@ -129,7 +129,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasKey("IdPays");
 
-                    b.ToTable("Pays", (string)null);
+                    b.ToTable("Pays");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Photo", b =>
@@ -153,7 +153,7 @@ namespace GestionTicketsAPI.Migrations
                     b.HasIndex("PaysId")
                         .IsUnique();
 
-                    b.ToTable("Photos", (string)null);
+                    b.ToTable("Photos");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Projet", b =>
@@ -162,11 +162,12 @@ namespace GestionTicketsAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("DateDebut")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
 
-                    b.Property<DateTime?>("DateFin")
-                        .HasColumnType("datetime(6)");
+                    b.Property<int>("IdPays")
+                        .HasColumnType("int")
+                        .HasColumnName("id_pays");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -178,9 +179,32 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IdPays");
+
                     b.HasIndex("SocieteId");
 
-                    b.ToTable("Projets", (string)null);
+                    b.ToTable("Projets");
+                });
+
+            modelBuilder.Entity("GestionTicketsAPI.Entities.ProjetUser", b =>
+                {
+                    b.Property<int>("ProjetId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int")
+                        .HasColumnOrder(2);
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("ProjetId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ProjetUser");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Societe", b =>
@@ -205,7 +229,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Societes", (string)null);
+                    b.ToTable("Societes");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Ticket", b =>
@@ -249,7 +273,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("UtilisateurId");
 
-                    b.ToTable("Tickets", (string)null);
+                    b.ToTable("Tickets");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.User", b =>
@@ -306,7 +330,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("SocieteId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Commentaire", b =>
@@ -375,13 +399,40 @@ namespace GestionTicketsAPI.Migrations
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Projet", b =>
                 {
+                    b.HasOne("GestionTicketsAPI.Entities.Pays", "Pays")
+                        .WithMany()
+                        .HasForeignKey("IdPays")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("GestionTicketsAPI.Entities.Societe", "Societe")
                         .WithMany("Projets")
                         .HasForeignKey("SocieteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Pays");
+
                     b.Navigation("Societe");
+                });
+
+            modelBuilder.Entity("GestionTicketsAPI.Entities.ProjetUser", b =>
+                {
+                    b.HasOne("GestionTicketsAPI.Entities.Projet", "Projet")
+                        .WithMany("ProjetUsers")
+                        .HasForeignKey("ProjetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GestionTicketsAPI.Entities.User", "User")
+                        .WithMany("ProjetUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Projet");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Ticket", b =>
@@ -429,6 +480,8 @@ namespace GestionTicketsAPI.Migrations
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Projet", b =>
                 {
+                    b.Navigation("ProjetUsers");
+
                     b.Navigation("Tickets");
                 });
 
@@ -447,6 +500,8 @@ namespace GestionTicketsAPI.Migrations
             modelBuilder.Entity("GestionTicketsAPI.Entities.User", b =>
                 {
                     b.Navigation("Commentaires");
+
+                    b.Navigation("ProjetUsers");
 
                     b.Navigation("Tickets");
                 });

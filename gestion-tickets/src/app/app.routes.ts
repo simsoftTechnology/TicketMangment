@@ -14,6 +14,10 @@ import { AjouterUtilisateurComponent } from './utilisateurs/ajouter-utilisateur/
 import { PaysComponent } from './PaysFile/pays/pays.component';
 import { ModifierPaysComponent } from './PaysFile/modifier-pays/modifier-pays.component';
 import { AjouterPaysComponent } from './PaysFile/ajouter-pays/ajouter-pays.component';
+import { ListeProjetsComponent } from './Projets/liste-projets/liste-projets.component';
+import { ListeSocietesComponent } from './liste-societes/liste-societes.component';
+import { AjouterProjetComponent } from './Projets/ajouter-projet/ajouter-projet.component';
+import { DetailsProjetComponent } from './Projets/details-projet/details-projet.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -33,6 +37,10 @@ export const routes: Routes = [
       { path: 'Pays', component: PaysComponent},
       { path: 'ajouterPays', component: AjouterPaysComponent},
       { path : 'ModifierPays/:id', component: ModifierPaysComponent},
+      { path: 'Projets', component: ListeProjetsComponent},
+      { path: 'Projets/ajouterProjet', component: AjouterProjetComponent},
+      { path: 'projets/details/:id', component: DetailsProjetComponent },
+      { path: 'Societes', component: ListeSocietesComponent},
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ]
   },

@@ -77,10 +77,17 @@
         <td>
           <span *ngIf="user.contrat" class="contract-icon">📄</span>
         </td>
-        <td>
-          <button class="edit-btn">✏</button>
-          <button class="delete-btn">🗑</button>
-        </td>
+        <td class="actions">
+          <!-- Bouton Modifier -->
+          <button class="edit-btn">
+            <span class="material-icons">edit</span>
+          </button>
+
+          <!-- Bouton Supprimer -->
+          <button class="delete-btn" >
+            <span class="material-icons">delete</span>
+          </button>
+      </td>
       </tr>
     </tbody>
   </table>

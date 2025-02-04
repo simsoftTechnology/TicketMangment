@@ -1,43 +1,48 @@
 import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaysService } from '../../_services/pays.service';
 import { Router, RouterLink } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-ajouter-pays',
   standalone: true,
-  imports: [ FormsModule, RouterLink ],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf], 
   templateUrl: './ajouter-pays.component.html',
-  styleUrl: './ajouter-pays.component.css'
+  styleUrl: './ajouter-pays.component.css',
 })
 export class AjouterPaysComponent {
-  nom: string = '';
-  selectedFile: File | null = null;
+  paysForm: FormGroup;
+  selectedFile: File | null = null; // Garde ce nom pour correspondre au HTML
 
-  constructor(private paysService: PaysService, private router: Router) {}
+  constructor(private fb: FormBuilder, private paysService: PaysService, private router: Router) {
+    this.paysForm = this.fb.group({
+      nom: ['', Validators.required],  
+      selectedFile: [null, Validators.required] // On garde "selectedFile" comme dans le HTML
+    });
+  }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
-    if (file) {
-      this.selectedFile = file;
-    }
+    this.selectedFile = file || null;
+    this.paysForm.get('selectedFile')?.setValue(this.selectedFile); // Met à jour le champ "selectedFile"
   }
 
   onSubmit(): void {
-    if (!this.nom || !this.selectedFile) {
-      alert('Veuillez remplir tous les champs.');
+    if (this.paysForm.invalid) {
+      this.paysForm.markAllAsTouched(); // Affiche les erreurs sur les champs invalides
       return;
     }
 
-    this.paysService.addPays(this.nom, this.selectedFile).subscribe({
+    const nom = this.paysForm.value.nom;
+
+    this.paysService.addPays(nom, this.selectedFile!).subscribe({
       next: () => {
         this.router.navigate(['/Pays']);
       },
       error: (err) => {
         console.error(err);
-        alert("Erreur lors de l'ajout du pays.");
       },
     });
   }
-
 }

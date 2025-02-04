@@ -7,12 +7,16 @@ import { Pays } from '../_models/pays';
   providedIn: 'root',
 })
 export class PaysService {
-  private baseUrl = 'https://localhost:5001/api'; // Remplacez par l'URL de votre API
+  private baseUrl = 'https://localhost:5001/api'; 
 
   constructor(private http: HttpClient) {}
 
   getPays(): Observable<Pays[]> {
-    return this.http.get<Pays[]>(`${this.baseUrl}/users/pays`);
+    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`);
+  }
+
+  getPaysById(idPays: number): Observable<Pays> {
+    return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`);
   }
 
   addPays(nom: string, file: File): Observable<any> {
@@ -20,7 +24,7 @@ export class PaysService {
     formData.append('nom', nom);
     formData.append('file', file);
 
-    return this.http.post(`${this.baseUrl}/users/ajouterPays`, formData);
+    return this.http.post(`${this.baseUrl}/pays/ajouterPays`, formData);
   }
   
 
@@ -32,11 +36,11 @@ export class PaysService {
       formData.append('file', file); // Ajouter le fichier si fourni
     }
   
-    return this.http.put(`${this.baseUrl}/users/ModifierPays/${idPays}`, formData);
+    return this.http.put(`${this.baseUrl}/pays/ModifierPays/${idPays}`, formData);
   }
 
   deletePays(idPays: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/users/supprimerPays/${idPays}`);
+    return this.http.delete(`${this.baseUrl}/pays/supprimerPays/${idPays}`);
   }
   
   
@@ -46,7 +50,7 @@ export class PaysService {
     formData.append('file', file); // Ajouter le fichier au formulaire
     formData.append('paysId', paysId.toString()); // Associer l'ID du pays
 
-    return this.http.post(`${this.baseUrl}/users/${paysId}/add-photo`, formData);
+    return this.http.post(`${this.baseUrl}/pays/${paysId}/add-photo`, formData);
   }
 
 
@@ -54,7 +58,7 @@ export class PaysService {
     const formData = new FormData();
     formData.append('file', file);
   
-    return this.http.put(`${this.baseUrl}/users/${paysId}/modifier-photo`, formData);
+    return this.http.put(`${this.baseUrl}/pays/${paysId}/modifier-photo`, formData);
   }
   
 }

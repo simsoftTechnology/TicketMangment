@@ -1,0 +1,321 @@
+
+/* Import Material Icons */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+/* Container styles */
+.container {
+  padding: 50px 0px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.add-user-btn {
+  background-color: #fa9745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  margin-bottom: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.add-user-btn:hover {
+  background-color: #f38932;
+}
+
+.material-icons {
+  vertical-align: middle;
+  margin-right: 5px;
+}
+
+h2 {
+  color: #333;
+  font-size: 1.7rem;
+  margin-bottom: 40px;
+  font-weight: 500;
+}
+
+td.actions {
+  width: 1%;
+  white-space: nowrap; /* Empêche le retour à la ligne */
+  text-align: right;
+  padding-right: 20px; /* Ajoute un peu d'espace pour éviter que les boutons ne collent trop */
+}
+
+
+/* Table styles */
+table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+thead {
+  background-color: #f8f9fa;
+}
+
+th {
+  text-align: left;
+  padding: 12px 100px;
+  color: #666;
+  font-weight: 500;
+  border-bottom: 1px solid #eee;
+}
+
+td {
+  padding: 12px 80px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+
+
+/* Action buttons */
+ .delete-btn , .view-btn{
+  padding: 0px;
+  margin-left: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.delete-btn {
+  color: red;
+}
+
+.delete-btn:hover {
+  color: rgb(232, 3, 3);
+  transform: scale(1.1);
+}
+
+.view-btn:hover {
+  color: rgb(6, 6, 6);
+  transform: scale(1.1);
+}
+
+
+/* Les autres colonnes se partageront l'espace restant équitablement */
+th:not(.checkbox-column):not(:last-child),
+td:not(.checkbox-column):not(.actions) {
+  width: calc((100% - 150px) / 3); /* Soustrait la largeur du checkbox et des actions */
+}
+
+
+
+
+.checkbox-column {
+  width: 50%;
+  min-width: 50px; /* Minimum raisonnable */
+  text-align: center;
+  padding: 10px 5px; /* Ajustement du padding */
+}
+
+
+/* Custom checkbox styles */
+.checkbox-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-checkbox {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkbox-label {
+  position: relative;
+  display: inline-block;
+  height: 18px;
+  width: 18px;
+  border: 2px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.custom-checkbox:checked + .checkbox-label {
+  background-color: #f57c00;
+  border-color: #f57c00;
+}
+
+.custom-checkbox:checked + .checkbox-label::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 9px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.checkbox-label:hover {
+  border-color: #f57c00;
+}
+
+.filter-row {
+  background-color: #ffffff;
+  border-bottom: 1px solid #eee;
+}
+
+.filter-actions {
+  text-align: right;
+  padding: 8px 15px;
+}
+
+.filter-btn, .view-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  margin-left: 8px;
+  border-radius: 4px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover, .view-btn:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.view-btn.active {
+  background-color: #f5f5f5;
+  color: #f57c00;
+}
+
+
+
+.material-icons {
+  font-size: 25px;
+  vertical-align: middle;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .container {
+    padding: 30px 15px;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  th, td {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 992px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .add-user-btn {
+    margin-top: 15px;
+    width: 100%;
+  }
+
+  .search-container input {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px 10px;
+  }
+
+  h2 {
+    font-size: 1.4rem;
+    margin-bottom: 20px;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
+
+  th, td {
+    padding: 6px;
+  }
+
+  .role {
+    padding: 2px 6px;
+    font-size: 0.7em;
+  }
+
+  .delete-btn {
+    font-size: 1em;
+    padding: 2px 4px;
+  }
+}
+
+@media (max-width: 576px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-container, .add-user-btn {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+
+  table {
+    font-size: 0.75rem;
+  }
+
+  th, td {
+    padding: 4px;
+  }
+
+  .status {
+    width: 20px;
+    height: 20px;
+  }
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+/* Additional responsive tweaks */
+.checkbox-column {
+  width: auto;
+  text-align: center;
+  padding: 10px !important;
+}
+
+/* Ensure input fields are responsive */
+input, select, button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+

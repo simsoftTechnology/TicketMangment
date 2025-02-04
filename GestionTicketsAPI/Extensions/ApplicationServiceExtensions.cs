@@ -26,6 +26,7 @@ public static class ApplicationServiceExtensions
       services.AddCors();
       services.AddScoped<ITokenService, TokenService>();
       services.AddScoped<IPhotoService, PhotoService>();
+      services.AddScoped<SocieteService>();
       services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
       services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
       services.Configure<FormOptions>(options =>

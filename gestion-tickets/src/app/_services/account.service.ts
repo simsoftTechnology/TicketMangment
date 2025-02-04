@@ -44,7 +44,9 @@ export class AccountService {
     this.currentUser.set(user);
   }
 
-  
+  getUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.baseUrl + 'users');
+  }
   
   logout() {
     localStorage.removeItem('user');

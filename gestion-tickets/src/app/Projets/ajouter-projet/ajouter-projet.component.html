@@ -1,0 +1,180 @@
+<div class="form-container">
+  <h2>Ajouter un Projet</h2>
+
+  <form (ngSubmit)="ajouterProjet()">
+    <!-- Premier bloc -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nom du projet <span class="required">*</span></label>
+        <input
+          type="text"
+          [(ngModel)]="projet.nom"
+          name="nom"
+          class="form-control"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea
+          [(ngModel)]="projet.description"
+          name="description"
+          class="form-control"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Deuxième bloc -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Pays <span class="required">*</span></label>
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('pays')">
+            <div class="selected-item">
+              {{ getPaysName(projet.idPays) || 'Sélectionner un pays' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher un pays..."
+                [(ngModel)]="searchPays"
+                (input)="filterItems('pays')"
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let pays of filteredPays"
+                class="option-item"
+                (click)="selectItem(pays, 'pays')"
+              >
+                {{ pays.nom }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Société <span class="required">*</span></label>
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('societe')">
+            <div class="selected-item">
+              {{ getSocieteName(projet.societeId) || 'Sélectionner une société' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher une société..."
+                [(ngModel)]="searchSociete"
+                (input)="filterItems('societe')"
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let societe of filteredSocietes"
+                class="option-item"
+                (click)="selectItem(societe, 'societe')"
+              >
+                {{ societe.nom }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Troisième bloc -->
+    <div class="form-row">
+      <div class="form-group">
+        <label>Chef de projet <span class="required">*</span></label>
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('chef')">
+            <div class="selected-item">
+              {{ getChefName(selectedChefId) || 'Sélectionner un chef de projet' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isChefDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher un chef..."
+                [(ngModel)]="searchChef"
+                (input)="filterItems('chef')"
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let chef of filteredChefs"
+                class="option-item"
+                (click)="selectItem(chef, 'chef')"
+              >
+                {{ chef.firstName }} {{ chef.lastName }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Développeurs<span class="required">*</span></label>
+        <div class="custom-multiselect">
+          <div class="select-box" (click)="toggleDropdown()">
+            <div class="selected-items" >
+              <span *ngIf="selectedDevIds.length === 0"
+                >Sélectionnez des développeurs</span
+              >
+              <span class="selected-tag" *ngFor="let devId of selectedDevIds">
+                {{ getDeveloperName(devId) }}
+              </span>
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+
+          <div class="dropdown-content" [class.show]="isDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                [(ngModel)]="searchQuery"
+                name="searchDevs"
+                (input)="filterDevelopers()"
+              />
+            </div>
+
+            <div class="checkbox-list">
+              <label *ngFor="let dev of filteredDevelopers" class="checkbox-item">
+                <input
+                  type="checkbox"
+                  [value]="dev.id"
+                  [checked]="isSelected(dev.id)"
+                  (change)="toggleSelection(dev.id)"
+                />
+                <span class="checkmark"></span>
+                {{ dev.firstName }} {{ dev.lastName }}
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message d'erreur -->
+    <div *ngIf="erreurMessage" class="error-message">
+      {{ erreurMessage }}
+    </div>
+
+    <!-- Boutons -->
+    <div class="button-group">
+      <button type="submit" class="btn-create">Ajouter</button>
+      <button type="button" class="btn-cancel" routerLink="/Projets">Annuler</button>
+    </div>
+  </form>
+</div>

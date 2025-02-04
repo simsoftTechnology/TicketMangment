@@ -1,0 +1,55 @@
+<!-- user-selector-dialog.component.html -->
+<div class="dialog-container">
+  <!-- En-tête du dialog -->
+  <div class="dialog-header">
+    <span>Attacher un utilisateur</span>
+    <button class="close-button" mat-dialog-close>&times;</button>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="dialog-content">
+    <!-- Zone de sélection (déclencheur du dropdown) -->
+    <div class="search-container">
+      <div class="search-field" (click)="toggleDropdown()" #trigger>
+        <span>
+          {{ selectedUser ? (selectedUser.firstName + ' ' + selectedUser.lastName) : 'Sélectionnez une option' }}
+        </span>
+        <span class="dropdown-arrow">▼</span>
+      </div>
+    </div>
+
+    <!-- Bouton de confirmation (optionnel, ici nous utilisons le clic sur l'option pour fermer le dropdown) -->
+    <div class="confirm-container" *ngIf="selectedUser">
+      <button class="confirm-button" (click)="confirmSelection()">
+        Confirmer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Template du dropdown qui sera affiché via l'Overlay -->
+<ng-template #dropdownTemplate>
+  <div class="dropdown-container">
+    <!-- Champ de recherche à l'intérieur du dropdown -->
+    <div class="search-input">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="filterUsers()"
+        placeholder="Commencez à taper pour rechercher..."
+      />
+    </div>
+    <div class="options-list">
+      <div
+        class="option-item"
+        *ngFor="let user of filteredUsers"
+        (click)="selectUser(user)"
+      >
+        {{ user.role }} – {{ user.firstName }} {{ user.lastName }}
+      </div>
+      <div class="no-result" *ngIf="filteredUsers.length === 0">
+        Aucun utilisateur trouvé.
+      </div>
+    </div>
+  </div>
+</ng-template>

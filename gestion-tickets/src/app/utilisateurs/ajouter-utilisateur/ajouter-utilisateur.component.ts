@@ -1,10 +1,11 @@
+import { Pays } from './../../_models/pays';
 import { Component, inject, OnInit, output } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AccountService } from '../../_services/account.service';
 import { CommonModule } from '@angular/common';
-import { Pays } from '../../_models/pays';
 import { TextInputComponent } from '../../_forms/text-input/text-input.component';
+import { PaysService } from '../../_services/pays.service';
 
 @Component({
   selector: 'app-ajouter-utilisateur',
@@ -15,6 +16,7 @@ import { TextInputComponent } from '../../_forms/text-input/text-input.component
 })
 export class AjouterUtilisateurComponent implements OnInit {
   private accountService = inject(AccountService);
+  private PaysService = inject(PaysService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
   cancelRegister = output<boolean>();
@@ -102,7 +104,7 @@ export class AjouterUtilisateurComponent implements OnInit {
 
   
   loadPays() {
-    this.accountService.getPays().subscribe({
+    this.PaysService.getPays().subscribe({
       next: (pays: Pays[]) => this.paysList = pays,
       error: (err) => console.error('Erreur lors de la récupération des pays', err)
     });
