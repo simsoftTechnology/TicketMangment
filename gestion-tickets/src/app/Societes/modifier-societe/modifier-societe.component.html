@@ -1,0 +1,216 @@
+<div class="container">
+  <!-- Affichage du nom de la société ou d'un indicateur de chargement -->
+  <h1 *ngIf="societeDetails.nom; else loading">{{ societeDetails.nom }}</h1>
+  <ng-template #loading>
+    <h2>Chargement...</h2>
+  </ng-template>
+
+  <!-- Formulaire de modification avec boutons Sauvegarder et Annuler -->
+  <form (ngSubmit)="onSubmit()" [formGroup]="societeForm">
+    <div class="form-group">
+      <label for="nom">Nom</label>
+      <input id="nom" formControlName="nom" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label for="adresse">Adresse</label>
+      <input id="adresse" formControlName="adresse" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label for="telephone">Téléphone</label>
+      <input id="telephone" formControlName="telephone" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+    <!-- Bouton annuler qui appelle la méthode onCancel() -->
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
+  </form>
+  
+  <!-- Navigation par onglets -->
+  <nav class="tabs-nav">
+    <ul>
+      <li [class.active]="activeTab === 'utilisateurs'">
+        <a (click)="switchTab('utilisateurs')">Membres</a>
+      </li>
+      <li [class.active]="activeTab === 'projets'">
+        <a (click)="switchTab('projets')">Projets</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Onglet Projets -->
+  <div *ngIf="activeTab === 'projets'" class="tab-pane">
+    <table>
+      <thead>
+        <!-- Ligne de recherche et titre -->
+        <tr class="filter-row">
+          <td colspan="1">
+            <h3>Projets</h3>
+          </td>
+          <td colspan="3">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Rechercher un projet..."
+              [(ngModel)]="projectSearchTerm"
+            />
+          </td>
+        </tr>
+        <!-- Ligne d'en-tête -->
+        <tr>
+          <th>Nom du projet</th>
+          <th>Nom du pays</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Affichage conditionnel dans le tbody -->
+        <ng-container *ngIf="filteredProjects.length > 0; else noProjects">
+          <tr *ngFor="let projet of displayedProjects">
+            <td>{{ projet.nom }}</td>
+            <td>{{ projet.nomPays || "Non défini" }}</td>
+            <td>{{ projet.description || "Non défini" }}</td>
+            <td class="actions">
+              <button class="view-btn" (click)="viewProjet(projet.id)">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+
+        <!-- Template à afficher en cas d'absence de projets -->
+        <ng-template #noProjects>
+          <tr>
+            <td colspan="4">
+              <div class="no-content">
+                <span class="icon">✕</span>
+                <p>Aucun projet trouvé</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <!-- Ligne de pagination -->
+        <tr>
+          <td colspan="4">
+            <div class="pagination-container">
+              <div class="pagination-info">
+                Affichage de {{ (pageNumber - 1) * pageSize + 1 }} à
+                {{ pageNumber * pageSize > filteredProjects.length ? filteredProjects.length : pageNumber * pageSize }}
+                sur {{ filteredProjects.length }} résultats
+              </div>
+              <div class="per-page-selector">
+                <select [(ngModel)]="pageSize" (change)="onPageChange(1)">
+                  <option *ngFor="let size of range(1, 10)" [value]="size">{{ size }}</option>
+                </select>
+                <label>par page</label>
+              </div>
+              <div class="pagination-controls">
+                <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1" title="Page précédente">
+                  &laquo;
+                </button>
+                <input
+                  type="number"
+                  [(ngModel)]="jumpPage"
+                  (keyup.enter)="jumpToPage()"
+                  [max]="totalPages"
+                  min="1"
+                  class="page-input"
+                />
+                <span class="total-pages">/ {{ totalPages }}</span>
+                <button (click)="onPageChange(pageNumber + 1)" [disabled]="pageNumber >= totalPages" title="Page suivante">
+                  &raquo;
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Onglet Utilisateurs -->
+  <div *ngIf="activeTab === 'utilisateurs'" class="tab-pane">
+    <table>
+      <thead>
+        <!-- Barre de recherche pour les utilisateurs -->
+        <tr class="filter-row">
+          <td colspan="1">
+            <h3>Membres</h3>
+          </td>
+          <td colspan="2">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Rechercher un utilisateur..."
+              [(ngModel)]="userSearchTerm"
+            />
+          </td>
+        </tr>
+        <!-- Ligne d'en-tête du tableau -->
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Rôle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Affichage conditionnel dans le tbody -->
+        <ng-container *ngIf="filteredUsers.length > 0; else noUsersTemplate">
+          <tr *ngFor="let utilisateur of displayedUsers">
+            <td>{{ utilisateur.firstName }} {{ utilisateur.lastName }}</td>
+            <td>{{ utilisateur.email }}</td>
+            <td>{{ utilisateur.role }}</td>
+          </tr>
+        </ng-container>
+
+        <!-- Template à afficher en cas d'absence d'utilisateurs -->
+        <ng-template #noUsersTemplate>
+          <tr>
+            <td colspan="3">
+              <div class="no-content">
+                <span class="icon">✕</span>
+                <p>Aucun utilisateur trouvé</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+
+        <!-- Ligne de pagination -->
+        <tr>
+          <td colspan="3">
+            <div class="pagination-container">
+              <div class="pagination-info">
+                Affichage de {{ (userPageNumber - 1) * userPageSize + 1 }} à
+                {{ userPageNumber * userPageSize > filteredUsers.length ? filteredUsers.length : userPageNumber * userPageSize }}
+                sur {{ filteredUsers.length }} résultats
+              </div>
+              <div class="per-page-selector">
+                <select [(ngModel)]="userPageSize" (change)="onUserPageChange(1)">
+                  <option *ngFor="let size of range(1, 10)" [value]="size">{{ size }}</option>
+                </select>
+                <label>par page</label>
+              </div>
+              <div class="pagination-controls">
+                <button (click)="onUserPageChange(userPageNumber - 1)" [disabled]="userPageNumber <= 1" title="Page précédente">
+                  &laquo;
+                </button>
+                <input
+                  type="number"
+                  [(ngModel)]="userJumpPage"
+                  (keyup.enter)="jumpToUserPage()"
+                  [max]="userTotalPages"
+                  min="1"
+                  class="page-input"
+                />
+                <span class="total-pages">/ {{ userTotalPages }}</span>
+                <button (click)="onUserPageChange(userPageNumber + 1)" [disabled]="userPageNumber >= userTotalPages" title="Page suivante">
+                  &raquo;
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -15,9 +15,11 @@ import { PaysComponent } from './PaysFile/pays/pays.component';
 import { ModifierPaysComponent } from './PaysFile/modifier-pays/modifier-pays.component';
 import { AjouterPaysComponent } from './PaysFile/ajouter-pays/ajouter-pays.component';
 import { ListeProjetsComponent } from './Projets/liste-projets/liste-projets.component';
-import { ListeSocietesComponent } from './liste-societes/liste-societes.component';
+import { ListeSocietesComponent } from './Societes/liste-societes/liste-societes.component';
 import { AjouterProjetComponent } from './Projets/ajouter-projet/ajouter-projet.component';
 import { DetailsProjetComponent } from './Projets/details-projet/details-projet.component';
+import { AjouterSocieteComponent } from './Societes/ajouter-societe/ajouter-societe.component';
+import { ModifierSocieteComponent } from './Societes/modifier-societe/modifier-societe.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -41,6 +43,8 @@ export const routes: Routes = [
       { path: 'Projets/ajouterProjet', component: AjouterProjetComponent},
       { path: 'projets/details/:id', component: DetailsProjetComponent },
       { path: 'Societes', component: ListeSocietesComponent},
+      { path: 'Societes/ajouterSociete', component: AjouterSocieteComponent },
+      { path: 'Societes/modifierSociete/:id', component: ModifierSocieteComponent },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ]
   },

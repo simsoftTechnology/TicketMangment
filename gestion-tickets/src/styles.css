@@ -1,1 +1,33 @@
-/* You can add global styles to this file, and also import other style files */
+/* Styles globaux pour tous les toasts */
+.custom-toast {
+  background-color: #28a745 !important; /* Vert */
+  color: white !important;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+
+
+/* Style spécifique aux toasts de succès */
+.toast-success {
+  background-color: #198754 !important; /* Vert foncé */
+}
+
+/* Style spécifique aux toasts d'erreur */
+.toast-error {
+  background-color: #dc3545 !important; /* Rouge */
+}
+
+
+
+/* Style spécifique aux toasts d'information */
+.toast-info {
+  background-color: #0dcaf0 !important; /* Bleu */
+}
+
+/* Personnaliser la barre de progression */
+.toast-progress {
+  background-color: white !important;
+}

@@ -1,17 +1,20 @@
 <div class="container">
   <div class="header">
-    <h2>Liste des projets</h2>
-    <button class="add-user-btn" [routerLink]="['/Projets/ajouterProjet']">
+    <h2>Liste des sociétés</h2>
+    <!-- Modifier le routerLink selon votre configuration de routage -->
+    <button class="add-user-btn" routerLink="/Societes/ajouterSociete">
       <span class="material-icons">add</span> Ajouter
     </button>
   </div>
+
   <table>
     <thead>
-      <!-- Ligne de filtres -->
+      <!-- Ligne de filtres (optionnelle) -->
       <tr class="filter-row">
         <td class="checkbox-column"></td>
-        <td colspan="2"></td>
-        <td colspan="2" class="filter-actions">
+        <!-- On peut laisser vides ou ajouter d'autres colonnes de filtres -->
+        <td colspan="3"></td>
+        <td colspan="3" class="filter-actions">
           <button class="filter-btn">
             <span class="material-icons">filter_list</span>
           </button>
@@ -23,42 +26,43 @@
           </button>
         </td>
       </tr>
+
       <tr>
         <th class="checkbox-column">
           <div class="checkbox-wrapper">
-            <input type="checkbox" id="selectAll" class="custom-checkbox" (change)="selectAll($event)">
-            <label for="selectAll" class="checkbox-label"></label>
+            <input type="checkbox" id="selectAllSociete" class="custom-checkbox" (change)="selectAll($event)">
+            <label for="selectAllSociete" class="checkbox-label"></label>
           </div>
         </th>
-        <th>Nom du projet</th>
-        <th>Nom du pays</th>
-        <th>Nom de la société</th>
-        <th>
-          <button class="delete-btn">
-            <span class="material-icons">delete</span>
-          </button>
-        </th>
+        <th>Nom</th>
+        <th>Adresse</th>
+        <th>Téléphone</th>
+        <th></th>
       </tr>
     </thead>
+
     <tbody>
-      <tr *ngFor="let projet of (paginatedResult?.items || []); let i = index">
+      <tr *ngFor="let societe of paginatedResult?.items; let i = index">
         <td class="checkbox-column">
           <div class="checkbox-wrapper">
-            <input type="checkbox" [id]="'projet' + i" class="custom-checkbox" [(ngModel)]="projet.selected"
-              (change)="toggleSelection(projet)">
-            <label [for]="'projet' + i" class="checkbox-label"></label>
+            <input
+              type="checkbox"
+              [id]="'societe' + i"
+              class="custom-checkbox"
+              [(ngModel)]="societe.selected"
+              (change)="toggleSelection(societe)"
+            />
+            <label [for]="'societe' + i" class="checkbox-label"></label>
           </div>
         </td>
-        <td>{{ projet.nom }}</td>
-        <td>{{ projet.nomPays || 'Non défini' }}</td>
-        <td>{{ projet.nomSociete || 'Non défini' }}</td>
+        <td>{{ societe.nom }}</td>
+        <td>{{ societe.adresse }}</td>
+        <td>{{ societe.telephone }}</td>
         <td class="actions">
-          <!-- Bouton Voir -->
-          <button class="view-btn" [routerLink]="['/projets/details', projet.id]">
-            <span class="material-icons">visibility</span>
-          </button>
-          <!-- Bouton Supprimer -->
-          <button class="delete-btn" (click)="deleteProjet(projet.id)">
+          <button class="edit-btn" [routerLink]="['/Societes/modifierSociete', societe.id]">
+            <span class="material-icons">edit</span>
+          </button>          
+          <button class="delete-btn" (click)="deleteSociete(societe.id)">
             <span class="material-icons">delete</span>
           </button>
         </td>
@@ -115,7 +119,6 @@
           </div>
         </td>
       </tr>
-
     </tbody>
   </table>
 </div>

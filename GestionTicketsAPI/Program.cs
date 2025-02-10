@@ -24,7 +24,7 @@ app.UseHttpsRedirection();
 
 
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200"));
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200").WithExposedHeaders("Pagination"));
 
 app.UseAuthentication();
 app.UseAuthorization();

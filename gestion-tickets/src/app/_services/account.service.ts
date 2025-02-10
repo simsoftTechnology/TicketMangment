@@ -1,4 +1,5 @@
-import { HttpClient } from '@angular/common/http';
+import { PaginatedResult } from './../_models/pagination';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { User } from '../_models/user';
 import { map, Observable } from 'rxjs';
@@ -11,6 +12,7 @@ export class AccountService {
   private http = inject(HttpClient);
   baseUrl = 'https://localhost:5001/api/';
   currentUser = signal<User | null>(null);
+  paginatedResult = signal<PaginatedResult<User[]> | null>(null);
 
   login(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
@@ -44,9 +46,34 @@ export class AccountService {
     this.currentUser.set(user);
   }
 
-  getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.baseUrl + 'users');
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.baseUrl + 'users/all');
   }
+
+  getUsers(pageNumber?: number, pageSize?: number): Observable<PaginatedResult<User[]>> {
+    let params = new HttpParams();
+    if (pageNumber && pageSize) {
+      params = params.append('pageNumber', pageNumber);
+      params = params.append('pageSize', pageSize);
+    }
+  
+    return this.http.get<User[]>(this.baseUrl + 'users', { observe: 'response', params }).pipe(
+      map(response => {
+        // Extract the pagination header and parse it
+        const paginationHeader = response.headers.get('Pagination');
+        if (paginationHeader) {
+          const pagination = JSON.parse(paginationHeader);
+          return {
+            items: response.body as User[],
+            pagination
+          };
+        } else {
+          throw new Error('Pagination header is missing');
+        }
+      })
+    );
+  }
+  
   
   logout() {
     localStorage.removeItem('user');

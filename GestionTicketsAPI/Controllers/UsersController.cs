@@ -1,62 +1,57 @@
-using AutoMapper;
-using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
+using GestionTicketsAPI.Extensions;
+using GestionTicketsAPI.Helpers;
+using GestionTicketsAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GestionTicketsAPI.Controllers;
 
 
-public class UsersController(DataContext context, IMapper mapper) : BaseApiController
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : BaseApiController
 {
+  private readonly IUserService _userService;
+
+  public UsersController(IUserService userService)
+  {
+    _userService = userService;
+  }
+
   [Authorize]
   [HttpGet]
-  public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+  public async Task<ActionResult<PagedList<UserDto>>> GetUsers([FromQuery] UserParams userParams)
   {
-    var users = await context.Users.ToListAsync();
-
-    var usersToReturn = mapper.Map<IEnumerable<UserDto>>(users);
-
-    return Ok(usersToReturn);
+    var users = await _userService.GetAllUsersAsync(userParams);
+    Response.AddPaginationHeader(users); // Les métadonnées sont maintenant disponibles
+    return Ok(users);
   }
+
+  [Authorize]
+  [HttpGet("all")]
+  public async Task<ActionResult<IEnumerable<UserDto>>> GetAllUsers()
+  {
+    var users = await _userService.GetAllUsersNoPaginationAsync();
+    return Ok(users);
+  }
+
 
   [Authorize]
   [HttpGet("{id:int}")]
   public async Task<ActionResult<UserDto>> GetUser(int id)
   {
-    var user = await context.Users.FindAsync(id);
-
+    var user = await _userService.GetUserByIdAsync(id);
     if (user == null) return NotFound();
-
-    return mapper.Map<UserDto>(user);
+    return Ok(user);
   }
 
   [Authorize]
   [HttpDelete("{id:int}")]
   public async Task<IActionResult> DeleteUser(int id)
   {
-    var user = await context.Users
-        .Include(u => u.ProjetUsers) // Inclure les relations ProjetUser
-        .FirstOrDefaultAsync(u => u.Id == id);
-
-    if (user == null)
-    {
-      return NotFound();
-    }
-
-    // Supprimer les associations dans ProjetUser
-    context.ProjetUser.RemoveRange(user.ProjetUsers);
-
-    // Supprimer l'utilisateur
-    context.Users.Remove(user);
-
-    await context.SaveChangesAsync();
-
+    var result = await _userService.DeleteUserAsync(id);
+    if (!result) return NotFound();
     return NoContent();
   }
-
-
-
 }
-

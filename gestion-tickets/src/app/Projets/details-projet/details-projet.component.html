@@ -1,7 +1,7 @@
 <div class="form-container">
   <!-- Affichage en mode lecture -->
   <h1 *ngIf="!editMode && projet">{{ projet.nom }}</h1>
-  
+
   <!-- En mode édition, on enveloppe le champ Nom dans une info-item pour un style cohérent -->
   <div *ngIf="editMode" class="info-item edit-name-container">
     <span class="info-label">Nom</span>
@@ -23,19 +23,11 @@
           </div>
           <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
             <div class="search-box">
-              <input
-                type="text"
-                placeholder="Rechercher un pays..."
-                [(ngModel)]="searchPays"
-                (input)="filterItems('pays')"
-              />
+              <input type="text" placeholder="Rechercher un pays..." [(ngModel)]="searchPays"
+                (input)="filterItems('pays')" />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let pays of filteredPays"
-                class="option-item"
-                (click)="selectItem(pays, 'pays')"
-              >
+              <div *ngFor="let pays of filteredPays" class="option-item" (click)="selectItem(pays, 'pays')">
                 {{ pays.nom }}
               </div>
             </div>
@@ -58,19 +50,12 @@
           </div>
           <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
             <div class="search-box">
-              <input
-                type="text"
-                placeholder="Rechercher une société..."
-                [(ngModel)]="searchSociete"
-                (input)="filterItems('societe')"
-              />
+              <input type="text" placeholder="Rechercher une société..." [(ngModel)]="searchSociete"
+                (input)="filterItems('societe')" />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let societe of filteredSocietes"
-                class="option-item"
-                (click)="selectItem(societe, 'societe')"
-              >
+              <div *ngFor="let societe of filteredSocietes" class="option-item"
+                (click)="selectItem(societe, 'societe')">
                 {{ societe.nom }}
               </div>
             </div>
@@ -145,9 +130,10 @@
         <th class="actions">Actions</th>
       </tr>
     </thead>
-    
+
     <tbody>
-      <tr *ngFor="let membre of membres; let i = index">
+      <!-- Itération sur les membres de la page courante -->
+      <tr *ngFor="let membre of displayedMembres; let i = index">
         <td class="checkbox-column">
           <div class="checkbox-wrapper">
             <input type="checkbox" [id]="'membre' + i" class="custom-checkbox" [(ngModel)]="membre.selected"
@@ -165,6 +151,61 @@
           </button>
         </td>
       </tr>
+
+      <!-- Rangée de pagination -->
+      <tr>
+        <td colspan="4">
+          <div class="pagination-container">
+            <!-- Infos sur la pagination -->
+            <div class="pagination-info">
+              Affichage de
+              {{ ((pageNumber - 1) * pageSize) + 1 }}
+              à
+              {{
+              (pageNumber * pageSize) > membres.length
+              ? membres.length
+              : (pageNumber * pageSize)
+              }}
+              sur {{ membres.length }} résultats
+            </div>
+
+            <!-- Sélecteur du nombre d'éléments par page -->
+            <div class="per-page-selector">
+              <select [(ngModel)]="pageSize" (change)="onPageChange(1)">
+                <option *ngFor="let size of range(1, 10)" [value]="size">
+                  {{ size }}
+                </option>
+              </select>
+              <label>par page</label>
+            </div>
+
+            <!-- Contrôles de pagination -->
+            <div class="pagination-controls">
+              <!-- Bouton Précédent -->
+              <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1"
+                title="Cliquez pour la page précédente ou double-cliquez pour saisir une page">
+                &laquo;
+              </button>
+
+              <!-- Input pour la page actuelle -->
+              <input type="number" [(ngModel)]="jumpPage" (keyup.enter)="jumpToPage()" [max]="totalPages" min="1"
+                class="page-input" />
+
+              <!-- Affichage du total de pages -->
+              <span class="total-pages">
+                / {{ totalPages }}
+              </span>
+
+              <!-- Bouton Suivant -->
+              <button (click)="onPageChange(pageNumber + 1)" [disabled]="pageNumber >= totalPages"
+                title="Page suivante">
+                &raquo;
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+
     </tbody>
   </table>
 
@@ -173,7 +214,7 @@
     <button class="delete-btn" (click)="deleteProjet(projet.id)">
       Supprimer
     </button>
-    <button class="back-btn" routerLink="/Projets">
+    <button class="back-btn" href="javascript:window.history.back();">
       Retourner
     </button>
   </div>

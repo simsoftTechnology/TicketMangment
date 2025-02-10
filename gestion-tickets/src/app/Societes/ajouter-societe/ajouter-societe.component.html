@@ -1,0 +1,20 @@
+<div class="container">
+  <h2>Ajouter une Société</h2>
+  <form (ngSubmit)="onSubmit()" [formGroup]="societeForm">
+    <div class="form-group">
+      <label for="nom">Nom</label>
+      <input id="nom" formControlName="nom" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label for="adresse">Adresse</label>
+      <input id="adresse" formControlName="adresse" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label for="telephone">Téléphone</label>
+      <input id="telephone" formControlName="telephone" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary" [disabled]="societeForm.invalid">
+      Ajouter
+    </button>
+  </form>
+</div>

@@ -1,27 +1,33 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Component, inject, OnInit } from '@angular/core';
 import { AccountService } from '../../_services/account.service';
-
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { User } from '../../_models/user';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { PaginatedResult } from '../../_models/pagination';
 
 @Component({
   selector: 'app-list-utilisateurs',
   standalone: true,
-  imports: [ NgFor, NgIf, NgClass, FormsModule, RouterLink],
+  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink],
   templateUrl: './list-utilisateurs.component.html',
-  styleUrl: './list-utilisateurs.component.css'
+  styleUrls: ['./list-utilisateurs.component.css']
 })
 export class ListUtilisateursComponent implements OnInit {
-  http = inject(HttpClient);
-  private accountService = inject(AccountService);
-  title = 'gestion-tickets';
-  users: User[] = [];
+  public accountService = inject(AccountService);
+
+  // Variables pour la pagination
+  pageNumber: number = 1;
+  pageSize: number = 9;
+  paginatedResult: PaginatedResult<User[]> | null = null;
+  jumpPage: number = 1;
 
   ngOnInit(): void {
-    this.getUsers();
+    // Charge les utilisateurs si le signal est vide
+    if (!this.accountService.paginatedResult()) {
+      this.getUsers();
+    }
     this.setCurrentUser();
   }
 
@@ -32,36 +38,78 @@ export class ListUtilisateursComponent implements OnInit {
     this.accountService.currentUser.set(user);
   }
 
-  getUsers() {
-    const userString = localStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : null;
+  // Appel du service pour charger la page demandée
+  getUsers(): void {
+    this.accountService.getUsers(this.pageNumber, this.pageSize).subscribe({
+      next: (response) => {
+        const updatedItems = (response.items ?? []).map(user => ({ ...user, selected: false }));
+        const result: PaginatedResult<User[]> = {
+          items: updatedItems,
+          pagination: response.pagination
+        };
+        // Met à jour le signal
+        this.accountService.paginatedResult.set(result);
+        // Met à jour la variable locale
+        this.paginatedResult = result;
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des utilisateurs paginés', error);
+      }
+    });
+  }
+  
 
-    if (user && user.token) {
-      const headers = new HttpHeaders().set('Authorization', `Bearer ${user.token}`);
-
-      this.http.get<User[]>('https://localhost:5001/api/users', { headers }).subscribe({
-        next: (response) => {
-          this.users = response.map(user => ({
-            ...user,
-            selected: false
-          }));
-          console.log('Users fetched successfully:', this.users);
-        },
-        error: (error) => {
-          console.error('Error fetching users:', error);
-          if (error.status === 401) {
-            console.error('Unauthorized access. Redirecting to login...');
-          }
-        },
-        complete: () => {
-          console.log('Request has completed');
-        }
-      });
-    } else {
-      console.error('No user or token found in localStorage.');
-    }
+  // Méthode pour changer de page et relancer la requête
+  onPageChange(newPage: number): void {
+    const maxPage = this.accountService.paginatedResult()?.pagination?.totalPages || 1;
+    this.pageNumber = Math.min(Math.max(newPage, 1), maxPage);
+    this.jumpPage = this.pageNumber;
+    this.getUsers();
   }
 
+  // Saut direct vers une page donnée
+  jumpToPage(): void {
+    const totalPages = this.paginatedResult?.pagination?.totalPages || 1;
+    // Convertir en nombre et vérifier les limites
+    this.jumpPage = Math.min(Math.max(Number(this.jumpPage), 1), totalPages);
+    this.onPageChange(this.jumpPage);
+  }
+
+  // Retourne un tableau de numéros de page [1, 2, ..., totalPages]
+  getPages(): number[] {
+    const totalPages = this.accountService.paginatedResult()?.pagination?.totalPages || 0;
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  // Méthode de sélection de tous les utilisateurs de la page courante
+  selectAll(event: Event): void {
+    const checkbox = event.target as HTMLInputElement;
+    const currentItems = this.accountService.paginatedResult()?.items || [];
+    currentItems.forEach(user => user.selected = checkbox.checked);
+    // Mettre à jour le signal pour que le changement soit pris en compte
+    this.accountService.paginatedResult.set({
+      ...this.accountService.paginatedResult(),
+      items: currentItems
+    });
+  }
+
+  // Méthode de bascule de la sélection d'un utilisateur
+  toggleSelection(user: User): void {
+    user.selected = !user.selected;
+    const currentItems = this.accountService.paginatedResult()?.items || [];
+    const allSelected = currentItems.every(u => u.selected);
+    const selectAllCheckbox = document.getElementById('selectAll') as HTMLInputElement;
+    if (selectAllCheckbox) {
+      selectAllCheckbox.checked = allSelected;
+    }
+    // Mise à jour du signal
+    this.accountService.paginatedResult.set({
+      ...this.accountService.paginatedResult(),
+      items: currentItems
+    });
+  }
+
+  // Retourne la classe CSS en fonction du rôle
   getRoleClass(role: string): string {
     switch (role.toLowerCase()) {
       case 'super admin': return 'super-admin';
@@ -72,23 +120,8 @@ export class ListUtilisateursComponent implements OnInit {
     }
   }
 
-  selectAll(event: Event): void {
-    const checkbox = event.target as HTMLInputElement;
-    this.users = this.users.map(user => ({
-      ...user,
-      selected: checkbox.checked
-    }));
+  range(start: number, end: number): number[] {
+    return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
-
-  toggleSelection(user: User): void {
-    user.selected = !user.selected;
-    const allSelected = this.users.every(u => u.selected);
-    const selectAllCheckbox = document.getElementById('selectAll') as HTMLInputElement;
-    if (selectAllCheckbox) {
-      selectAllCheckbox.checked = allSelected;
-    }
-  }
-  
-  
   
 }

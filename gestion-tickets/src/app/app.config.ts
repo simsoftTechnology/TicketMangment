@@ -10,11 +10,14 @@ import { jwtInterceptor } from './_interceptors/jwt.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [provideZoneChangeDetection({ eventCoalescing: true }),
-       provideRouter(routes),
-       provideHttpClient(withInterceptors([errorInterceptor, jwtInterceptor])),
-       provideAnimations(),
-       provideToastr({
-        positionClass: 'toast-bottom-right'
-       }),
-      ]
+  provideRouter(routes),
+  provideHttpClient(withInterceptors([errorInterceptor, jwtInterceptor])),
+  provideAnimations(),
+  provideToastr({
+    positionClass: 'toast-bottom-right',
+    timeOut: 5000, // Durée d'affichage en ms (5 secondes)
+    closeButton: true,
+    progressAnimation: 'increasing',
+  }),
+  ]
 };

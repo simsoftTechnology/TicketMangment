@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { map, Observable } from 'rxjs';
 import { Projet } from '../_models/Projet';
 import { ProjetMember } from '../_models/projet-member';
+import { PaginatedResult } from '../_models/pagination';
 
 @Injectable({
   providedIn: 'root'
@@ -10,11 +11,35 @@ import { ProjetMember } from '../_models/projet-member';
 export class ProjetService {
   private baseUrl = 'https://localhost:5001/api/projets';  // URL de votre API
 
+  paginatedResult: PaginatedResult<Projet[]> | null = null;
   constructor(private http: HttpClient) { }
 
   // Récupérer tous les projets
   getProjets(): Observable<Projet[]> {
     return this.http.get<Projet[]>(`${this.baseUrl}`);
+  }
+
+   // Méthode pour récupérer les projets paginés
+   getPaginatedProjets(pageNumber?: number, pageSize?: number): Observable<PaginatedResult<Projet[]>> {
+    let params = new HttpParams();
+    if (pageNumber != null && pageSize != null) {
+      params = params.append('pageNumber', pageNumber);
+      params = params.append('pageSize', pageSize);
+    }
+
+    return this.http.get<Projet[]>(this.baseUrl + '/paged', { observe: 'response', params })
+      .pipe(
+        map((response: HttpResponse<Projet[]>) => {
+          const paginatedResult: PaginatedResult<Projet[]> = {
+            items: response.body || [],
+            // On attend que le header 'Pagination' contienne une chaîne JSON
+            pagination: response.headers.get('Pagination') ? JSON.parse(response.headers.get('Pagination')!) : null!
+          };
+          // Stocker le résultat pour une utilisation éventuelle dans le composant
+          this.paginatedResult = paginatedResult;
+          return paginatedResult;
+        })
+      );
   }
 
   // Récupérer un projet par ID

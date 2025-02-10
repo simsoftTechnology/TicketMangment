@@ -15,8 +15,15 @@ public class AutoMapperProfiles : Profile
           .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null));
         CreateMap<PaysUpdateDto, Pays>();
         CreateMap<Projet, ProjetDto>()
-            .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe != null ? src.Societe.Nom : null))
-            .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Pays != null ? src.Pays.Nom : null));
+                .ForMember(dest => dest.NomPays,
+                           opt => opt.MapFrom(src => src.Pays != null ? src.Pays.Nom : null))
+                .ForMember(dest => dest.NomSociete,
+                           opt => opt.MapFrom(src => src.Societe != null ? src.Societe.Nom : null));
         CreateMap<ProjetDto, Projet>();
+        CreateMap<Societe, SocieteDto>();
+        CreateMap<SocieteDto, Societe>();
+        CreateMap<Societe, SocieteDetailsDto>()
+            .ForMember(dest => dest.Utilisateurs, opt => opt.MapFrom(src => src.Utilisateurs))
+            .ForMember(dest => dest.Projets, opt => opt.MapFrom(src => src.Projets));
     }       
 }

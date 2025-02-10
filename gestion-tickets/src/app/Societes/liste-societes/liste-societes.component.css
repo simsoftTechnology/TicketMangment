@@ -82,7 +82,7 @@ td {
 
 
 /* Action buttons */
- .delete-btn , .view-btn{
+.edit-btn, .delete-btn , .view-btn{
   padding: 0px;
   margin-left: 2px;
   background: none;
@@ -101,10 +101,25 @@ td {
   transform: scale(1.1);
 }
 
+.edit-btn {
+  color: #f38932;
+}
+
+.edit-btn:hover {
+  color: #f07d1f;
+  transform: scale(1.1);
+}
+
+
 .view-btn:hover {
   color: rgb(6, 6, 6);
   transform: scale(1.1);
 }
+
+
+
+
+
 
 
 /* Les autres colonnes se partageront l'espace restant équitablement */
@@ -206,6 +221,112 @@ td:not(.checkbox-column):not(.actions) {
 .material-icons {
   font-size: 25px;
   vertical-align: middle;
+}
+
+
+/* Ensure input fields are responsive */
+input, select, button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #fff;
+}
+
+.pagination-info {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.per-page-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.per-page-selector select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.per-page-selector select:hover,
+.per-page-selector select:focus {
+  border-color: #f59e0b;
+  outline: none;
+}
+
+.per-page-selector label {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-controls button,
+.page-number {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.pagination-controls button:not(:disabled):hover,
+.page-number:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background-color: #fff7ed;
+}
+
+.pagination-controls button:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.page-input {
+  width: 3rem;
+  height: 2rem;
+  padding: 0.375rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  text-align: center;
+  font-size: 0.875rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.page-input:focus {
+  border-color: #f59e0b;
+  outline: none;
+  box-shadow: 0 0 0 1px #f59e0b;
+}
+
+.total-pages {
+  color: #4b5563;
+  font-size: 0.875rem;
+  padding: 0 0.5rem;
 }
 
 /* Responsive adjustments */

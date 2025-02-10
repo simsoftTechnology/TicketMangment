@@ -2,7 +2,7 @@
 .form-container {
   padding: 0rem;
   max-width: 1200px;
-  margin: 2rem auto;
+  margin: 1rem auto;
 }
 
 /* Styles du titre de projet */
@@ -125,8 +125,8 @@ h1::after {
 /* Amélioration de la grille d'informations */
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
 }
 
 .info-item.full-width {
@@ -175,10 +175,8 @@ h1::after {
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 2rem;
-  border-top: 1px solid #eee;
-  border-right: 1px solid #eee;
-  border-left: 1px solid #eee;
+  margin-bottom: 0.8rem;
+
 }
 
 /* En-tête du tableau */
@@ -193,12 +191,11 @@ h1::after {
   padding: 12px 15px;
   color: #666;
   font-weight: 500;
-  border-bottom: 1px solid #eee;
 }
 
 .user-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #eee;
+  padding: 10px 15px;
+  border-top: 1px solid #eee;
   color: #333;
 }
 
@@ -612,49 +609,335 @@ th.checkbox-column, td.checkbox-column {
   background: #f5f5f5;
 }
 
+/* Ensure input fields are responsive */
+input, select, button {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #fff;
+}
+
+.pagination-info {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.per-page-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.per-page-selector select {
+  padding: 0.375rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.per-page-selector select:hover,
+.per-page-selector select:focus {
+  border-color: #f59e0b;
+  outline: none;
+}
+
+.per-page-selector label {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.pagination-controls button,
+.page-number {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.pagination-controls button:not(:disabled):hover,
+.page-number:hover {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background-color: #fff7ed;
+}
+
+.pagination-controls button:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.page-input {
+  width: 3rem;
+  height: 2rem;
+  padding: 0.375rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  text-align: center;
+  font-size: 0.875rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.page-input:focus {
+  border-color: #f59e0b;
+  outline: none;
+  box-shadow: 0 0 0 1px #f59e0b;
+}
+
+.total-pages {
+  color: #4b5563;
+  font-size: 0.875rem;
+  padding: 0 0.5rem;
+}
+
 
 /* Responsive */
-@media (max-width: 1024px) {
-  .project-container {
-    padding: 1.5rem;
+/* Breakpoints plus précis */
+/* Large desktop et écrans 4K */
+@media (min-width: 1921px) {
+  .form-container {
+    max-width: 1600px;
+    padding: 3rem;
   }
-  
+
   .info-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+
+  h1 {
+    font-size: 3rem;
   }
 }
 
-@media (max-width: 768px) {
-  .buttons {
-    flex-direction: column;
-    width: 100%;
+/* Desktop standard */
+@media (max-width: 1920px) {
+  .form-container {
+    max-width: 1400px;
+    padding: 2.5rem;
   }
+
+  .info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+/* Petits écrans desktop et grands tablets */
+@media (max-width: 1366px) {
+  .form-container {
+    max-width: 1200px;
+    padding: 2rem;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+  }
+
+  h1 {
+    font-size: 2.25rem;
+  }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .form-container {
+    padding: 1.5rem;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .user-table {
+    font-size: 0.9rem;
+  }
+
+  .pagination-container {
+    gap: 1rem;
+  }
+}
+
+/* Grands smartphones et petits tablets */
+@media (max-width: 768px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
   
+
+  
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .user-table th,
+  .user-table td {
+    padding: 8px 10px;
+  }
+
+  .pagination-container {
+    gap: 1rem;
+  }
+
+  .pagination-info {
+    display: none;
+  }
+
+  .per-page-selector {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pagination-controls {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+/* Smartphones moyens */
+@media (max-width: 576px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .add-user-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .user-table {
+    font-size: 0.85rem;
+  }
+
+  .checkbox-column {
+    width: 30px;
+    padding: 0 3px !important;
+  }
+
+  .role {
+    padding: 3px 6px;
+    font-size: 0.8em;
+  }
+
   .edit-btn,
   .delete-btn,
   .back-btn {
-    justify-content: center;
-    width: 100%;
+    padding: 0.5rem 1rem;
   }
 
-  
-  
-  .user-table tr {
-    margin-bottom: 15px;
-  }
-
-  .edit-name-container {
-    max-width: 100%;
-    margin: 0 0 1.5rem;
-  }
-  
-  .edit-name-container .edit-field {
-    font-size: 1rem;
+  .pagination-controls button,
+  .pagination-controls span {
+    padding: 4px 8px;
+    font-size: 0.9rem;
   }
 }
 
-@media (max-width: 480px) {
-  .project-title {
+/* Petits smartphones */
+@media (max-width: 375px) {
+  h1 {
     font-size: 1.5rem;
+  }
+
+  .user-table {
+    font-size: 0.8rem;
+  }
+
+  .info-item {
+    padding: 0.75rem;
+  }
+
+  .edit-field {
+    padding: 8px 10px;
+  }
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  .pagination-info {
+    font-size: 0.8rem;
+  }
+
+  .per-page-selector select,
+  .per-page-selector label {
+    font-size: 0.8rem;
+  }
+}
+
+/* Ajustements pour l'orientation paysage sur mobile */
+@media (max-height: 576px) and (orientation: landscape) {
+  .form-container {
+    padding: 0.75rem;
+  }
+
+  .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .pagination-container {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+/* Optimisations pour l'accessibilité sur mobile */
+@media (hover: none) {
+  .edit-btn:active,
+  .delete-btn:active,
+  .back-btn:active,
+  .add-user-btn:active {
+    transform: scale(0.98);
+  }
+
+  .info-item:active {
+    transform: translateY(0);
+  }
+}
+
+/* Support des écrans à haute densité de pixels */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .checkbox-label,
+  .edit-field,
+  .info-item {
+    border-width: 0.5px;
   }
 }

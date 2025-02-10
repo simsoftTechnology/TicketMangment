@@ -86,7 +86,7 @@ export class AjouterProjetComponent implements OnInit {
   }
 
   loadUtilisateurs(): void {
-    this.userService.getUsers().subscribe(
+    this.userService.getAllUsers().subscribe(
       data => {
         this.utilisateurs = data;
         // Filtrer par rôle

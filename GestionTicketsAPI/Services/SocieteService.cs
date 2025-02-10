@@ -1,52 +1,83 @@
-using GestionTicketsAPI.Data;
+using AutoMapper;
+using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
-using Microsoft.EntityFrameworkCore;
+using GestionTicketsAPI.Helpers;
+using GestionTicketsAPI.Interfaces;
 
 namespace GestionTicketsAPI.Services;
 
-public class SocieteService
+public class SocieteService : ISocieteService
 {
-    private readonly DataContext _context;
+  private readonly ISocieteRepository _societeRepository;
+  private readonly IMapper _mapper;
 
-    public SocieteService(DataContext context)
-    {
-        _context = context;
-    }
+  public SocieteService(ISocieteRepository societeRepository, IMapper mapper)
+  {
+    _societeRepository = societeRepository;
+    _mapper = mapper;
+  }
 
-    // Récupérer toutes les sociétés
-    public async Task<IEnumerable<Societe>> GetAllSocietesAsync()
-    {
-        return await _context.Societes.ToListAsync();
-    }
+  public async Task<IEnumerable<SocieteDto>> GetAllSocietesAsync()
+  {
+    var societes = await _societeRepository.GetAllSocietesAsync();
+    return _mapper.Map<IEnumerable<SocieteDto>>(societes);
+  }
 
-    // Récupérer une société par ID
-    public async Task<Societe?> GetSocieteByIdAsync(int id)
-    {
-        return await _context.Societes.FindAsync(id);
-    }
+  public async Task<PagedList<SocieteDto>> GetSocietesPagedAsync(UserParams userParams)
+  {
+    var societesPaged = await _societeRepository.GetSocietesPagedAsync(userParams);
+    var societesDto = _mapper.Map<IEnumerable<SocieteDto>>(societesPaged);
 
-    // Ajouter une société
-    public async Task<Societe> AddSocieteAsync(Societe societe)
-    {
-        _context.Societes.Add(societe);
-        await _context.SaveChangesAsync();
-        return societe;
-    }
+    // Création d'une PagedList de ProjetDto en préservant les métadonnées de pagination
+    var pagedSocieteDtos = new PagedList<SocieteDto>(
+        societesDto.ToList(),
+        societesPaged.TotalCount,
+        societesPaged.CurrentPage,
+        societesPaged.PageSize
+    );
 
-    // Mettre à jour une société
-    public async Task<bool> UpdateSocieteAsync(Societe societe)
-    {
-        _context.Societes.Update(societe);
-        return await _context.SaveChangesAsync() > 0;
-    }
+    return pagedSocieteDtos;
+  }
 
-    // Supprimer une société
-    public async Task<bool> DeleteSocieteAsync(int id)
-    {
-        var societe = await _context.Societes.FindAsync(id);
-        if (societe == null) return false;
+  public async Task<SocieteDto?> GetSocieteByIdAsync(int id)
+  {
+    var societe = await _societeRepository.GetSocieteByIdAsync(id);
+    return societe == null ? null : _mapper.Map<SocieteDto>(societe);
+  }
 
-        _context.Societes.Remove(societe);
-        return await _context.SaveChangesAsync() > 0;
-    }
+  public async Task<SocieteDetailsDto?> GetSocieteWithDetailsByIdAsync(int id)
+  {
+    var societe = await _societeRepository.GetSocieteWithDetailsByIdAsync(id);
+    return societe == null ? null : _mapper.Map<SocieteDetailsDto>(societe);
+  }
+
+
+  public async Task<SocieteDto> AddSocieteAsync(SocieteDto societeDto)
+  {
+    var societe = _mapper.Map<Societe>(societeDto);
+    await _societeRepository.AddSocieteAsync(societe);
+    await _societeRepository.SaveAllAsync();
+    return _mapper.Map<SocieteDto>(societe);
+  }
+
+  public async Task<bool> UpdateSocieteAsync(int id, SocieteDto societeDto)
+  {
+    var existingSociete = await _societeRepository.GetSocieteByIdAsync(id);
+    if (existingSociete == null)
+      return false;
+
+    _mapper.Map(societeDto, existingSociete);
+    _societeRepository.UpdateSociete(existingSociete);
+    return await _societeRepository.SaveAllAsync();
+  }
+
+  public async Task<bool> DeleteSocieteAsync(int id)
+  {
+    var societe = await _societeRepository.GetSocieteByIdAsync(id);
+    if (societe == null)
+      return false;
+
+    _societeRepository.RemoveSociete(societe);
+    return await _societeRepository.SaveAllAsync();
+  }
 }

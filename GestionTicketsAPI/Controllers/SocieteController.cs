@@ -1,78 +1,90 @@
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
+using GestionTicketsAPI.Extensions;
+using GestionTicketsAPI.Helpers;
+using GestionTicketsAPI.Interfaces;
 using GestionTicketsAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class SocieteController : ControllerBase
 {
-    private readonly SocieteService _societeService;
+  private readonly ISocieteService _societeService;
 
-    public SocieteController(SocieteService societeService)
+  public SocieteController(ISocieteService societeService)
+  {
+    _societeService = societeService;
+  }
+
+  // GET: api/Societe
+  [HttpGet]
+  public async Task<IActionResult> GetSocietes()
+  {
+    var societes = await _societeService.GetAllSocietesAsync();
+    return Ok(societes);
+  }
+
+  // Nouvel endpoint pour la pagination
+
+  [HttpGet("paged")]
+  public async Task<ActionResult<PagedList<SocieteDto>>> GetSocietesPaged([FromQuery] UserParams userParams)
+  {
+    var societesPaged = await _societeService.GetSocietesPagedAsync(userParams);
+    Response.AddPaginationHeader(societesPaged); // Ajoute les métadonnées de pagination dans l'en-tête HTTP
+    return Ok(societesPaged);
+  }
+
+  // GET: api/Societe/5
+  [HttpGet("{id}")]
+  public async Task<IActionResult> GetSociete(int id)
+  {
+    var societe = await _societeService.GetSocieteByIdAsync(id);
+    if (societe == null)
+      return NotFound();
+    return Ok(societe);
+  }
+
+  [HttpGet("details/{id}")]
+  public async Task<IActionResult> GetSocieteDetails(int id)
+  {
+    var societeDetails = await _societeService.GetSocieteWithDetailsByIdAsync(id);
+    if (societeDetails == null)
     {
-        _societeService = societeService;
+      return NotFound();
     }
+    return Ok(societeDetails);
+  }
 
-    // GET: api/Societe
-    [HttpGet]
-    public async Task<IActionResult> GetSocietes()
-    {
-        var societes = await _societeService.GetAllSocietesAsync();
-        return Ok(societes);
-    }
+  // POST: api/Societe
+  [HttpPost]
+  public async Task<IActionResult> AddSociete(SocieteDto societeDto)
+  {
+    var newSociete = await _societeService.AddSocieteAsync(societeDto);
+    return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
+  }
 
-    // GET: api/Societe/5
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetSociete(int id)
-    {
-        var societe = await _societeService.GetSocieteByIdAsync(id);
-        if (societe == null) return NotFound();
+  // PUT: api/Societe/5
+  [HttpPut("{id}")]
+  public async Task<IActionResult> UpdateSociete(int id, SocieteDto societeDto)
+  {
+    var updated = await _societeService.UpdateSocieteAsync(id, societeDto);
+    if (!updated)
+      return NotFound("Société introuvable ou mise à jour échouée");
+    return NoContent();
+  }
 
-        return Ok(societe);
-    }
-
-    // POST: api/Societe
-    [HttpPost]
-    public async Task<IActionResult> AddSociete(SocieteDto societeDto)
-    {
-        var societe = new Societe
-        {
-            Nom = societeDto.Nom,
-            Adresse = societeDto.Adresse,
-            Telephone = societeDto.Telephone
-        };
-
-        var newSociete = await _societeService.AddSocieteAsync(societe);
-        return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
-    }
-
-    // PUT: api/Societe/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateSociete(int id, SocieteDto societeDto)
-    {
-        var existingSociete = await _societeService.GetSocieteByIdAsync(id);
-        if (existingSociete == null) return NotFound();
-
-        existingSociete.Nom = societeDto.Nom;
-        existingSociete.Adresse = societeDto.Adresse;
-        existingSociete.Telephone = societeDto.Telephone;
-
-        var updated = await _societeService.UpdateSocieteAsync(existingSociete);
-        if (!updated) return BadRequest("Échec de la mise à jour");
-
-        return NoContent();
-    }
-
-    // DELETE: api/Societe/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteSociete(int id)
-    {
-        var deleted = await _societeService.DeleteSocieteAsync(id);
-        if (!deleted) return NotFound();
-
-        return NoContent();
-    }
+  // DELETE: api/Societe/5
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> DeleteSociete(int id)
+  {
+    var deleted = await _societeService.DeleteSocieteAsync(id);
+    if (!deleted)
+      return NotFound();
+    return NoContent();
+  }
 }
