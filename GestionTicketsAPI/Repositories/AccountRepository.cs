@@ -1,12 +1,11 @@
-using System;
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace GestionTicketsAPI.Repositories;
-
- public class AccountRepository : IAccountRepository
+namespace GestionTicketsAPI.Repositories
+{
+    public class AccountRepository : IAccountRepository
     {
         private readonly DataContext _context;
         public AccountRepository(DataContext context)
@@ -25,13 +24,19 @@ namespace GestionTicketsAPI.Repositories;
         public async Task<User?> GetUserByEmailAsync(string email)
         {
             return await _context.Users
-                .Include(u => u.PaysNavigation) // Inclut le pays associé
-                .FirstOrDefaultAsync(x => x.Email == email);
+                .Include(u => u.PaysNavigation)
+                .FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
         public async Task AddUserAsync(User user)
         {
             await _context.Users.AddAsync(user);
+        }
+
+        // Ajout de la méthode pour ajouter un contrat
+        public async Task AddContractAsync(Contrat contrat)
+        {
+            await _context.Contrats.AddAsync(contrat);
         }
 
         public async Task<bool> SaveAllAsync()
@@ -44,3 +49,4 @@ namespace GestionTicketsAPI.Repositories;
             return await _context.Pays.FindAsync(paysId);
         }
     }
+}

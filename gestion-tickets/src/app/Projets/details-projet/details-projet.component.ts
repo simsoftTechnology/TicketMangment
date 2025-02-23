@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Component, ElementRef, HostListener, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
@@ -21,37 +21,49 @@ import { PaginatedResult } from '../../_models/pagination';
 @Component({
   selector: 'app-details-projet',
   standalone: true,
-  imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule, RouterLink],
+  imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule],
   templateUrl: './details-projet.component.html',
   styleUrls: ['./details-projet.component.css']
 })
 export class DetailsProjetComponent implements OnInit {
-  // Données du projet
+  // --- Données du projet et membres ---
   projet!: Projet;
   membres: ProjetMember[] = [];
 
-  // Variables pour la pagination
+  // Pagination (client-side) pour les membres du projet
   pageNumber: number = 1;
   pageSize: number = 9;
-  paginatedResult: PaginatedResult<User[]> | null = null;
   jumpPage: number = 1;
+  totalPages: number = 1; // Calculé à partir du nombre de membres filtrés
 
-  // Dropdown pour Pays et Société
-  isPaysDropdownOpen = false;
-  isSocieteDropdownOpen = false;
-  searchPays = '';
-  searchSociete = '';
-  filteredPays: Pays[] = [];
-  filteredSocietes: Societe[] = [];
-  // Listes complètes (chargées depuis le service)
+  // Recherche dans le tableau des membres
+  userSearchTerm: string = '';
+
+  // --- Dropdown Pays ---
   pays: Pays[] = [];
-  societes: Societe[] = [];
+  filteredPays: Pays[] = [];
+  paysSearchTerm: string = '';
+  isPaysDropdownOpen: boolean = false;
 
-  // Pour le mode édition
+  // --- Dropdown Société ---
+  societes: Societe[] = [];
+  filteredSocietes: Societe[] = [];
+  searchSociete: string = '';
+  isSocieteDropdownOpen: boolean = false;
+
+  // --- Mode édition ---
   editMode: boolean = false;
 
-  // Pour la sélection d'un nouvel utilisateur via la boîte modale
-  availableUsers: any[] = [];
+  // --- Gestion des utilisateurs (pour la boîte modale) ---
+  availableUsers: Partial<User>[] = [];
+  
+  // (Optionnel) Pagination & recherche côté serveur pour les utilisateurs
+  userPageNumber: number = 1;
+  userPageSize: number = 1;
+  userTotalPages: number = 1;
+  totalUsers: number = 0;
+  displayedUsers: User[] = [];
+  userJumpPage: number = 1;
 
   constructor(
     private route: ActivatedRoute,
@@ -59,114 +71,180 @@ export class DetailsProjetComponent implements OnInit {
     public accountService: AccountService,
     private paysService: PaysService,
     private societeService: SocieteService,
-    private router: Router,
-    private dialog: MatDialog
-  ) { }
+    public router: Router,
+    private dialog: MatDialog,
+    private location: Location,
+    private elementRef: ElementRef
+  ) {}
 
   ngOnInit(): void {
     this.getProjetDetails();
-    this.getMembres();
     this.getAvailableUsers();
     this.loadPays();
     this.loadSocietes();
+    this.loadUsers(); // Pour la recherche/pagination côté serveur (si nécessaire)
   }
 
+  // --- Chargement du projet et de ses membres ---
   getProjetDetails(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
       this.projetService.getProjetById(id).subscribe({
-        next: (data) => { this.projet = data; },
+        next: (data) => {
+          this.projet = data;
+          this.getMembres();
+        },
         error: (err) => { console.error('Erreur lors de la récupération du projet', err); }
       });
     }
   }
 
-  // Récupère l'ensemble des membres du projet
   getMembres(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.projetService.getMembresProjet(id).subscribe({
-        next: (data) => {
+    if (this.projet && this.projet.id) {
+      this.projetService.getMembresProjet(this.projet.id).subscribe({
+        next: (data: ProjetMember[]) => {
           this.membres = data;
-          // Remise à zéro de la page lors du rafraîchissement des données
-          this.pageNumber = 1;
         },
-        error: (err) => { console.error('Erreur lors de la récupération des membres', err); }
+        error: (err) => { console.error('Erreur lors du chargement des membres', err); }
       });
     }
   }
 
-  // Getter pour le nombre total de pages (basé sur la liste des membres)
-  get totalPages(): number {
-    return Math.ceil(this.membres.length / this.pageSize);
-  }
-
-  // Retourne uniquement les membres de la page courante
+  // --- Filtrage et pagination des membres (client-side) ---
   get displayedMembres(): ProjetMember[] {
-    const startIndex = (this.pageNumber - 1) * this.pageSize;
-    return this.membres.slice(startIndex, startIndex + this.pageSize);
-  }
-
-  // Retourne un tableau de numéros de page [1, 2, ..., totalPages]
-  getPages(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  // Méthode de changement de page
-  onPageChange(newPage: number): void {
-    if (newPage < 1 || newPage > this.totalPages) {
-      return;
+    let filteredMembres = this.membres;
+    if (this.userSearchTerm && this.userSearchTerm.trim() !== '') {
+      const term = this.userSearchTerm.toLowerCase();
+      filteredMembres = this.membres.filter(m =>
+        (m.firstName + ' ' + m.lastName).toLowerCase().includes(term)
+      );
     }
-    this.pageNumber = newPage;
-    // Si nécessaire, mettez également à jour jumpPage pour refléter la page actuelle
-    this.jumpPage = newPage;
+    this.totalPages = Math.ceil(filteredMembres.length / this.pageSize) || 1;
+    const start = (this.pageNumber - 1) * this.pageSize;
+    return filteredMembres.slice(start, start + this.pageSize);
   }
 
-  // Saut direct vers une page donnée
-  // Sauter directement à une page donnée
+  onUserSearch(): void {
+    this.pageNumber = 1;
+  }
+
+  onPageChange(newPage: number): void {
+    this.pageNumber = Math.min(Math.max(newPage, 1), this.totalPages);
+    this.jumpPage = this.pageNumber;
+  }
+
   jumpToPage(): void {
-    // Assurez-vous que jumpPage est dans les limites
-    this.jumpPage = Math.min(Math.max(Number(this.jumpPage), 1), this.totalPages);
-    this.onPageChange(this.jumpPage);
+    if (this.jumpPage >= 1 && this.jumpPage <= this.totalPages) {
+      this.pageNumber = this.jumpPage;
+    } else {
+      console.warn('Numéro de page invalide');
+    }
   }
 
+  selectAll(event: any): void {
+    const checked = event.target.checked;
+    this.membres.forEach(m => m.selected = checked);
+  }  
+
+  toggleSelection(membre: ProjetMember): void {
+    console.log('Membre sélectionné/désélectionné :', membre);
+  }
+
+  // --- Recherche et pagination côté serveur pour les utilisateurs (pour la modale, si nécessaire) ---
+  loadUsers(): void {
+    this.accountService.getUsers(this.userPageNumber, this.userPageSize, this.userSearchTerm)
+      .subscribe((result: PaginatedResult<User[]>) => {
+        this.displayedUsers = result.items ?? [];
+        this.userTotalPages = result.pagination?.totalPages ?? 1;
+      }, error => {
+        console.error('Erreur lors du chargement des utilisateurs paginés', error);
+      });
+  }
+
+  // --- Navigation (exemple de redirection) ---
+  viewProjet(projetId: number): void {
+    this.router.navigate(['/home/projets/details', projetId]);
+  }
+
+  // --- Gestion des dropdowns pour Pays ---
   loadPays(): void {
-    this.paysService.getPays().subscribe({
+    this.paysService.getPays(this.paysSearchTerm).subscribe({
       next: (data) => {
+        this.filteredPays = data;
         this.pays = data;
-        this.filteredPays = [...data];
       },
       error: (err) => { console.error('Erreur lors de la récupération des pays', err); }
     });
   }
 
+  onPaysSearch(): void {
+    this.loadPays();
+  }
+
+  // --- Gestion des dropdowns pour Société ---
   loadSocietes(): void {
-    this.societeService.getSocietes().subscribe({
+    this.societeService.getSocietes(this.searchSociete).subscribe({
       next: (data) => {
+        this.filteredSocietes = data;
         this.societes = data;
-        this.filteredSocietes = [...data];
       },
       error: (err) => { console.error('Erreur lors de la récupération des sociétés', err); }
     });
   }
+  
+  onSocieteSearch(): void {
+    this.loadSocietes();
+  }
 
-  deleteProjet(id: number): void {
-    if (confirm('Voulez-vous vraiment supprimer ce projet ?')) {
-      this.projetService.deleteProjet(id).subscribe({
-        next: () => {
-          alert('Projet supprimé avec succès');
-          this.router.navigate(['/projets']);
-        },
-        error: (err) => { console.error('Erreur lors de la suppression du projet', err); }
-      });
+  // Empêcher la propagation du clic dans les dropdowns
+  toggleDropdown(type: string): void {
+    if (type === 'pays') {
+      this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
+      if (this.isPaysDropdownOpen) {
+        this.isSocieteDropdownOpen = false;
+      }
+    } else if (type === 'societe') {
+      this.isSocieteDropdownOpen = !this.isSocieteDropdownOpen;
+      if (this.isSocieteDropdownOpen) {
+        this.isPaysDropdownOpen = false;
+      }
     }
   }
 
+
+
+  // Récupération du nom du pays à partir de son identifiant
+  getPaysName(idPays: number): string {
+    return this.pays.find(p => p.idPays === idPays)?.nom || '';
+  }
+
+  // Récupération du nom de la société à partir de son identifiant
+  getSocieteName(idSociete: number | null | undefined): string {
+    if (!idSociete) {
+      return '';
+    }
+    return this.societes.find(s => s.id === idSociete || s.id === idSociete)?.nom || '';
+  }
+  
+  
+  // Méthode de sélection d'une société dans le dropdown
+  selectSociete(societe: any): void {
+    // Affecte l'identifiant de la société au projet (adapter selon votre modèle)
+    this.projet.societeId = societe.id || societe.idSociete;
+    // Ferme le dropdown
+    this.isSocieteDropdownOpen = false;
+    // Réinitialise le champ de recherche et recharge la liste complète
+    this.searchSociete = '';
+    this.loadSocietes();
+  }
+
+  // --- Sauvegarde, annulation et suppression du projet ---
   saveProjet(): void {
     this.projetService.updateProjet(this.projet).subscribe({
       next: () => {
         alert('Projet mis à jour avec succès');
         this.editMode = false;
+        this.getProjetDetails();
       },
       error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
     });
@@ -174,21 +252,22 @@ export class DetailsProjetComponent implements OnInit {
 
   cancelEdit(): void {
     this.editMode = false;
-    // Rechargement des détails pour annuler les modifications locales
     this.getProjetDetails();
   }
 
-  // Sélection/désélection de tous les membres affichés
-  selectAll(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.displayedMembres.forEach(membre => membre.selected = checked);
+  deleteProjet(id: number): void {
+    if (confirm('Voulez-vous vraiment supprimer ce projet ?')) {
+      this.projetService.deleteProjet(id).subscribe({
+        next: () => {
+          alert('Projet supprimé avec succès');
+          this.router.navigate(['/home/projets']);
+        },
+        error: (err) => { console.error('Erreur lors de la suppression du projet', err); }
+      });
+    }
   }
 
-  toggleSelection(membre: ProjetMember): void {
-    // Logique supplémentaire lors de la sélection/désélection d’un membre
-    console.log('Membre sélectionné/désélectionné :', membre);
-  }
-
+  // --- Gestion des utilisateurs dans la modale ---
   openUserSelector(): void {
     const dialogRef = this.dialog.open(UserSelectorDialogComponent, {
       data: { availableUsers: this.availableUsers }
@@ -215,20 +294,18 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });
   }
+  
 
   addUserToProjet(user: User): void {
     if (this.projet && this.projet.id && user.id) {
-      this.projetService.ajouterUtilisateurAuProjet(
-        this.projet.id,
-        user.id,
-        user.role
-      ).subscribe({
-        next: () => {
-          alert('Utilisateur ajouté avec succès');
-          this.getMembres();
-        },
-        error: (err) => { console.error('Erreur lors de l’ajout de l’utilisateur', err); }
-      });
+      this.projetService.ajouterUtilisateurAuProjet(this.projet.id, user.id, user.role)
+        .subscribe({
+          next: () => {
+            alert('Utilisateur ajouté avec succès');
+            this.getMembres();
+          },
+          error: (err) => { console.error('Erreur lors de l’ajout de l’utilisateur', err); }
+        });
     } else {
       alert("Veuillez sélectionner un utilisateur valide.");
     }
@@ -237,71 +314,58 @@ export class DetailsProjetComponent implements OnInit {
   removeUser(userId: number): void {
     if (this.projet && this.projet.id) {
       if (confirm('Confirmer la suppression de cet utilisateur du projet ?')) {
-        this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId).subscribe({
-          next: () => {
-            alert('Utilisateur retiré avec succès');
-            this.getMembres();
-          },
-          error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }
-        });
+        this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
+          .subscribe({
+            next: () => {
+              alert('Utilisateur retiré avec succès');
+              this.getMembres();
+            },
+            error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }
+          });
       }
     }
   }
 
-  toggleDropdown(type: string): void {
-    switch (type) {
-      case 'pays':
-        this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
-        if (this.isPaysDropdownOpen) {
-          this.filteredPays = [...this.pays];
-        }
-        break;
-      case 'societe':
-        this.isSocieteDropdownOpen = !this.isSocieteDropdownOpen;
-        if (this.isSocieteDropdownOpen) {
-          this.filteredSocietes = [...this.societes];
-        }
-        break;
-    }
-  }
-
-  filterItems(type: string): void {
-    switch (type) {
-      case 'pays':
-        this.filteredPays = this.pays.filter(p =>
-          p.nom.toLowerCase().includes(this.searchPays.toLowerCase())
-        );
-        break;
-      case 'societe':
-        this.filteredSocietes = this.societes.filter(s =>
-          s.nom.toLowerCase().includes(this.searchSociete.toLowerCase())
-        );
-        break;
-    }
-  }
-
-  selectItem(item: any, type: string): void {
-    switch (type) {
-      case 'pays':
-        this.projet.idPays = item.idPays;
-        this.isPaysDropdownOpen = false;
-        break;
-      case 'societe':
-        this.projet.societeId = item.id;
-        this.isSocieteDropdownOpen = false;
-        break;
-    }
-  }
-
-  getPaysName(idPays: number): string {
-    return this.pays.find(p => p.idPays === idPays)?.nom || '';
-  }
-
-  getSocieteName(idSociete: number): string {
-    return this.societes.find(s => s.id === idSociete)?.nom || '';
-  }
-
+  // --- Utilitaire pour générer une plage de nombres pour la pagination ---
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
+  }
+
+
+  deleteSelectedMembers(): void {
+    const selectedUserIds = this.membres
+      .filter(m => m.selected)
+      .map(m => m.userId);
+    
+    if (selectedUserIds.length === 0) {
+      alert("Aucun membre sélectionné pour la suppression.");
+      return;
+    }
+    
+    if (confirm("Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?")) {
+      // Loop through each user and call the single deletion endpoint.
+      selectedUserIds.forEach(userId => {
+        this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
+          .subscribe({
+            next: () => this.getMembres(), // Refresh the members list after each deletion.
+            error: err => console.error("Erreur lors du retrait de l’utilisateur", err)
+          });
+      });
+    }
+  }
+    
+  // Gestionnaire de clic global pour fermer les dropdowns
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    // Vérifiez si le clic se produit en dehors d'un élément ayant la classe 'custom-select'
+    if (!target.closest('.custom-select')) {
+      this.isPaysDropdownOpen = false;
+      this.isSocieteDropdownOpen = false;
+    }
+  }
+
+  goBack(): void {
+    this.location.back();
   }
 }

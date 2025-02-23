@@ -5,11 +5,15 @@ using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace GestionTicketsAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProjetsController : BaseApiController
     {
         private readonly IProjetService _projetService;
@@ -19,8 +23,7 @@ namespace GestionTicketsAPI.Controllers
             _projetService = projetService;
         }
 
-        // 🔹 Récupérer tous les projets
-        [Authorize]
+        // Récupérer tous les projets
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjets()
         {
@@ -28,18 +31,16 @@ namespace GestionTicketsAPI.Controllers
             return Ok(projetsDto);
         }
 
-        // Nouvel endpoint pour la pagination
-        [Authorize]
+        // Récupérer les projets paginés
         [HttpGet("paged")]
         public async Task<ActionResult<PagedList<ProjetDto>>> GetProjetsPaged([FromQuery] UserParams projetParams)
         {
             var projetsPaged = await _projetService.GetProjetsPagedAsync(projetParams);
-            Response.AddPaginationHeader(projetsPaged); // Ajoute les métadonnées de pagination dans l'en-tête HTTP
+            Response.AddPaginationHeader(projetsPaged);
             return Ok(projetsPaged);
         }
 
-        // 🔹 Récupérer un projet par ID
-        [Authorize]
+        // Récupérer un projet par ID
         [HttpGet("{id}")]
         public async Task<ActionResult<ProjetDto>> GetProjet(int id)
         {
@@ -49,30 +50,27 @@ namespace GestionTicketsAPI.Controllers
             return Ok(projetDto);
         }
 
-        // 🔹 Ajouter un projet
-        [Authorize]
+        // Ajouter un projet
         [HttpPost("ajouterProjet")]
-        public async Task<ActionResult<ProjetDto>> PostProjet(ProjetDto projetDto)
+        public async Task<ActionResult<ProjetDto>> PostProjet([FromBody] ProjetDto projetDto)
         {
             var createdProjetDto = await _projetService.AddProjetAsync(projetDto);
             return CreatedAtAction(nameof(GetProjet), new { id = createdProjetDto.Id }, createdProjetDto);
         }
 
-        // 🔹 Mettre à jour un projet
-        [Authorize]
+        // Mettre à jour un projet
         [HttpPut("modifierProjet/{id}")]
-        public async Task<IActionResult> PutProjet(int id, ProjetDto projetDto)
+        public async Task<IActionResult> PutProjet(int id, [FromBody] ProjetDto projetDto)
         {
             if (id != projetDto.Id)
-                return BadRequest();
+                return BadRequest("L'ID du projet ne correspond pas.");
             var result = await _projetService.UpdateProjetAsync(id, projetDto);
             if (!result)
                 return NotFound();
             return NoContent();
         }
 
-        // 🔹 Supprimer un projet
-        [Authorize]
+        // Supprimer un projet
         [HttpDelete("supprimerProjet/{id}")]
         public async Task<IActionResult> DeleteProjet(int id)
         {
@@ -82,7 +80,20 @@ namespace GestionTicketsAPI.Controllers
             return NoContent();
         }
 
-        // 🔹 Ajouter un utilisateur au projet
+        // Supprimer plusieurs projets
+        [HttpDelete("supprimerProjets")]
+        public async Task<IActionResult> DeleteProjets([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+                return BadRequest("Aucun identifiant fourni.");
+
+            var result = await _projetService.DeleteProjetsAsync(ids);
+            if (!result)
+                return NotFound("Un ou plusieurs projets non trouvés.");
+            return NoContent();
+        }
+
+        // Ajouter un utilisateur au projet
         [HttpPost("{projetId}/utilisateurs")]
         public async Task<IActionResult> AjouterUtilisateurAuProjet(int projetId, [FromBody] ProjetUserDto projetUserDto)
         {
@@ -92,15 +103,18 @@ namespace GestionTicketsAPI.Controllers
             return Ok(new { message = "Utilisateur ajouté au projet avec succès." });
         }
 
-        // 🔹 Assigner un rôle à un utilisateur sur un projet
+        // Assigner un rôle à un utilisateur sur un projet
         [HttpPost("assigner-role")]
-        public async Task<IActionResult> AssignerRole(int projetId, int userId, string role)
+        public async Task<IActionResult> AssignerRole(
+            [FromQuery] int projetId,
+            [FromQuery] int userId,
+            [FromQuery] string role)
         {
             var projetUser = await _projetService.AssignerRoleAsync(projetId, userId, role);
             return Ok(projetUser);
         }
 
-        // 🔹 Récupérer les membres d'un projet
+        // Récupérer les membres d'un projet
         [HttpGet("membres/{projetId}")]
         public async Task<IActionResult> GetMembresProjet(int projetId)
         {
@@ -108,14 +122,30 @@ namespace GestionTicketsAPI.Controllers
             return Ok(membres);
         }
 
-        // 🔹 Supprimer un utilisateur d'un projet
-        [Authorize]
+        // Supprimer un utilisateur d'un projet
         [HttpDelete("{projetId}/utilisateurs/{userId}")]
         public async Task<IActionResult> SupprimerUtilisateurDuProjet(int projetId, int userId)
         {
             var result = await _projetService.SupprimerUtilisateurDuProjetAsync(projetId, userId);
             if (!result)
                 return NotFound();
+            return NoContent();
+        }
+
+        // Supprimer plusieurs utilisateurs d'un projet
+        [HttpDelete("supprimerUtilisateursDuProjet")]
+        public async Task<IActionResult> SupprimerUtilisateursDuProjet([FromBody] ProjetUsersDeleteDto deleteDto)
+        {
+            if (deleteDto == null || deleteDto.UserIds == null || !deleteDto.UserIds.Any())
+                return BadRequest("Aucun utilisateur spécifié.");
+
+            foreach (var userId in deleteDto.UserIds)
+            {
+                var result = await _projetService.SupprimerUtilisateurDuProjetAsync(deleteDto.ProjetId, userId);
+                if (!result)
+                    return NotFound($"Utilisateur {userId} non trouvé dans le projet {deleteDto.ProjetId}.");
+            }
+
             return NoContent();
         }
     }

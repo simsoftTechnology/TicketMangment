@@ -21,7 +21,7 @@ export class ModifierPaysComponent implements OnInit {
     private fb: FormBuilder,
     private paysService: PaysService,
     private router: Router,
-    private route: ActivatedRoute
+    public route: ActivatedRoute
   ) {
     this.paysForm = this.fb.group({
       nom: [''],
@@ -57,7 +57,7 @@ export class ModifierPaysComponent implements OnInit {
   
     // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
     if (!hasNomChanged && !hasFileChanged) {
-      this.router.navigate(['/Pays']);
+      this.router.navigate(['/home/Pays']);
       return;
     }
   
@@ -70,7 +70,7 @@ export class ModifierPaysComponent implements OnInit {
     const fileToSend = hasFileChanged ? this.selectedFile : undefined;
   
     this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
-      this.router.navigate(['/Pays']);
+      this.router.navigate(['/home/Pays']);
     });
   }
   

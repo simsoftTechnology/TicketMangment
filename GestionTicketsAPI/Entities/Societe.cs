@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace GestionTicketsAPI.Entities;
-
-public class Societe
+namespace GestionTicketsAPI.Entities
 {
+  public class Societe
+  {
     [Key]
     public int Id { get; set; }
 
@@ -19,6 +20,14 @@ public class Societe
     [StringLength(50)]
     public string Telephone { get; set; } = string.Empty;
 
+    public int PaysId { get; set; }
+    public Pays? Pays { get; set; }
+
     public ICollection<User>? Utilisateurs { get; set; }
     public ICollection<Projet>? Projets { get; set; }
+
+
+    [InverseProperty("SocietePartenaire")]
+    public ICollection<Contrat> ContratsPartenaire { get; set; } = new List<Contrat>();
+  }
 }

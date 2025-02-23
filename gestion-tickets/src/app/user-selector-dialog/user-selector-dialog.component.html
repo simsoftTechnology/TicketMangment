@@ -38,6 +38,7 @@
         (ngModelChange)="filterUsers()"
         placeholder="Commencez à taper pour rechercher..."
       />
+      
     </div>
     <div class="options-list">
       <div
@@ -48,6 +49,7 @@
         {{ user.role }} – {{ user.firstName }} {{ user.lastName }}
       </div>
       <div class="no-result" *ngIf="filteredUsers.length === 0">
+        <span class="no-results-icon">🔍</span>
         Aucun utilisateur trouvé.
       </div>
     </div>

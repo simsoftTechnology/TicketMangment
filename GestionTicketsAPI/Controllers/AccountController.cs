@@ -1,23 +1,26 @@
-using System.Security.Cryptography;
-using System.Text;
-using GestionTicketsAPI.Data;
+using System.Security.Claims;
 using GestionTicketsAPI.DTOs;
-using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace GestionTicketsAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+
+
+
 public class AccountController : BaseApiController
 {
   private readonly IAccountService _accountService;
+  private readonly IUserService _userService;
 
-  public AccountController(IAccountService accountService)
+  public AccountController(IAccountService accountService, IUserService userService)
   {
     _accountService = accountService;
+    _userService = userService;
   }
 
   [HttpPost("register")]
@@ -30,7 +33,8 @@ public class AccountController : BaseApiController
     }
     catch (Exception ex)
     {
-      return BadRequest(ex.Message);
+      var inner = ex.InnerException?.Message;
+      return BadRequest(new { message = ex.Message, inner });
     }
   }
 
@@ -44,8 +48,25 @@ public class AccountController : BaseApiController
     }
     catch (Exception ex)
     {
-      // Ici, vous pouvez retourner des réponses plus détaillées en fonction du type d'erreur
       return Unauthorized(new { message = ex.Message });
     }
   }
+
+
+  [HttpGet("validate")]
+  public async Task<ActionResult> Validate()
+  {
+    var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+    {
+      return Unauthorized();
+    }
+
+    var user = await _userService.GetUserByIdAsync(userId);
+    if (user == null)
+      return Unauthorized();
+
+    return Ok();
+  }
+
 }

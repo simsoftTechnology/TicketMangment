@@ -21,6 +21,22 @@ public class PaysRepository : IPaysRepository
                 .ToListAsync();
         }
 
+        // Nouvelle méthode pour récupérer les pays en fonction d'un terme de recherche
+        public async Task<IEnumerable<Pays>> GetPaysAsync(string searchTerm)
+        {
+            var query = _context.Pays
+                .Include(p => p.paysPhoto)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                // On effectue la recherche sur le nom (en ignorant la casse)
+                query = query.Where(p => p.Nom.ToLower().Contains(searchTerm.ToLower()));
+            }
+
+            return await query.ToListAsync();
+        }
+
         public async Task<Pays?> GetPaysByIdAsync(int idPays)
         {
             return await _context.Pays

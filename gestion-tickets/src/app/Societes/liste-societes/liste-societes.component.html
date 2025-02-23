@@ -1,8 +1,7 @@
 <div class="container">
   <div class="header">
     <h2>Liste des sociétés</h2>
-    <!-- Modifier le routerLink selon votre configuration de routage -->
-    <button class="add-user-btn" routerLink="/Societes/ajouterSociete">
+    <button class="add-user-btn" routerLink="/home/Societes/ajouterSociete">
       <span class="material-icons">add</span> Ajouter
     </button>
   </div>
@@ -11,10 +10,20 @@
     <thead>
       <!-- Ligne de filtres (optionnelle) -->
       <tr class="filter-row">
+        <td colspan="2">
+          <div class="search-wrapper">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Rechercher une société..."
+              [(ngModel)]="societesSearchTerm"
+              (ngModelChange)="onSearchChange()"
+            />
+            <span class="material-icons search-icon">search</span>
+          </div>
+        </td>
         <td class="checkbox-column"></td>
-        <!-- On peut laisser vides ou ajouter d'autres colonnes de filtres -->
-        <td colspan="3"></td>
-        <td colspan="3" class="filter-actions">
+        <td colspan="2" class="filter-actions">
           <button class="filter-btn">
             <span class="material-icons">filter_list</span>
           </button>
@@ -37,55 +46,70 @@
         <th>Nom</th>
         <th>Adresse</th>
         <th>Téléphone</th>
-        <th></th>
+        <th class="actions">
+          <button class="delete-btn" (click)="deleteSelectedSocietes()">
+            <span class="material-icons">delete</span>
+          </button>
+        </th>
       </tr>
     </thead>
 
     <tbody>
-      <tr *ngFor="let societe of paginatedResult?.items; let i = index">
-        <td class="checkbox-column">
-          <div class="checkbox-wrapper">
-            <input
-              type="checkbox"
-              [id]="'societe' + i"
-              class="custom-checkbox"
-              [(ngModel)]="societe.selected"
-              (change)="toggleSelection(societe)"
-            />
-            <label [for]="'societe' + i" class="checkbox-label"></label>
-          </div>
-        </td>
-        <td>{{ societe.nom }}</td>
-        <td>{{ societe.adresse }}</td>
-        <td>{{ societe.telephone }}</td>
-        <td class="actions">
-          <button class="edit-btn" [routerLink]="['/Societes/modifierSociete', societe.id]">
-            <span class="material-icons">edit</span>
-          </button>          
-          <button class="delete-btn" (click)="deleteSociete(societe.id)">
-            <span class="material-icons">delete</span>
-          </button>
-        </td>
-      </tr>
-      <!-- Ligne pour la pagination -->
+      <!-- Affichage des sociétés -->
+      <ng-container *ngIf="societes && societes.length > 0; else noSocietes">
+        <tr *ngFor="let societe of societes; let i = index">
+          <td class="checkbox-column">
+            <div class="checkbox-wrapper">
+              <input
+                type="checkbox"
+                [id]="'societe' + i"
+                class="custom-checkbox"
+                [(ngModel)]="societe.selected"
+              />
+              <label [for]="'societe' + i" class="checkbox-label"></label>
+            </div>
+          </td>
+          <td>{{ societe.nom }}</td>
+          <td>{{ societe.adresse }}</td>
+          <td>{{ societe.telephone }}</td>
+          <td class="actions">
+            <button class="edit-btn" [routerLink]="['/home', 'Societes', 'modifierSociete', societe.id]">
+              <span class="material-icons">edit</span>
+            </button>
+            <button class="delete-btn" (click)="deleteSociete(societe.id)">
+              <span class="material-icons">delete</span>
+            </button>
+          </td>
+        </tr>
+      </ng-container>
+
+      <!-- Aucun résultat -->
+      <ng-template #noSocietes>
+        <tr>
+          <td colspan="4">
+            <div class="no-content">
+              <span class="icon">✕</span>
+              <p>Aucune société trouvée</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <!-- Pagination -->
       <tr>
         <td colspan="6">
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de
-              {{
-              (((paginatedResult?.pagination?.currentPage || 1) - 1) *
-              (paginatedResult?.pagination?.itemsPerPage || pageSize)) + 1
-              }}
+              {{ (((paginatedResult?.pagination?.currentPage || 1) - 1) *
+                  (paginatedResult?.pagination?.itemsPerPage || pageSize)) + 1 }}
               à
-              {{
-              ((paginatedResult?.pagination?.currentPage || 1) *
-              (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
-              (paginatedResult?.pagination?.totalItems || 0)
-              ? (paginatedResult?.pagination?.totalItems || 0)
-              : ((paginatedResult?.pagination?.currentPage || 1) *
-              (paginatedResult?.pagination?.itemsPerPage || pageSize))
-              }}
+              {{ ((paginatedResult?.pagination?.currentPage || 1) *
+                  (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
+                  (paginatedResult?.pagination?.totalItems || 0)
+                  ? (paginatedResult?.pagination?.totalItems || 0)
+                  : ((paginatedResult?.pagination?.currentPage || 1) *
+                     (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
               sur {{ paginatedResult?.pagination?.totalItems || 0 }} résultats
             </div>
             <div class="per-page-selector">
@@ -95,30 +119,26 @@
               <label>par page</label>
             </div>
             <div class="pagination-controls">
-              <!-- Bouton Précédent avec gestion intégrée de la saisie -->
               <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1"
-                title="Cliquez pour la page précédente ou double-cliquez pour saisir une page">
+                      title="Cliquez pour la page précédente ou double-cliquez pour saisir une page">
                 &laquo;
               </button>
 
-              <!-- Input unique pour la page actuelle -->
               <input type="number" [(ngModel)]="jumpPage" (keyup.enter)="jumpToPage()"
-                [max]="paginatedResult?.pagination?.totalPages ?? 1" min="1" class="page-input" />
+                     [max]="paginatedResult?.pagination?.totalPages ?? 1" min="1" class="page-input" />
 
-              <!-- Affichage du total des pages -->
               <span class="total-pages">
                 / {{ paginatedResult?.pagination?.totalPages || 1 }}
               </span>
-              <!-- Bouton Suivant -->
               <button (click)="onPageChange(pageNumber + 1)"
-                [disabled]="pageNumber >= (paginatedResult?.pagination?.totalPages || 1)" title="Page suivante">
+                      [disabled]="pageNumber >= (paginatedResult?.pagination?.totalPages || 1)"
+                      title="Page suivante">
                 &raquo;
               </button>
-
             </div>
           </div>
         </td>
       </tr>
-    </tbody>
+    </tbody>    
   </table>
 </div>

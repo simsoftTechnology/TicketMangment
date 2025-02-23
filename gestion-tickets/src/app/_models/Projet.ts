@@ -4,10 +4,13 @@ export interface Projet {
   id: number;
   nom: string;
   description?: string;
-  societeId: number;
+  // L’un ou l’autre doit être renseigné
+  societeId?: number | null;
+  clientId?: number | null;
   idPays: number;
   nomSociete?: string;  
   nomPays?: string;    
   selected?: boolean; 
   utilisateurs?: User[];
 }
+

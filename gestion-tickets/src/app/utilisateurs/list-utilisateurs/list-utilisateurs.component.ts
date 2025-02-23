@@ -1,10 +1,9 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { AccountService } from '../../_services/account.service';
 import { NgClass, NgFor, NgIf } from '@angular/common';
 import { User } from '../../_models/user';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
 
 @Component({
@@ -16,31 +15,58 @@ import { PaginatedResult } from '../../_models/pagination';
 })
 export class ListUtilisateursComponent implements OnInit {
   public accountService = inject(AccountService);
-
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  
+  
   // Variables pour la pagination
   pageNumber: number = 1;
   pageSize: number = 9;
   paginatedResult: PaginatedResult<User[]> | null = null;
   jumpPage: number = 1;
 
+  // Terme de recherche pour filtrer les utilisateurs
+  usersSearchTerm: string = '';
+
+  // Variable pour conserver l'ID du nouvel utilisateur (pour la surbrillance)
+  newUserId: number | null = null;
+
   ngOnInit(): void {
-    // Charge les utilisateurs si le signal est vide
-    if (!this.accountService.paginatedResult()) {
-      this.getUsers();
-    }
+    // Récupérer le paramètre de l'URL
+    this.route.queryParams.subscribe(params => {
+      const newUser = params['newUser'];
+      if (newUser) {
+        this.newUserId = +newUser;
+        // Force le rechargement de la liste pour inclure le nouvel utilisateur
+        this.getUsers();
+        // Supprimez le paramètre "newUser" de l'URL pour éviter qu'il ne soit retraité lors d'un rafraîchissement
+        this.router.navigate([], {
+          queryParams: { newUser: null },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        // Supprimez la surbrillance après 5 secondes
+        setTimeout(() => { this.newUserId = null; }, 2000);
+      } else {
+        // S'il n'y a pas de paramètre newUser, rechargez la liste
+        this.getUsers();
+      }
+    });
     this.setCurrentUser();
   }
+  
+  
 
-  setCurrentUser() {
+  setCurrentUser(): void {
     const userString = localStorage.getItem('user');
     if (!userString) return;
     const user = JSON.parse(userString);
     this.accountService.currentUser.set(user);
   }
 
-  // Appel du service pour charger la page demandée
+  // Appel du service pour charger la page demandée en passant le terme de recherche
   getUsers(): void {
-    this.accountService.getUsers(this.pageNumber, this.pageSize).subscribe({
+    this.accountService.getUsers(this.pageNumber, this.pageSize, this.usersSearchTerm).subscribe({
       next: (response) => {
         const updatedItems = (response.items ?? []).map(user => ({ ...user, selected: false }));
         const result: PaginatedResult<User[]> = {
@@ -57,8 +83,13 @@ export class ListUtilisateursComponent implements OnInit {
       }
     });
   }
-  
 
+  // Méthode déclenchée lors de la modification du terme de recherche
+  onSearchChange(): void {
+    this.pageNumber = 1;
+    this.getUsers();
+  }
+  
   // Méthode pour changer de page et relancer la requête
   onPageChange(newPage: number): void {
     const maxPage = this.accountService.paginatedResult()?.pagination?.totalPages || 1;
@@ -122,6 +153,24 @@ export class ListUtilisateursComponent implements OnInit {
 
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
+  }
+
+
+  deleteUser(user: User): void {
+    if (confirm(`Voulez-vous vraiment supprimer l'utilisateur ${user.firstName} ${user.lastName} ?`)) {
+      this.accountService.deleteUser(user.id).subscribe({
+        next: () => {
+          // Optionnel : afficher un message de succès
+          alert('Utilisateur supprimé avec succès.');
+          // Rafraîchir la liste
+          this.getUsers();
+        },
+        error: error => {
+          console.error('Erreur lors de la suppression de l\'utilisateur', error);
+          alert('Une erreur est survenue lors de la suppression.');
+        }
+      });
+    }
   }
   
 }

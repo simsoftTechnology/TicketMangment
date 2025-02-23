@@ -1,0 +1,45 @@
+<div class="contract-form-container">
+  <h3 class="form-title">Informations sur le Contrat</h3>
+  <form [formGroup]="data.contractForm" (ngSubmit)="onSave()">
+    <div class="form-grid">
+      <!-- Date de début -->
+      <div class="form-group">
+        <label for="dateDebut">
+          Date de début <span class="required">*</span>
+        </label>
+        <input id="dateDebut" type="date" formControlName="dateDebut" required />
+        <div *ngIf="data.contractForm.get('dateDebut')?.invalid && (data.contractForm.get('dateDebut')?.touched || data.contractForm.get('dateDebut')?.dirty)" class="error-message">
+          La date de début est obligatoire.
+        </div>
+      </div>
+  
+      <!-- Date de fin -->
+      <div class="form-group">
+        <label for="dateFin">
+          Date de fin <span class="required">*</span>
+        </label>
+        <input id="dateFin" type="date" formControlName="dateFin" required />
+        <div *ngIf="data.contractForm.get('dateFin')?.invalid && (data.contractForm.get('dateFin')?.touched || data.contractForm.get('dateFin')?.dirty)" class="error-message">
+          La date de fin est obligatoire.
+        </div>
+      </div>
+  
+      <!-- Type (fixé à "Standard" par défaut) -->
+      <div class="form-group">
+        <label for="type">
+          Type <span class="required">*</span>
+        </label>
+        <input id="type" type="text" formControlName="type" placeholder="Standard" required />
+        <div *ngIf="data.contractForm.get('type')?.invalid && (data.contractForm.get('type')?.touched || data.contractForm.get('type')?.dirty)" class="error-message">
+          Le type est obligatoire.
+        </div>
+      </div>
+    </div>
+  
+    <!-- Boutons d'actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onClose()">Fermer</button>
+      <button type="submit" class="btn btn-primary" [disabled]="data.contractForm.invalid">Enregistrer</button>
+    </div>
+  </form>
+</div>

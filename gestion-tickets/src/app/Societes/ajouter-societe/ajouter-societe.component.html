@@ -1,20 +1,91 @@
-<div class="container">
+<div class="form-container">
   <h2>Ajouter une Société</h2>
-  <form (ngSubmit)="onSubmit()" [formGroup]="societeForm">
-    <div class="form-group">
-      <label for="nom">Nom</label>
-      <input id="nom" formControlName="nom" class="form-control" />
+
+  <form [formGroup]="societeForm" (ngSubmit)="onSubmit()">
+    <div class="form-row">
+      <div class="form-group">
+        <label for="nom">Nom <span class="required">*</span></label>
+        <input
+          id="nom"
+          type="text"
+          formControlName="nom"
+          class="form-control"
+          [class.is-invalid]="societeForm.get('nom')?.touched && societeForm.get('nom')?.invalid"
+        />
+        <div *ngIf="societeForm.get('nom')?.hasError('required')" class="invalid-feedback text-start">
+          Nom est obligatoire
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="adresse">Adresse <span class="required">*</span></label>
+        <input
+          id="adresse"
+          type="text"
+          formControlName="adresse"
+          class="form-control"
+          [class.is-invalid]="societeForm.get('adresse')?.touched && societeForm.get('adresse')?.invalid"
+        />
+        <div *ngIf="societeForm.get('adresse')?.hasError('required')" class="invalid-feedback text-start">
+          Adresse est obligatoire
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="adresse">Adresse</label>
-      <input id="adresse" formControlName="adresse" class="form-control" />
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="telephone">Téléphone <span class="required">*</span></label>
+        <input
+          id="telephone"
+          type="tel"
+          formControlName="telephone"
+          class="form-control"
+          [class.is-invalid]="societeForm.get('telephone')?.touched && societeForm.get('telephone')?.invalid"
+        />
+        <div *ngIf="societeForm.get('telephone')?.hasError('required')" class="invalid-feedback text-start">
+          Téléphone est obligatoire
+        </div>
+        <div *ngIf="societeForm.get('telephone')?.hasError('pattern')" class="invalid-feedback text-start">
+          Numéro de téléphone invalide (exemple : +216 54 567 589)
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="paysId">Pays <span class="required">*</span></label>
+        <select
+          id="paysId"
+          formControlName="paysId"
+          class="form-control"
+          [class.is-invalid]="societeForm.get('paysId')?.touched && societeForm.get('paysId')?.invalid"
+        >
+          <option value="" disabled selected>-- Sélectionnez un pays --</option>
+          <option *ngFor="let pays of paysList" [value]="pays.idPays">
+            {{ pays.nom }}
+          </option>
+        </select>
+        <div *ngIf="societeForm.get('paysId')?.hasError('required')" class="invalid-feedback text-start">
+          Pays est obligatoire
+        </div>
+      </div>
     </div>
-    <div class="form-group">
-      <label for="telephone">Téléphone</label>
-      <input id="telephone" formControlName="telephone" class="form-control" />
+
+    <div class="form-row">
+      <div class="form-group toggle-container">
+        <div class="toggle-row">
+          <div class="toggle-group">
+            <label for="contrat">Contrat</label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="contrat" formControlName="contrat" (change)="onContractChange($event)" />
+              <label for="contrat" class="toggle-label"></label>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary" [disabled]="societeForm.invalid">
-      Ajouter
-    </button>
+
+    <div class="button-group">
+      <button type="submit" class="btn-create" [disabled]="societeForm.invalid">Créer</button>
+      <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
+    </div>
   </form>
 </div>

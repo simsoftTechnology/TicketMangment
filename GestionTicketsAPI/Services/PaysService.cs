@@ -25,6 +25,12 @@ public class PaysService : IPaysService
             return _mapper.Map<IEnumerable<PaysDto>>(paysList);
         }
 
+        public async Task<IEnumerable<PaysDto>> GetPaysAsync(string searchTerm)
+        {
+            var paysList = await _paysRepository.GetPaysAsync(searchTerm);
+            return _mapper.Map<IEnumerable<PaysDto>>(paysList);
+        }
+
         public async Task<PaysDto?> GetPaysByIdAsync(int idPays)
         {
             var pays = await _paysRepository.GetPaysByIdAsync(idPays);

@@ -13,6 +13,7 @@ public interface IAccountRepository
 
         // Ajoute un nouvel utilisateur
         Task AddUserAsync(User user);
+        Task AddContractAsync(Contrat contrat);
 
         // Sauvegarde les modifications
         Task<bool> SaveAllAsync();

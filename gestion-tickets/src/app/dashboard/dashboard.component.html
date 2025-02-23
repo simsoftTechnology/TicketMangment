@@ -1,27 +1,26 @@
-
 <mat-sidenav-container class="sidenav-container">
   <mat-sidenav [mode]="sidenavMode" [(opened)]="isSidenavOpen">
     <mat-nav-list>
       <!-- Navigation principale -->
-      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home', 'dashboard']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">home</mat-icon>
           <span class="nav-text">Tableau de bord</span>
         </div>
       </a>
-      <a mat-list-item routerLink="/tickets" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home', 'tickets']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">confirmation_number</mat-icon>
           <span class="nav-text">Tickets</span>
         </div>
       </a>
-      <a mat-list-item routerLink="/status-tickets" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home', 'status-tickets']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">assignment</mat-icon>
           <span class="nav-text">Statuts des Tickets</span>
         </div>
       </a>
-      <a mat-list-item routerLink="/categories" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home', 'categories']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">link</mat-icon>
           <span class="nav-text">Catégories des Problèmes</span>
@@ -36,25 +35,25 @@
           <mat-icon class="nav-icon">{{ isBaseDataOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
         </div>
         <div *ngIf="isBaseDataOpen" class="submenu">
-          <a mat-list-item routerLink="/Pays" routerLinkActive="active-nav-item">
+          <a mat-list-item [routerLink]="['/home', 'Pays']" routerLinkActive="active-nav-item">
             <div class="menu-item">
               <mat-icon class="nav-icon">flag</mat-icon>
               <span class="nav-text">Pays</span>
             </div>
           </a>
-          <a mat-list-item routerLink="/Projets" routerLinkActive="active-nav-item">
+          <a mat-list-item [routerLink]="['/home', 'Projets']" routerLinkActive="active-nav-item">
             <div class="menu-item">
               <mat-icon class="nav-icon">work</mat-icon>
               <span class="nav-text">Projets</span>
             </div>
           </a>
-          <a mat-list-item routerLink="/Societes" routerLinkActive="active-nav-item">
+          <a mat-list-item [routerLink]="['/home', 'Societes']" routerLinkActive="active-nav-item">
             <div class="menu-item">
               <mat-icon class="nav-icon">apartment</mat-icon>
               <span class="nav-text">Sociétés</span>
             </div>
           </a>
-          <a mat-list-item routerLink="/utilisateurs" routerLinkActive="active-nav-item">
+          <a mat-list-item [routerLink]="['/home', 'utilisateurs']" routerLinkActive="active-nav-item">
             <div class="menu-item">
               <mat-icon class="nav-icon">groups</mat-icon>
               <span class="nav-text">Utilisateurs</span>
@@ -71,7 +70,7 @@
           <mat-icon class="nav-icon">{{ isAccountOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
         </div>
         <div *ngIf="isAccountOpen" class="submenu">
-          <a mat-list-item routerLink="/profil" routerLinkActive="active-nav-item">
+          <a mat-list-item [routerLink]="['/home', 'profil']" routerLinkActive="active-nav-item">
             <div class="menu-item">
               <mat-icon class="nav-icon">person</mat-icon>
               <span class="nav-text">Profil</span>

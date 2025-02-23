@@ -58,7 +58,8 @@ h1::after {
 .add-user-btn:hover {
   color: #e37200;
   background-color: #ebe6e6;
-  box-shadow: 0 5px 5px rgba(46, 46, 46, 0.1);
+  box-shadow: 5px 5px 15px rgba(46, 46, 46, 0.1);
+  border-radius: 5px;
 }
 
 .add-user-btn .material-icons {
@@ -86,9 +87,7 @@ h1::after {
 }
 
 
-.edit-field:hover {
-  border-color: #cbd5e0;
-}
+
 
 .edit-field.is-invalid {
   border-color: #e53e3e;
@@ -135,14 +134,12 @@ h1::after {
 
 .info-item {
   background-color: #f9fafb;
-  border: 1px solid #e2e8f0;
   border-radius: 8px;
   padding: 1rem;
   transition: all 0.3s ease;
 }
 
 .info-item:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   transform: translateY(-2px);
 }
 
@@ -195,7 +192,6 @@ h1::after {
 
 .user-table td {
   padding: 10px 15px;
-  border-top: 1px solid #eee;
   color: #333;
 }
 
@@ -210,8 +206,8 @@ h1::after {
 }
 
 /* Aligner la colonne Actions à droite */
-th.actions, td.actions {
-  text-align: right; /* Alignement à droite */
+.user-table th.actions, td.actions {
+  text-align: center; /* Alignement à droite */
   width: 10%;
   white-space: nowrap; /* Empêche le retour à la ligne */
   padding-right: 20px; /* Ajoute un peu d'espace pour éviter que les boutons ne collent trop */
@@ -375,36 +371,6 @@ th.checkbox-column, td.checkbox-column {
   border-bottom: 1px solid #eee;
 }
 
-.filter-actions {
-  display: flex; /* Utilisation de flexbox */
-  align-items: center; /* Alignement vertical */
-  justify-content: flex-end; /* Alignement à droite */
-  gap: 10px; /* Espacement entre les boutons */
-}
-
-.filter-btn,
-.view-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  margin-left: 8px;
-  border-radius: 4px;
-  color: #666;
-  transition: all 0.2s;
-}
-
-.filter-btn:hover,
-.view-btn:hover {
-  background-color: #f5f5f5;
-  color: #333;
-}
-
-.view-btn.active {
-  background-color: #f5f5f5;
-  color: #f57c00;
-}
-
 
 /* Modal overlay */
 /* Modal améliorée */
@@ -541,6 +507,7 @@ th.checkbox-column, td.checkbox-column {
 
 
 /* Styles communs pour tous les dropdowns */
+/* Styles améliorés pour les dropdowns de recherche */
 .custom-select {
   position: relative;
   width: 100%;
@@ -548,21 +515,33 @@ th.checkbox-column, td.checkbox-column {
 }
 
 .select-box {
-  border: 1px solid #ccc;
-  padding: 10px 15px;
-  border-radius: 4px;
+  border: 2px solid #e5e7eb;
+  padding: 12px 16px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: white;
+  transition: all 0.3s ease;
+}
+
+.select-box:hover {
+  border-color: #d1d5db;
 }
 
 .selected-item {
-  color: #333;
+  color: #374151;
+  font-size: 0.95rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.arrow {
+  color: #9ca3af;
+  font-size: 12px;
+  transition: transform 0.3s ease;
 }
 
 .dropdown-content {
@@ -570,11 +549,11 @@ th.checkbox-column, td.checkbox-column {
   position: absolute;
   background: white;
   width: 100%;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 1000;
-  max-height: 250px;
+  max-height: 300px;
   overflow-y: auto;
   margin-top: 5px;
 }
@@ -583,16 +562,128 @@ th.checkbox-column, td.checkbox-column {
   display: block;
 }
 
+/* Barre de recherche dans le dropdown */
 .search-box {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 1;
 }
 
 .search-box input {
   width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
+/* Liste des options */
+.option-list {
+  padding: 6px 0;
+}
+
+.option-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #374151;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.option-item:hover {
+  background: #f3f4f6;
+}
+
+/* État vide - aucun résultat */
+.no-results {
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-results-icon {
+  font-size: 32px;
+  color: #f57c00;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.no-results-text {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Styles pour le scroll */
+.dropdown-content {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 #f8fafc;
+}
+
+.dropdown-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+  background-color: #cbd5e0;
+  border-radius: 3px;
+}
+
+/* Styles pour la barre de recherche */
+.search-wrapper {
+  position: relative;
+  width: 300px;
+  height: 50px;
+  margin-left: auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 20px !important;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 45px;
+  font-size: 0.95rem;
+  color: #374151;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
 }
 
 .option-list {
@@ -715,6 +806,29 @@ input, select, button {
 }
 
 
+/* Style pour l’état “aucun projet trouvé” */
+.no-content {
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.no-content .icon {
+  display: block;
+  font-size: 40px;
+  margin-bottom: 1rem;
+  color: #f97316;
+}
+
+
+.no-content p {
+  color: #696f7a;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+
 /* Responsive */
 /* Breakpoints plus précis */
 /* Large desktop et écrans 4K */
@@ -821,14 +935,17 @@ input, select, button {
   }
 
   .per-page-selector {
-    width: 100%;
     justify-content: center;
   }
 
   .pagination-controls {
-    width: 100%;
     justify-content: center;
-    flex-wrap: wrap;
+  }
+  .info-item.pays {
+    order: 2;
+  }
+  .info-item.societe {
+    order: 1;
   }
 }
 
@@ -866,8 +983,12 @@ input, select, button {
 
   .pagination-controls button,
   .pagination-controls span {
-    padding: 4px 8px;
-    font-size: 0.9rem;
+    padding: 4px 4px;
+    font-size: 1rem;
+  }
+
+  .search-wrapper {
+    width: 250px;
   }
 }
 
@@ -893,13 +1014,13 @@ input, select, button {
     font-size: 18px;
   }
 
-  .pagination-info {
-    font-size: 0.8rem;
-  }
-
   .per-page-selector select,
   .per-page-selector label {
     font-size: 0.8rem;
+  }
+
+  .search-wrapper {
+    width: 150px;
   }
 }
 

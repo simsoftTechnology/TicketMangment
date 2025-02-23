@@ -37,6 +37,8 @@ public static class ApplicationServiceExtensions
       services.AddScoped<IProjetService, ProjetService>();
       services.AddScoped<ISocieteRepository, SocieteRepository>();
       services.AddScoped<ISocieteService, SocieteService>();
+      services.AddScoped<IContratRepository, ContratRepository>();
+      services.AddScoped<IContratService, ContratService>();
 
       services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
       services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));

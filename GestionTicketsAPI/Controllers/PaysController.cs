@@ -20,10 +20,18 @@ namespace GestionTicketsAPI.Controllers
 
         [Authorize]
         [HttpGet("getPays")]
-        public async Task<ActionResult<IEnumerable<PaysDto>>> GetPays()
+        public async Task<ActionResult<IEnumerable<PaysDto>>> GetPays([FromQuery] string? searchTerm)
         {
-            var paysList = await _paysService.GetPaysAsync();
-            return Ok(paysList);
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var filteredPays = await _paysService.GetPaysAsync(searchTerm);
+                return Ok(filteredPays);
+            }
+            else
+            {
+                var allPays = await _paysService.GetPaysAsync();
+                return Ok(allPays);
+            }
         }
 
         [Authorize]

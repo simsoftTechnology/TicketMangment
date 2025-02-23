@@ -1,35 +1,39 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace GestionTicketsAPI.Entities;
-
-public class User
+namespace GestionTicketsAPI.Entities
 {
-    public int Id { get; set; }
-    [EmailAddress]
-    public required string Email { get; set; }
-    public byte[] PasswordHash { get; set; } = [];
-    public byte[] PasswordSalt { get; set; } = [];
-    public required string Role { get; set; }
-    public required string FirstName { get; set; }
-    public required string LastName { get; set; }
-
-    [Phone]
-    public required string NumTelephone { get; set; }
-    public required bool Actif { get; set; }
-
-    [ForeignKey("id_pays")]
-    public required int Pays { get; set; }
-
-    public Pays? PaysNavigation { get; set; } 
-
-    [ForeignKey("Societe")]
-    public int? SocieteId { get; set; }
-    public Societe? Societe { get; set; }
-
-    public ICollection<Ticket>? Tickets { get; set; }
-    public ICollection<Commentaire>? Commentaires { get; set; }
-
-    public ICollection<ProjetUser> ProjetUsers { get; set; } = new List<ProjetUser>();
+    public class User
+    {
+        public int Id { get; set; }
+        
+        [EmailAddress]
+        public required string Email { get; set; }
+        
+        public byte[] PasswordHash { get; set; } = new byte[0];
+        public byte[] PasswordSalt { get; set; } = new byte[0];
+        
+        public required string Role { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        
+        [Phone]
+        public required string NumTelephone { get; set; }
+        public required bool Actif { get; set; }
+        
+        [ForeignKey("id_pays")]
+        public required int Pays { get; set; }
+        public Pays? PaysNavigation { get; set; }
+        
+        // L'utilisateur peut appartenir à une société ou non.
+        public int? SocieteId { get; set; }
+        public Societe? Societe { get; set; }
+        
+        // Autres relations (tickets, commentaires, etc.) selon vos besoins.
+        public ICollection<ProjetUser> ProjetUsers { get; set; } = new List<ProjetUser>();
+        
+        // Navigation vers les contrats si l'utilisateur est le client (pour Client-Societe).
+        [InverseProperty("Client")]
+        public ICollection<Contrat>? Contrats { get; set; }
+    }
 }

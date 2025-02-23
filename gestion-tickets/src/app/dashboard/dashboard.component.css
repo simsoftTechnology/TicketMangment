@@ -3,6 +3,9 @@
   height: 100vh;
 }
 
+mat-sidenav-content {
+  z-index: 1;
+}
 /* Barre latérale */
 mat-sidenav {
   width: 400px;

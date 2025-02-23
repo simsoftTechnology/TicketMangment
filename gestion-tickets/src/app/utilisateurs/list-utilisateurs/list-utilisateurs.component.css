@@ -139,17 +139,67 @@ td {
   font-size: 1.1em;
 }
 
-/* Search bar styles */
-.search-container {
-  margin-bottom: 20px;
+/* Styles pour la barre de recherche */
+.search-wrapper {
+  position: relative;
+  width: 300px;
+  margin-left: -50px;
 }
 
-.search-container input {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  width: 250px;
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 20px !important;
+  pointer-events: none;
 }
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 45px;
+  font-size: 0.95rem;
+  color: #374151;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+
+/* Style pour l’état “aucun projet trouvé” */
+.no-content {
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.no-content .icon {
+  display: block;
+  font-size: 40px;
+  margin-bottom: 1rem;
+  color: #f97316;
+}
+
+
+.no-content p {
+  color: #696f7a;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
 
 
 
@@ -355,7 +405,10 @@ input, select, button {
   padding: 0 0.5rem;
 }
 
-
+.new-user-highlight {
+  background-color: #ececec; /* Une couleur légèrement plus foncée */
+  transition: background-color 0.2s ease;
+}
 
 
 

@@ -16,32 +16,39 @@ export class SocieteService {
 
   constructor(private http: HttpClient) {}
 
-  getSocietes(): Observable<Societe[]> {
-    return this.http.get<Societe[]>(this.apiUrl);
+  getSocietes(searchTerm?: string): Observable<Societe[]> {
+    let params = new HttpParams();
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+    return this.http.get<Societe[]>(this.apiUrl, { params });
   }
 
   // Méthode pour récupérer les projets paginés
-  getPaginatedSocietes(pageNumber?: number, pageSize?: number): Observable<PaginatedResult<Societe[]>> {
+  getPaginatedSocietes(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Societe[]>> {
     let params = new HttpParams();
     if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber);
-      params = params.append('pageSize', pageSize);
+      params = params.append('pageNumber', pageNumber.toString());
+      params = params.append('pageSize', pageSize.toString());
     }
-
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+  
     return this.http.get<Societe[]>(this.apiUrl + '/paged', { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<Societe[]>) => {
           const paginatedResult: PaginatedResult<Societe[]> = {
             items: response.body || [],
-            // On attend que le header 'Pagination' contienne une chaîne JSON
             pagination: response.headers.get('Pagination') ? JSON.parse(response.headers.get('Pagination')!) : null!
           };
-          // Stocker le résultat pour une utilisation éventuelle dans le composant
           this.paginatedResult = paginatedResult;
           return paginatedResult;
         })
       );
   }
+  
+  
 
   getSociete(id: number): Observable<Societe> {
     return this.http.get<Societe>(`${this.apiUrl}/${id}`);
@@ -61,5 +68,9 @@ export class SocieteService {
 
   deleteSociete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  deleteSelectedSocietes(ids: number[]): Observable<void> {
+    return this.http.request<void>('delete', `${this.apiUrl}/supprimerSocietes`, { body: ids });
   }
 }

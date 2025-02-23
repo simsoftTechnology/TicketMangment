@@ -2,7 +2,7 @@
   <!-- Affichage en mode lecture -->
   <h1 *ngIf="!editMode && projet">{{ projet.nom }}</h1>
 
-  <!-- En mode édition, on enveloppe le champ Nom dans une info-item pour un style cohérent -->
+  <!-- Mode édition : champ Nom -->
   <div *ngIf="editMode" class="info-item edit-name-container">
     <span class="info-label">Nom</span>
     <input type="text" [(ngModel)]="projet.nom" class="edit-field edit-name" />
@@ -10,60 +10,80 @@
 
   <!-- Informations du projet -->
   <div class="project-info info-grid">
-    <div class="info-item">
-      <span class="info-label">Pays</span>
-      <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomPays }}</span>
-      <div *ngIf="editMode">
-        <div class="custom-select">
-          <div class="select-box" (click)="toggleDropdown('pays')">
-            <div class="selected-item">
-              {{ getPaysName(projet.idPays) || 'Sélectionner un pays' }}
+    <!-- Pays -->
+    <div class="info-item pays">
+      <div class="info-item">
+        <span class="info-label">Pays</span>
+        <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomPays }}</span>
+        <div *ngIf="editMode">
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('pays')">
+              <div class="selected-item">
+                {{ getPaysName(projet.idPays) || 'Sélectionner un pays' }}
+              </div>
+              <span class="arrow">▼</span>
             </div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
-            <div class="search-box">
-              <input type="text" placeholder="Rechercher un pays..." [(ngModel)]="searchPays"
-                (input)="filterItems('pays')" />
-            </div>
-            <div class="option-list">
-              <div *ngFor="let pays of filteredPays" class="option-item" (click)="selectItem(pays, 'pays')">
-                {{ pays.nom }}
+            <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher un pays..." [(ngModel)]="paysSearchTerm"
+                  (ngModelChange)="onPaysSearch()" />
+                
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredPays.length > 0; else noPaysResults">
+                  <div *ngFor="let pays of filteredPays" class="option-item"
+                    (click)="projet.idPays = pays.idPays; isPaysDropdownOpen = false">
+                    {{ pays.nom }}
+                  </div>
+                </ng-container>
+                <ng-template #noPaysResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucun pays trouvé</p>
+                  </div>
+                </ng-template>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <!-- Société -->
-    <div class="info-item">
-      <span class="info-label">Société</span>
-      <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomSociete }}</span>
-      <div *ngIf="editMode">
-        <div class="custom-select">
-          <div class="select-box" (click)="toggleDropdown('societe')">
-            <div class="selected-item">
-              {{ getSocieteName(projet.societeId) || 'Sélectionner une société' }}
+    <div class="info-item societe">
+      <div class="info-item">
+        <span class="info-label">Société</span>
+        <span class="info-value" *ngIf="!editMode && projet">{{ projet.nomSociete }}</span>
+        <div *ngIf="editMode">
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('societe')">
+              <div class="selected-item">
+                {{ getSocieteName(projet.societeId) || 'Sélectionner une société' }}
+              </div>
+              <span class="arrow">▼</span>
             </div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
-            <div class="search-box">
-              <input type="text" placeholder="Rechercher une société..." [(ngModel)]="searchSociete"
-                (input)="filterItems('societe')" />
-            </div>
-            <div class="option-list">
-              <div *ngFor="let societe of filteredSocietes" class="option-item"
-                (click)="selectItem(societe, 'societe')">
-                {{ societe.nom }}
+            <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher une société..." [(ngModel)]="searchSociete"
+                  (ngModelChange)="onSocieteSearch()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredSocietes.length > 0; else noSocieteResults">
+                  <div *ngFor="let societe of filteredSocietes" class="option-item" (click)="selectSociete(societe)">
+                    {{ societe.nom }}
+                  </div>
+                </ng-container>
+                <ng-template #noSocieteResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucune société trouvée</p>
+                  </div>
+                </ng-template>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <!-- Description -->
     <div class="info-item full-width">
       <span class="info-label">Description</span>
@@ -74,19 +94,14 @@
     </div>
   </div>
 
-  <!-- Boutons pour passer en mode édition / sauvegarder ou annuler -->
+  <!-- Boutons d'édition / sauvegarde / annulation -->
   <div class="buttons">
-    <button *ngIf="!editMode" class="edit-btn" (click)="editMode = true">
-      Modifier
-    </button>
-    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()">
-      Enregistrer
-    </button>
-    <button *ngIf="editMode" class="delete-btn" (click)="cancelEdit()">
-      Annuler
-    </button>
+    <button *ngIf="!editMode" class="edit-btn" (click)="editMode = true">Modifier</button>
+    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()">Enregistrer</button>
+    <button *ngIf="editMode" class="delete-btn" (click)="cancelEdit()">Annuler</button>
   </div>
 
+  <!-- Section Membres du Projet -->
   <div class="section-header">
     <h3>Membres du Projet</h3>
   </div>
@@ -104,15 +119,11 @@
               </button>
             </div>
             <div class="right-actions">
-              <button class="filter-btn">
-                <span class="material-icons">filter_list</span>
-              </button>
-              <button class="view-btn">
-                <span class="material-icons">grid_view</span>
-              </button>
-              <button class="view-btn active">
-                <span class="material-icons">view_list</span>
-              </button>
+              <div class="search-wrapper">
+                <input type="text" class="search-input" placeholder="Rechercher un utilisateur..."
+                  [(ngModel)]="userSearchTerm" (ngModelChange)="onUserSearch()" />
+                <span class="material-icons search-icon">search</span>
+              </div>
             </div>
           </div>
         </td>
@@ -121,82 +132,76 @@
       <tr>
         <th class="checkbox-column">
           <div class="checkbox-wrapper">
-            <input type="checkbox" id="selectAll2" class="custom-checkbox" (change)="selectAll($event)">
+            <input type="checkbox" id="selectAll2" class="custom-checkbox" (change)="selectAll($event)" />
             <label for="selectAll2" class="checkbox-label"></label>
           </div>
         </th>
         <th>Nom</th>
         <th>Rôle</th>
-        <th class="actions">Actions</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <!-- Itération sur les membres de la page courante -->
-      <tr *ngFor="let membre of displayedMembres; let i = index">
-        <td class="checkbox-column">
-          <div class="checkbox-wrapper">
-            <input type="checkbox" [id]="'membre' + i" class="custom-checkbox" [(ngModel)]="membre.selected"
-              (change)="toggleSelection(membre)">
-            <label [for]="'membre' + i" class="checkbox-label"></label>
-          </div>
-        </td>
-        <td>{{ membre.firstName }} {{ membre.lastName }}</td>
-        <td>
-          <span class="role">{{ membre.role }}</span>
-        </td>
-        <td class="actions">
-          <button class="delet-btn" (click)="removeUser(membre.userId)">
+        <th class="actions">
+          <button class="delet-btn" (click)="deleteSelectedMembers()">
             <span class="material-icons">delete</span>
           </button>
-        </td>
+        </th>
       </tr>
-
+    </thead>
+    <tbody>
+      <!-- Itération sur les membres filtrés et paginés -->
+      <ng-container *ngIf="displayedMembres.length > 0; else noUsersTemplate">
+        <tr *ngFor="let membre of displayedMembres; let i = index">
+          <td class="checkbox-column">
+            <div class="checkbox-wrapper">
+              <input type="checkbox"
+                     [id]="'membre' + i"
+                     class="custom-checkbox"
+                     [(ngModel)]="membre.selected"
+                     name="selectedMembre{{i}}"
+                     (change)="toggleSelection(membre)" />
+              <label [for]="'membre' + i" class="checkbox-label"></label>
+            </div>
+          </td>
+          <td>{{ membre.firstName }} {{ membre.lastName }}</td>
+          <td><span class="role">{{ membre.role }}</span></td>
+          <td class="actions">
+            <button class="delet-btn" (click)="removeUser(membre.userId)">
+              <span class="material-icons">delete</span>
+            </button>
+          </td>
+        </tr>                
+      </ng-container>
+      <!-- Template en cas d'absence de membres -->
+      <ng-template #noUsersTemplate>
+        <tr>
+          <td colspan="4">
+            <div class="no-content">
+              <span class="icon">✕</span>
+              <p>Aucun utilisateur trouvé</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
       <!-- Rangée de pagination -->
       <tr>
         <td colspan="4">
           <div class="pagination-container">
-            <!-- Infos sur la pagination -->
             <div class="pagination-info">
-              Affichage de
-              {{ ((pageNumber - 1) * pageSize) + 1 }}
-              à
-              {{
-              (pageNumber * pageSize) > membres.length
-              ? membres.length
-              : (pageNumber * pageSize)
-              }}
-              sur {{ membres.length }} résultats
+              Affichage de {{ ((pageNumber - 1) * pageSize) + 1 }} à {{
+              (pageNumber * pageSize) > membres.length ? membres.length : (pageNumber * pageSize)
+              }} sur {{ membres.length }} résultats
             </div>
-
-            <!-- Sélecteur du nombre d'éléments par page -->
             <div class="per-page-selector">
               <select [(ngModel)]="pageSize" (change)="onPageChange(1)">
-                <option *ngFor="let size of range(1, 10)" [value]="size">
-                  {{ size }}
-                </option>
+                <option *ngFor="let size of range(1, 10)" [value]="size">{{ size }}</option>
               </select>
               <label>par page</label>
             </div>
-
-            <!-- Contrôles de pagination -->
             <div class="pagination-controls">
-              <!-- Bouton Précédent -->
-              <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1"
-                title="Cliquez pour la page précédente ou double-cliquez pour saisir une page">
+              <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1" title="Page précédente">
                 &laquo;
               </button>
-
-              <!-- Input pour la page actuelle -->
               <input type="number" [(ngModel)]="jumpPage" (keyup.enter)="jumpToPage()" [max]="totalPages" min="1"
                 class="page-input" />
-
-              <!-- Affichage du total de pages -->
-              <span class="total-pages">
-                / {{ totalPages }}
-              </span>
-
-              <!-- Bouton Suivant -->
+              <span class="total-pages">/ {{ totalPages }}</span>
               <button (click)="onPageChange(pageNumber + 1)" [disabled]="pageNumber >= totalPages"
                 title="Page suivante">
                 &raquo;
@@ -205,17 +210,12 @@
           </div>
         </td>
       </tr>
-
     </tbody>
   </table>
 
-  <!-- Boutons Supprimer et Retourner en dessous du tableau -->
+  <!-- Boutons de suppression du projet et de retour -->
   <div class="buttons">
-    <button class="delete-btn" (click)="deleteProjet(projet.id)">
-      Supprimer
-    </button>
-    <button class="back-btn" href="javascript:window.history.back();">
-      Retourner
-    </button>
+    <button class="delete-btn" (click)="deleteProjet(projet.id)">Supprimer</button>
+    <button class="back-btn" (click)="goBack()">Retourner</button>
   </div>
 </div>

@@ -20,27 +20,31 @@ export class ProjetService {
   }
 
    // Méthode pour récupérer les projets paginés
-   getPaginatedProjets(pageNumber?: number, pageSize?: number): Observable<PaginatedResult<Projet[]>> {
+   getPaginatedProjets(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Projet[]>> {
     let params = new HttpParams();
     if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber);
-      params = params.append('pageSize', pageSize);
+      params = params.append('pageNumber', pageNumber.toString());
+      params = params.append('pageSize', pageSize.toString());
     }
-
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+  
     return this.http.get<Projet[]>(this.baseUrl + '/paged', { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<Projet[]>) => {
           const paginatedResult: PaginatedResult<Projet[]> = {
             items: response.body || [],
-            // On attend que le header 'Pagination' contienne une chaîne JSON
-            pagination: response.headers.get('Pagination') ? JSON.parse(response.headers.get('Pagination')!) : null!
+            pagination: response.headers.get('Pagination') 
+              ? JSON.parse(response.headers.get('Pagination')!) 
+              : null!
           };
-          // Stocker le résultat pour une utilisation éventuelle dans le composant
           this.paginatedResult = paginatedResult;
           return paginatedResult;
         })
       );
   }
+  
 
   // Récupérer un projet par ID
   getProjetById(id: number): Observable<Projet> {
@@ -61,6 +65,11 @@ export class ProjetService {
   // Supprimer un projet
   deleteProjet(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/supprimerProjet/${id}`);
+  }
+
+  deleteSelectedProjets(ids: number[]): Observable<any> {
+    // On utilise http.request pour pouvoir envoyer un body avec la méthode DELETE
+    return this.http.request('delete', `${this.baseUrl}/supprimerProjets`, { body: ids });
   }
 
   // Ajouter un utilisateur à un projet
@@ -88,6 +97,13 @@ export class ProjetService {
   supprimerUtilisateurDuProjet(projetId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projetId}/utilisateurs/${userId}`);
   }
+  
 
-
+  deleteSelectedProjectMembers(projetId: number, userIds: number[]): Observable<any> {
+    // On utilise http.request('delete') pour envoyer un body avec la méthode DELETE.
+    return this.http.request('delete', `${this.baseUrl}/supprimerUtilisateursDuProjet`, {
+      body: { projetId, userIds }
+    });
+  }
+  
 }

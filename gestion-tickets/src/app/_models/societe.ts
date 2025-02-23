@@ -9,4 +9,5 @@ export interface Societe {
   selected?: boolean;
   utilisateurs: User[];
   projets: Projet[]; 
+  contrat?: any
 }

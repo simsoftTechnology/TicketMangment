@@ -1,11 +1,21 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace GestionTicketsAPI.DTOs;
-
-public class SocieteDto
+namespace GestionTicketsAPI.DTOs
 {
-    public int Id { get; set; }
-    public required string Nom { get; set; }
-    public required string Adresse { get; set; }
-    public required string Telephone { get; set; }
+    public class SocieteDto
+    {
+        public int Id { get; set; }
+        
+        [Required]
+        public string Nom { get; set; } = string.Empty;
+        
+        [Required]
+        public string Adresse { get; set; } = string.Empty;
+        
+        [Required]
+        public string Telephone { get; set; } = string.Empty;
+        
+        public int PaysId { get; set; }
+        public ContractRegistrationDto? Contract { get; set; }
+    }
 }

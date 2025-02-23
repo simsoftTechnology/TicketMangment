@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Pays } from '../_models/pays';
 
@@ -11,8 +11,13 @@ export class PaysService {
 
   constructor(private http: HttpClient) {}
 
-  getPays(): Observable<Pays[]> {
-    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`);
+  // Méthode pour récupérer les pays, avec possibilité de recherche
+  getPays(searchTerm?: string): Observable<Pays[]> {
+    let params = new HttpParams();
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`, { params });
   }
 
   getPaysById(idPays: number): Observable<Pays> {

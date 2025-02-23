@@ -2,7 +2,7 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, inject, input } from '@angular/core';
 import { Pays } from '../../_models/pays';
 import { PaysService } from '../../_services/pays.service';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-pays',
@@ -18,6 +18,7 @@ export class PaysComponent {
   selectedFile: File | null = null; // Pour stocker le fichier sélectionné
   selectedPaysId: number | null = null; // ID du pays sélectionné pour l'ajout de la photo
 
+  constructor(public route: ActivatedRoute) { }
   ngOnInit(): void {
     this.loadPays();
   }
@@ -60,7 +61,7 @@ export class PaysComponent {
     // Logique pour rediriger ou ouvrir un formulaire de modification
     console.log('Modifier le pays avec ID :', idPays);
     // Exemple : Navigation vers une page de modification
-    this.router.navigate(['/ModifierPays', idPays]);
+    this.router.navigate(['/home/Pays/ModifierPays', idPays]);
   }
 
 

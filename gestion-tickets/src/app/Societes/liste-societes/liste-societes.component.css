@@ -43,10 +43,10 @@ h2 {
   font-weight: 500;
 }
 
-td.actions {
+th.actions, td.actions {
   width: 1%;
   white-space: nowrap; /* Empêche le retour à la ligne */
-  text-align: right;
+  text-align: center;
   padding-right: 20px; /* Ajoute un peu d'espace pour éviter que les boutons ne collent trop */
 }
 
@@ -67,14 +67,14 @@ thead {
 
 th {
   text-align: left;
-  padding: 12px 100px;
+  padding: 12px 10px;
   color: #666;
   font-weight: 500;
   border-bottom: 1px solid #eee;
 }
 
 td {
-  padding: 12px 80px;
+  padding: 12px 10px;
   border-bottom: 1px solid #eee;
   color: #333;
 }
@@ -132,9 +132,8 @@ td:not(.checkbox-column):not(.actions) {
 
 
 .checkbox-column {
-  width: 50%;
-  min-width: 50px; /* Minimum raisonnable */
-  text-align: center;
+  max-width: 5px; 
+  text-align: right;
   padding: 10px 5px; /* Ajustement du padding */
 }
 
@@ -192,7 +191,7 @@ td:not(.checkbox-column):not(.actions) {
 
 .filter-actions {
   text-align: right;
-  padding: 8px 15px;
+  padding: 8px 20px;
 }
 
 .filter-btn, .view-btn {
@@ -329,6 +328,68 @@ input, select, button {
   padding: 0 0.5rem;
 }
 
+/* Style pour l’état “aucun société trouvé” */
+.no-content {
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.no-content .icon {
+  display: block;
+  font-size: 40px;
+  margin-bottom: 1rem;
+  color: #f97316;
+}
+
+
+.no-content p {
+  color: #696f7a;
+  font-size: 1.8rem;
+  margin: 0;
+}
+
+/* Styles pour la barre de recherche */
+.search-wrapper {
+  position: relative;
+  width: 300px;
+  margin-left: 10px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 20px !important;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 45px;
+  font-size: 0.95rem;
+  color: #374151;
+  background-color: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .container {
@@ -395,6 +456,18 @@ input, select, button {
   .delete-btn {
     font-size: 1em;
     padding: 2px 4px;
+  }
+  .search-wrapper {
+    max-width: 100%;
+  }
+  
+  .search-input {
+    padding: 10px 14px 10px 40px;
+    font-size: 0.9rem;
+  }
+  
+  .search-icon {
+    font-size: 18px !important;
   }
 }
 

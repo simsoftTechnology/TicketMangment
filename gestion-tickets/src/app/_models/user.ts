@@ -1,5 +1,4 @@
 export interface User {
-
   id: number;
   firstName: any;
   lastName: string;
@@ -13,4 +12,5 @@ export interface User {
   dateFin?: Date;
   selected?: boolean;
   token: string;
+  societeId?: number; // Add this optional property
 }

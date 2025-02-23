@@ -1,0 +1,125 @@
+/*contrat-diamog.component.css*/
+body {
+  margin: 0;
+  padding: 50px;
+  background-color: #f7fafc;
+}
+
+.contract-form-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 12px;
+}
+
+.form-title {
+  color: #000000;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 3rem;
+  padding-bottom: 0.9rem;
+}
+
+.contract-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #f4811e;
+  box-shadow: 0 0 0 3px rgba(206, 138, 49, 0.1);
+}
+
+.required {
+  color: #e53e3e;
+  margin-left: 2px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary {
+  background-color: #fc5203;
+  color: white;
+  border: 1px solid #fc5203;
+}
+
+.btn-secondary:hover {
+  background-color: #e74a01;
+}
+
+.btn-primary {
+  background-color: #f4811e;
+  color: white;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #e67716;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .contract-form-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}

@@ -1,10 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
-import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
+import { AccountService } from '../_services/account.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  // Injection du Router et du AccountService
+  const router = inject(Router);
+  const accountService = inject(AccountService);
+
   return next(req).pipe(
     catchError(error => {
       if (error) {
@@ -22,15 +26,16 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               return throwError(() => error.error);
             }
           case 401:
-            return throwError(() => ({
-              errorType: error.error.errorType,
-              message: error.error.message,
-            }));
+            // Nettoyer le local storage en appelant la méthode logout()
+            accountService.logout();
+            // Rediriger l'utilisateur vers la page de login
+            router.navigateByUrl('/login');
+            return throwError(() => error);
           case 404:
-            inject(Router).navigateByUrl('/not-found');
+            router.navigateByUrl('/not-found');
             break;
           case 500:
-            inject(Router).navigateByUrl('/server-error', { state: { error: error.error } });
+            router.navigateByUrl('/server-error', { state: { error: error.error } });
             break;
           default:
             return throwError(() => ({ message: 'Un problème inattendu est survenu.' }));

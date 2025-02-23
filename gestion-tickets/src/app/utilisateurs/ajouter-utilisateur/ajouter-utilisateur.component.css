@@ -22,8 +22,9 @@
 .form-container input:focus,
 .form-container select:focus,
 .form-container textarea:focus {
-  border-color: black; /* Bordure noire */
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3); /* Effet ombré */
+  outline: none;
+  border-color: #fa9745;
+  box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
 }
 
 /* Optionnel : ajouter un style spécifique pour les champs invalides */
@@ -195,6 +196,12 @@ input:checked + .toggle-label:before {
   transform: translateY(-50%);
   cursor: pointer;
   color: #000000;  /* Couleur de l'icône */
+}
+
+
+/* Appliquer le curseur 'not-allowed' à la zone du toggle quand l'input est désactivé */
+.toggle-switch input:disabled + .toggle-label {
+  cursor: not-allowed;
 }
 
 

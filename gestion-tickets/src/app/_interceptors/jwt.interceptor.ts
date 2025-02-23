@@ -10,7 +10,9 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
       setHeaders: {
         Authorization: `Bearer ${accountService.currentUser()?.token}`
       }
-    })
+    });
+  } else {
+    console.warn('Aucun token trouvé lors de la requête.');
   }
 
   return next(req);

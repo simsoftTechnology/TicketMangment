@@ -1,8 +1,16 @@
+<!-- Afficher le modal si showProjectTypeModal est true -->
+<app-projet-modal
+  *ngIf="showProjectTypeModal"
+  (projectTypeSelected)="onProjectTypeSelected($event)"
+  (close)="onModalClose()"
+></app-projet-modal>
+
 <div class="form-container">
   <h2>Ajouter un Projet</h2>
 
   <form (ngSubmit)="ajouterProjet()">
-    <!-- Premier bloc -->
+
+    <!-- Premier bloc : Nom et description -->
     <div class="form-row">
       <div class="form-group">
         <label>Nom du projet <span class="required">*</span></label>
@@ -25,7 +33,7 @@
       </div>
     </div>
 
-    <!-- Deuxième bloc -->
+    <!-- Deuxième bloc : Pays et sélection Société/Client -->
     <div class="form-row">
       <div class="form-group">
         <label>Pays <span class="required">*</span></label>
@@ -43,6 +51,7 @@
                 placeholder="Rechercher un pays..."
                 [(ngModel)]="searchPays"
                 (input)="filterItems('pays')"
+                name="searchPays"  
               />
             </div>
             <div class="option-list">
@@ -58,7 +67,8 @@
         </div>
       </div>
 
-      <div class="form-group">
+      <!-- Affichage conditionnel de la société ou du client -->
+      <div class="form-group" *ngIf="isSocieteProjet">
         <label>Société <span class="required">*</span></label>
         <div class="custom-select">
           <div class="select-box" (click)="toggleDropdown('societe')">
@@ -74,6 +84,7 @@
                 placeholder="Rechercher une société..."
                 [(ngModel)]="searchSociete"
                 (input)="filterItems('societe')"
+                name="searchSociete" 
               />
             </div>
             <div class="option-list">
@@ -88,9 +99,41 @@
           </div>
         </div>
       </div>
+
+      <div class="form-group" *ngIf="!isSocieteProjet">
+        <label>Client <span class="required">*</span></label>
+        <div class="custom-select">
+          <div class="select-box" (click)="toggleDropdown('client')">
+            <div class="selected-item">
+              {{ getClientName(projet.clientId) || 'Sélectionner un client' }}
+            </div>
+            <span class="arrow">▼</span>
+          </div>
+          <div class="dropdown-content" [class.show]="isClientDropdownOpen">
+            <div class="search-box">
+              <input
+                type="text"
+                placeholder="Rechercher un client..."
+                [(ngModel)]="searchClient"
+                (input)="filterItems('client')"
+                name="searchClient"  
+              />
+            </div>
+            <div class="option-list">
+              <div
+                *ngFor="let client of filteredClients"
+                class="option-item"
+                (click)="selectItem(client, 'client')"
+              >
+                {{ client.firstName }} {{ client.lastName }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Troisième bloc -->
+    <!-- Troisième bloc : Chef de projet et Développeurs -->
     <div class="form-row">
       <div class="form-group">
         <label>Chef de projet <span class="required">*</span></label>
@@ -108,6 +151,7 @@
                 placeholder="Rechercher un chef..."
                 [(ngModel)]="searchChef"
                 (input)="filterItems('chef')"
+                name="searchChef" 
               />
             </div>
             <div class="option-list">
@@ -124,13 +168,13 @@
       </div>
 
       <div class="form-group">
-        <label>Développeurs<span class="required">*</span></label>
+        <label>Développeurs <span class="required">*</span></label>
         <div class="custom-multiselect">
           <div class="select-box" (click)="toggleDropdown()">
-            <div class="selected-items" >
-              <span *ngIf="selectedDevIds.length === 0"
-                >Sélectionnez des développeurs</span
-              >
+            <div class="selected-items">
+              <span *ngIf="selectedDevIds.length === 0">
+                Sélectionnez des développeurs
+              </span>
               <span class="selected-tag" *ngFor="let devId of selectedDevIds">
                 {{ getDeveloperName(devId) }}
               </span>
@@ -174,7 +218,7 @@
     <!-- Boutons -->
     <div class="button-group">
       <button type="submit" class="btn-create">Ajouter</button>
-      <button type="button" class="btn-cancel" routerLink="/Projets">Annuler</button>
+      <button type="button" class="btn-cancel" routerLink="/home/Projets">Annuler</button>
     </div>
   </form>
 </div>

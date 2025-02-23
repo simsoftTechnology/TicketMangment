@@ -15,7 +15,7 @@ import { MatListModule } from '@angular/material/list';
 import { FormsModule } from '@angular/forms';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { NgIf } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
@@ -51,7 +51,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private sidenavService: SidenavService,
-    private breakpointObserver: BreakpointObserver
+    private breakpointObserver: BreakpointObserver, 
+    public route: ActivatedRoute
   ) {}
 
   ngOnInit() {

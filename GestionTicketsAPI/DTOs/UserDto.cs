@@ -13,4 +13,5 @@ public class UserDto
     public required string Pays { get; set; }
     public required bool Actif { get; set; }
     public required string Token { get; set; }
+    public int? SocieteId { get; set; }
 }

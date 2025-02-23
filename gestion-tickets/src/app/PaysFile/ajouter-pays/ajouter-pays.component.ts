@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaysService } from '../../_services/pays.service';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
 
 @Component({
@@ -15,7 +15,8 @@ export class AjouterPaysComponent {
   paysForm: FormGroup;
   selectedFile: File | null = null; // Garde ce nom pour correspondre au HTML
 
-  constructor(private fb: FormBuilder, private paysService: PaysService, private router: Router) {
+  constructor(private fb: FormBuilder, private paysService: PaysService, private router: Router, 
+    public route: ActivatedRoute) {
     this.paysForm = this.fb.group({
       nom: ['', Validators.required],  
       selectedFile: [null, Validators.required] // On garde "selectedFile" comme dans le HTML
@@ -38,7 +39,7 @@ export class AjouterPaysComponent {
 
     this.paysService.addPays(nom, this.selectedFile!).subscribe({
       next: () => {
-        this.router.navigate(['/Pays']);
+        this.router.navigate(['/home/Pays']);
       },
       error: (err) => {
         console.error(err);
