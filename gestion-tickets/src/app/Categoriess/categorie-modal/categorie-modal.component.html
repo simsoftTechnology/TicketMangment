@@ -1,0 +1,26 @@
+<div class="modal-backdrop" (click)="onBackdropClick()">
+  <div class="modal-show" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h5 class="modal-title">Ajouter une catégorie</h5>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="categoryName">Nom de la catégorie :</label>
+        <input 
+          type="text" 
+          id="categoryName" 
+          class="form-control" 
+          [(ngModel)]="categoryName" 
+          placeholder="Entrez le nom de la catégorie" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-primary" (click)="addCategory()">
+        Ajouter
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onBackdropClick()">
+        Annuler
+      </button>
+    </div>
+  </div>
+</div>

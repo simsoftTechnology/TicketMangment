@@ -10,6 +10,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200").WithExposedHeaders("Pagination"));
+
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();
@@ -24,7 +26,6 @@ app.UseHttpsRedirection();
 
 
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200").WithExposedHeaders("Pagination"));
 
 app.UseAuthentication();
 app.UseAuthorization();

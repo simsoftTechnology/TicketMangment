@@ -116,11 +116,11 @@ td {
 }
 
 .edit-btn {
-  color: #f38932;
+  color: #000000;
 }
 
-.edit-btn:hover, .delete-btn:hover {
-  color: #f07d1f;
+.edit-btn:hover {
+  color: #393838;
   transform: scale(1.1);
 }
 .delete-btn:hover {

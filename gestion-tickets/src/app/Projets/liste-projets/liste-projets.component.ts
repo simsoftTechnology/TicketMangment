@@ -6,6 +6,7 @@ import { PaginatedResult } from '../../_models/pagination';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Projet } from '../../_models/Projet';
 import { ProjetService } from '../../_services/projet.service';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-liste-projets',
@@ -21,7 +22,9 @@ export class ListeProjetsComponent implements OnInit {
   jumpPage!: number;
   projetsSearchTerm: string = '';
 
-  constructor(private projetsService: ProjetService,
+  constructor(
+    private projetsService: ProjetService,
+    public accountService: AccountService,
     public route: ActivatedRoute) {}
 
   ngOnInit(): void {
@@ -36,15 +39,36 @@ export class ListeProjetsComponent implements OnInit {
   }
   
   loadProjets(): void {
-    this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, this.projetsSearchTerm)
-      .subscribe({
-        next: (result) => {
-          this.paginatedResult = result;
-        },
-        error: (error) => {
-          console.error('Erreur lors du chargement des projets paginés', error);
-        }
-      });
+    const currentUser = this.accountService.currentUser();
+    
+    // Vérifie si l'utilisateur connecté est un super admin (en comparaison en minuscules)
+    if (currentUser && currentUser.role?.toLowerCase() === 'super admin') {
+      // Super admin : affiche tous les projets
+      this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, this.projetsSearchTerm)
+        .subscribe({
+          next: (result) => {
+            this.paginatedResult = result;
+          },
+          error: (error) => {
+            console.error('Erreur lors du chargement des projets paginés', error);
+          }
+        });
+    } else if (currentUser) {
+      
+      // Autres utilisateurs : affiche uniquement les projets qui leur sont associés
+      this.accountService.getUserProjects(currentUser.id, this.pageNumber, this.pageSize, this.projetsSearchTerm)
+        .subscribe({
+          next: (result) => {
+            this.paginatedResult = result;
+          },
+          error: (error) => {
+            console.error('Erreur lors de la requête vers :', error.url || 'URL inconnue', error);
+            console.error('Erreur lors du chargement des projets de l\'utilisateur', error);
+          }
+        });
+    } else {
+      console.error("Utilisateur non connecté");
+    }
   }
   
 

@@ -4,16 +4,18 @@ import { AccountService } from '../_services/account.service';
 
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const accountService = inject(AccountService);
-
-  if (accountService.currentUser()) {
+  
+  // Exclure le login de l'ajout du token
+  if (!req.url.includes('/account/login') && accountService.currentUser()) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${accountService.currentUser()?.token}`
       }
     });
   } else {
-    console.warn('Aucun token trouvé lors de la requête.');
+    console.warn('Aucun token trouvé ou endpoint login, pas d\'Authorization.');
   }
-
+  
   return next(req);
 };
+

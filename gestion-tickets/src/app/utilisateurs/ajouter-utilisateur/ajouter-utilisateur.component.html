@@ -53,10 +53,10 @@
         <select id="role" formControlName="role" class="form-control"
           [class.is-invalid]="registerForm.controls['role'].touched && registerForm.controls['role'].invalid">
           <option value="">Sélectionnez une option</option>
-          <option value="superAdmin">Super Admin</option>
-          <option value="chefProjet">Chef de Projet</option>
+          <option value="super admin">Super Admin</option>
+          <option value="chef de projet">Chef de Projet</option>
           <option value="client">Client</option>
-          <option value="developpeur">Développeur</option>
+          <option value="développeur">Développeur</option>
         </select>
         <div *ngIf="registerForm.controls['role'].hasError('required')" class="invalid-feedback text-start">
           Role est obligatoire

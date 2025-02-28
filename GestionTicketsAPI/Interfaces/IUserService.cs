@@ -1,5 +1,6 @@
 using System;
 using GestionTicketsAPI.DTOs;
+using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 
 namespace GestionTicketsAPI.Interfaces;
@@ -11,10 +12,14 @@ public interface IUserService
 
         // Nouvelle méthode sans pagination
         Task<IEnumerable<UserDto>> GetAllUsersNoPaginationAsync();
+        Task<PagedList<ProjetDto>> GetUserProjectsPagedAsync(int userId, UserParams userParams);
+        Task<PagedList<Ticket>> GetUserTicketsPagedAsync(int userId, UserParams userParams);
         
         // Récupère un utilisateur par son identifiant et le transforme en DTO
         Task<UserDto?> GetUserByIdAsync(int id);
         
         // Supprime un utilisateur via son identifiant
         Task<bool> DeleteUserAsync(int id);
+
+        Task<bool> UpdateUserAsync(UserUpdateDto userUpdateDto);
     }

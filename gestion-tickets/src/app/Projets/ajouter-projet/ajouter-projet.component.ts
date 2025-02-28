@@ -1,4 +1,3 @@
-import { DropdownService } from './../../_services/dropdown.service';
 import { Component, HostListener, OnInit } from '@angular/core';
 import { Pays } from '../../_models/pays';
 import { Societe } from '../../_models/societe';
@@ -12,7 +11,9 @@ import { CommonModule, NgIf } from '@angular/common';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
 import { forkJoin } from 'rxjs';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ProjetModalComponent } from '../projet-modal/projet-modal.component';
+import { DropdownService } from './../../_services/dropdown.service';
 
 @Component({
   selector: 'app-ajouter-projet',
@@ -33,19 +34,17 @@ export class AjouterProjetComponent implements OnInit {
 
   societes: Societe[] = [];
   pays: Pays[] = [];
-  utilisateurs: User[] = []; // Liste des utilisateurs
+  utilisateurs: User[] = [];
   chefsProjet: User[] = [];
   developpeurs: User[] = [];
   selectedChefId: number | null = null;
   selectedDevIds: number[] = [];
   erreurMessage: string = '';
 
-  // Dropdown pour développeurs (multisélection)
   isDropdownOpen = false;
   searchQuery = '';
   filteredDevelopers: User[] = [];
 
-  // Dropdown pour pays, société et chef
   isPaysDropdownOpen = false;
   isSocieteDropdownOpen = false;
   isChefDropdownOpen = false;
@@ -62,43 +61,34 @@ export class AjouterProjetComponent implements OnInit {
   filteredClients: User[] = [];
   clients: User[] = [];
 
-  // Contrôle l'affichage de la modale
-  showProjectTypeModal: boolean = true;
-
-  // Par défaut, on peut initialiser le type à Société
+  // Par défaut, on initialise le type à Société
   isSocieteProjet: boolean = true;
 
   constructor(
     private projetService: ProjetService,
     private societeService: SocieteService,
     private paysService: PaysService,
-    private userService: AccountService, // Service pour les utilisateurs
+    private userService: AccountService,
     private router: Router,
     private dropdownService: DropdownService,
-    public route: ActivatedRoute
-    
+    public route: ActivatedRoute,
+    private overlayModalService: OverlayModalService
   ) { }
 
   ngOnInit(): void {
     this.loadSocietes();
     this.loadPays();
     this.loadUtilisateurs();
-    this.showProjectTypeModal = true;
+    this.openProjectTypeModal();
   }
 
-  
-
-  // Méthode appelée depuis le modal lorsque l'utilisateur fait un choix
-  onProjectTypeSelected(isSociete: boolean): void {
-    this.isSocieteProjet = isSociete;
-    this.showProjectTypeModal = false;
+  openProjectTypeModal(): void {
+    const modalInstance = this.overlayModalService.open(ProjetModalComponent);
+    modalInstance.projectTypeSelected.subscribe((isSociete: boolean) => {
+      this.isSocieteProjet = isSociete;
+      this.overlayModalService.close();
+    });
   }
-
-  // Méthode pour fermer la modale sans sélectionner
-  onModalClose(): void {
-    this.showProjectTypeModal = false;
-  }
-  
 
   loadSocietes(): void {
     this.societeService.getSocietes().subscribe(
@@ -118,25 +108,20 @@ export class AjouterProjetComponent implements OnInit {
     this.userService.getAllUsers().subscribe(
       data => {
         this.utilisateurs = data;
-        // Filtrer selon les rôles
         this.chefsProjet = data.filter(user => user.role.toLowerCase().trim() === 'chef de projet');
         this.developpeurs = data.filter(user => user.role.toLowerCase().includes('développeur'));
-        // On suppose que le rôle client est défini (par exemple "client")
         this.clients = data.filter(user => user.role.toLowerCase().trim() === 'client');
       },
       error => { console.error('Erreur chargement utilisateurs', error); }
     );
   }
-  
 
   ajouterProjet(): void {
-    // Vérification commune
     if (!this.projet.nom || !this.projet.idPays || !this.selectedChefId) {
       this.erreurMessage = "Veuillez remplir tous les champs obligatoires.";
       return;
     }
 
-    // Selon le type de projet, on doit avoir soit une société soit un client
     if (this.isSocieteProjet && !this.projet.societeId) {
       this.erreurMessage = "Veuillez sélectionner une société.";
       return;
@@ -145,14 +130,12 @@ export class AjouterProjetComponent implements OnInit {
       return;
     }
 
-    // Avant l'envoi, on s'assure que l'autre champ est à null (si besoin)
     if (this.isSocieteProjet) {
       this.projet.clientId = null;
     } else {
       this.projet.societeId = null;
     }
 
-    // S'assurer que les valeurs sont bien des nombres si nécessaire
     this.projet.idPays = +this.projet.idPays;
 
     this.projetService.addProjet(this.projet).subscribe({
@@ -169,14 +152,12 @@ export class AjouterProjetComponent implements OnInit {
   ajouterUtilisateursAuProjet(projetId: number): void {
     const requests = [];
 
-    // Ajouter le chef de projet
     if (this.selectedChefId) {
       requests.push(
         this.projetService.ajouterUtilisateurAuProjet(projetId, this.selectedChefId, 'Chef de Projet')
       );
     }
 
-    // Ajouter les développeurs
     this.selectedDevIds.forEach(devId => {
       requests.push(
         this.projetService.ajouterUtilisateurAuProjet(projetId, devId, 'Développeur')
@@ -184,13 +165,13 @@ export class AjouterProjetComponent implements OnInit {
     });
 
     if (requests.length === 0) {
-      this.router.navigate(['/home/liste-projets']);
+      this.router.navigate(['/home/Projets']);
       return;
     }
 
     forkJoin(requests).subscribe({
       next: () => {
-        this.router.navigate(['/home/liste-projets']);
+        this.router.navigate(['/home/Projets']);
       },
       error: (err) => {
         console.error('Erreur lors de l\'ajout des utilisateurs', err.error || err);
@@ -198,14 +179,12 @@ export class AjouterProjetComponent implements OnInit {
     });
   }
 
-  // Filtrage des développeurs pour la multisélection
   filterDevelopers(): void {
     this.filteredDevelopers = this.developpeurs.filter(dev =>
       `${dev.firstName} ${dev.lastName}`.toLowerCase().includes(this.searchQuery.toLowerCase())
     );
   }
 
-  // Sélection / déselection d'un développeur
   toggleSelection(devId: number): void {
     const index = this.selectedDevIds.indexOf(devId);
     if (index === -1) {
@@ -224,10 +203,6 @@ export class AjouterProjetComponent implements OnInit {
     return dev ? `${dev.firstName} ${dev.lastName}` : '';
   }
 
-  /**
-   * Méthode unique pour basculer l'ouverture/fermeture des dropdowns.
-   * Si aucun type n'est fourni, on bascule le dropdown des développeurs (multisélection).
-   */
   toggleDropdown(type?: string): void {
     if (type) {
       switch (type) {
@@ -257,7 +232,6 @@ export class AjouterProjetComponent implements OnInit {
           break;
       }
     } else {
-      // Dropdown pour la multisélection des développeurs
       this.isDropdownOpen = !this.isDropdownOpen;
       if (this.isDropdownOpen) {
         this.filteredDevelopers = [...this.developpeurs];
@@ -265,7 +239,6 @@ export class AjouterProjetComponent implements OnInit {
     }
   }
 
-  // Filtrage pour pays, société et chef en fonction de la recherche
   filterItems(type: string): void {
     switch (type) {
       case 'pays':
@@ -291,7 +264,6 @@ export class AjouterProjetComponent implements OnInit {
     }
   }
 
-  // Sélection d'un élément dans un dropdown (pays, société, chef)
   selectItem(item: any, type: string): void {
     switch (type) {
       case 'pays':
@@ -321,7 +293,6 @@ export class AjouterProjetComponent implements OnInit {
     if (idSociete == null) return '';
     return this.societes.find(s => s.id === idSociete)?.nom || '';
   }
-  
 
   getChefName(idChef: number | null): string {
     if (!idChef) return '';
@@ -330,12 +301,11 @@ export class AjouterProjetComponent implements OnInit {
   }
 
   getClientName(clientId: number | null | undefined): string {
-  if (clientId == null) return '';
-  const client = this.clients.find(c => c.id === clientId);
-  return client ? `${client.firstName} ${client.lastName}` : '';
-}
+    if (clientId == null) return '';
+    const client = this.clients.find(c => c.id === clientId);
+    return client ? `${client.firstName} ${client.lastName}` : '';
+  }
 
-  // Fermer les dropdowns si clic en dehors
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!event.target) return;

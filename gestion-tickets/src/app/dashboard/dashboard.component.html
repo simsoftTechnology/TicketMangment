@@ -1,14 +1,14 @@
-<mat-sidenav-container class="sidenav-container">
+<mat-sidenav-container class="sidenav-container" [class.modal-open]="isModalOpen">
   <mat-sidenav [mode]="sidenavMode" [(opened)]="isSidenavOpen">
     <mat-nav-list>
-      <!-- Navigation principale -->
+      <!-- Liens communs à tous les rôles -->
       <a mat-list-item [routerLink]="['/home', 'dashboard']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">home</mat-icon>
           <span class="nav-text">Tableau de bord</span>
         </div>
       </a>
-      <a mat-list-item [routerLink]="['/home', 'tickets']" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home', 'Tickets']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">confirmation_number</mat-icon>
           <span class="nav-text">Tickets</span>
@@ -20,7 +20,9 @@
           <span class="nav-text">Statuts des Tickets</span>
         </div>
       </a>
-      <a mat-list-item [routerLink]="['/home', 'categories']" routerLinkActive="active-nav-item">
+
+      <!-- Lien « Catégories des Problèmes » uniquement pour Super Admin -->
+      <a mat-list-item *ngIf="isSuperAdmin()" [routerLink]="['/home', 'Categories']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">link</mat-icon>
           <span class="nav-text">Catégories des Problèmes</span>
@@ -29,40 +31,62 @@
 
       <!-- Section DONNÉES DE BASE -->
       <div class="section-divider"></div>
-      <div class="menu-section">
-        <div class="section-title" (click)="toggleBaseData()">
-          <span class="section-title-text">Données de Base</span>
-          <mat-icon class="nav-icon">{{ isBaseDataOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+      <!-- Pour Super Admin : afficher tous les éléments de base -->
+      <ng-container *ngIf="isSuperAdmin()">
+        <div class="menu-section">
+          <div class="section-title" (click)="toggleBaseData()">
+            <span class="section-title-text">Données de Base</span>
+            <mat-icon class="nav-icon">{{ isBaseDataOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+          <div *ngIf="isBaseDataOpen" class="submenu">
+            <a mat-list-item [routerLink]="['/home', 'Pays']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">flag</mat-icon>
+                <span class="nav-text">Pays</span>
+              </div>
+            </a>
+            <a mat-list-item [routerLink]="['/home', 'Projets']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">work</mat-icon>
+                <span class="nav-text">Projets</span>
+              </div>
+            </a>
+            <a mat-list-item [routerLink]="['/home', 'Societes']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">apartment</mat-icon>
+                <span class="nav-text">Sociétés</span>
+              </div>
+            </a>
+            <a mat-list-item [routerLink]="['/home', 'utilisateurs']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">groups</mat-icon>
+                <span class="nav-text">Utilisateurs</span>
+              </div>
+            </a>
+          </div>
         </div>
-        <div *ngIf="isBaseDataOpen" class="submenu">
-          <a mat-list-item [routerLink]="['/home', 'Pays']" routerLinkActive="active-nav-item">
-            <div class="menu-item">
-              <mat-icon class="nav-icon">flag</mat-icon>
-              <span class="nav-text">Pays</span>
-            </div>
-          </a>
-          <a mat-list-item [routerLink]="['/home', 'Projets']" routerLinkActive="active-nav-item">
-            <div class="menu-item">
-              <mat-icon class="nav-icon">work</mat-icon>
-              <span class="nav-text">Projets</span>
-            </div>
-          </a>
-          <a mat-list-item [routerLink]="['/home', 'Societes']" routerLinkActive="active-nav-item">
-            <div class="menu-item">
-              <mat-icon class="nav-icon">apartment</mat-icon>
-              <span class="nav-text">Sociétés</span>
-            </div>
-          </a>
-          <a mat-list-item [routerLink]="['/home', 'utilisateurs']" routerLinkActive="active-nav-item">
-            <div class="menu-item">
-              <mat-icon class="nav-icon">groups</mat-icon>
-              <span class="nav-text">Utilisateurs</span>
-            </div>
-          </a>
-        </div>
-      </div>
+      </ng-container>
 
-      <!-- Section COMPTE -->
+      <!-- Pour Chef de Projet et Développeur : afficher uniquement « Projets » -->
+      <ng-container *ngIf="isChefDeProjet() || isDeveloppeur()">
+        <div class="menu-section">
+          <div class="section-title" (click)="toggleBaseData()">
+            <span class="section-title-text">Mes Projets</span>
+            <mat-icon class="nav-icon">{{ isBaseDataOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </div>
+          <div *ngIf="isBaseDataOpen" class="submenu">
+            <a mat-list-item [routerLink]="['/home', 'Projets']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">work</mat-icon>
+                <span class="nav-text">Projets</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </ng-container>
+      <!-- Pour Client : pas de section « Données de Base » -->
+
+      <!-- Section COMPTE : visible pour tous -->
       <div class="section-divider"></div>
       <div class="menu-section">
         <div class="section-title" (click)="toggleAccount()">

@@ -32,6 +32,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             router.navigateByUrl('/login');
             return throwError(() => error);
           case 404:
+            console.error('Erreur 404 sur l’URL :', req.url);
             router.navigateByUrl('/not-found');
             break;
           case 500:

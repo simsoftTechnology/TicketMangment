@@ -9,16 +9,19 @@ public class AutoMapperProfiles : Profile
 {
   public AutoMapperProfiles()
   {
-    CreateMap<User, UserDto>();
+    CreateMap<User, UserDto>()
+    .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.Contrats != null && src.Contrats.Any() 
+                                                                 ? src.Contrats.First() 
+                                                                 : null));
+    CreateMap<UserUpdateDto, User>();
     CreateMap<Photo, PhotoDto>();
     CreateMap<Pays, PaysDto>()
       .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null));
     CreateMap<PaysUpdateDto, Pays>();
     CreateMap<Projet, ProjetDto>()
-            .ForMember(dest => dest.NomPays,
-                       opt => opt.MapFrom(src => src.Pays != null ? src.Pays.Nom : null))
-            .ForMember(dest => dest.NomSociete,
-                       opt => opt.MapFrom(src => src.Societe != null ? src.Societe.Nom : null));
+    .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Pays.Nom))
+    .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe.Nom));
+
     CreateMap<ProjetDto, Projet>();
     CreateMap<Societe, SocieteDto>();
     CreateMap<SocieteDto, Societe>()
@@ -29,5 +32,13 @@ public class AutoMapperProfiles : Profile
         .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.ContratsPartenaire.FirstOrDefault()));
 
     CreateMap<Contrat, ContratDto>().ReverseMap();
+    CreateMap<Ticket, TicketDto>()
+        .ForMember(dest => dest.Projet, opt => opt.MapFrom(src => src.Projet))
+        .ForMember(dest => dest.Utilisateur, opt => opt.MapFrom(src => src.Utilisateur))
+        .ForMember(dest => dest.CategorieProbleme, opt => opt.MapFrom(src => src.CategorieProbleme))
+        .ReverseMap();
+    CreateMap<TicketCreateDto, Ticket>();
+
+
   }
 }

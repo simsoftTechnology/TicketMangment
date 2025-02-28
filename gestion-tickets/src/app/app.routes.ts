@@ -20,6 +20,11 @@ import { AjouterProjetComponent } from './Projets/ajouter-projet/ajouter-projet.
 import { DetailsProjetComponent } from './Projets/details-projet/details-projet.component';
 import { AjouterSocieteComponent } from './Societes/ajouter-societe/ajouter-societe.component';
 import { ModifierSocieteComponent } from './Societes/modifier-societe/modifier-societe.component';
+import { DetailsUtilisateurComponent } from './utilisateurs/details-utilisateur/details-utilisateur.component';
+import { CategoriesComponent } from './Categoriess/categories/categories.component';
+import { RoleGuard } from './_guards/role.guard';
+import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
+import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -33,22 +38,92 @@ export const routes: Routes = [
       { path: 'members/:id', component: MemberDetailComponent },
       { path: 'lists', component: ListsComponent },
       { path: 'dashboard', component: DashboardComponent },
-      { path: 'utilisateurs', component: ListUtilisateursComponent},
-      { path: 'utilisateurs/AjouterUtilisateur', component: AjouterUtilisateurComponent},
-      { path: 'Pays', component: PaysComponent},
-      { path: 'Pays/ajouterPays', component: AjouterPaysComponent},
-      { path :'Pays/ModifierPays/:id', component: ModifierPaysComponent},
-      { path: 'Projets', component: ListeProjetsComponent},
-      { path: 'Projets/ajouterProjet', component: AjouterProjetComponent},
-      { path: 'Projets/details/:id', component: DetailsProjetComponent },
-      { path: 'Societes', component: ListeSocietesComponent},
-      { path: 'Societes/ajouterSociete', component: AjouterSocieteComponent },
-      { path: 'Societes/modifierSociete/:id', component: ModifierSocieteComponent },
+      { path: 'Tickets', component: ListTicketsComponent },
+      { path: 'Tickets/ajouterTicket', component: AjouterTicketComponent },
+      // Utilisateurs : Super Admin uniquement
+      {
+        path: 'utilisateurs',
+        component: ListUtilisateursComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'utilisateurs/AjouterUtilisateur',
+        component: AjouterUtilisateurComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'utilisateurs/details/:id',
+        component: DetailsUtilisateurComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Pays',
+        component: PaysComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Pays/ajouterPays',
+        component: AjouterPaysComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Pays/ModifierPays/:id',
+        component: ModifierPaysComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Projets',
+        component: ListeProjetsComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin', 'Chef de Projet', 'Développeur'] }
+      },
+      {
+        path: 'Projets/ajouterProjet',
+        component: AjouterProjetComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin', 'Chef de Projet'] }
+      },
+      {
+        path: 'Projets/details/:id',
+        component: DetailsProjetComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin', 'Chef de Projet', 'Développeur'] }
+      },
+      {
+        path: 'Societes',
+        component: ListeSocietesComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Societes/ajouterSociete',
+        component: AjouterSocieteComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Societes/modifierSociete/:id',
+        component: ModifierSocieteComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'Categories',
+        component: CategoriesComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
       { path: '', redirectTo: 'home', pathMatch: 'full' },
     ]
   },
-  {path: 'errors', component: TestErrorsComponent},
-  {path: 'not-found', component: NotFoundComponent},
-  {path: 'server-error', component: ServerErrorComponent},
+  { path: 'errors', component: TestErrorsComponent },
+  { path: 'not-found', component: NotFoundComponent },
+  { path: 'server-error', component: ServerErrorComponent },
   { path: '**', component: LoginComponent, pathMatch: 'full' }
 ];

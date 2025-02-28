@@ -1,0 +1,90 @@
+h2 {
+  margin-bottom: 0.1rem;
+  font-size: 1.5rem;
+  padding: 20px;
+}
+
+.form-container {
+  max-width: 100%;
+  margin: 0 auto;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.form-group label .required {
+  color: #dc3545;
+}
+
+.form-control,
+.form-control-file {
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-control:focus,
+.form-control-file:focus {
+  outline: none;
+  border-color: #f57c00;
+}
+
+.is-invalid .form-control {
+  border-color: #dc3545;
+}
+
+.invalid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  color: #dc3545;
+  font-size: 0.875rem;
+}
+
+/* Groupe de champs alignés sur une ligne */
+.form-group-inline {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.form-group-inline .form-group {
+  flex: 1;
+}
+
+/* Boutons */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.button-group button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-create,
+.btn-add {
+  background-color: #f57c00;
+  color: #fff;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: #fff;
+}

@@ -3,15 +3,28 @@
   height: 100vh;
 }
 
-mat-sidenav-content {
-  z-index: 1;
+
+.sidenav-container.modal-open mat-sidenav {
+  background: rgba(0, 0, 0, 0.5);
+  transition: background 0.3s ease;
 }
+
+.sidenav-container.modal-open .menu-item {
+  color: white !important;
+}
+
+.sidenav-container.modal-open .nav-icon {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.5) !important;
+}
+
+
 /* Barre latérale */
 mat-sidenav {
   width: 400px;
   background: white;
   border-right: 1px solid #f0f0f0;
   display: flex;
+  z-index: 1;
 }
 
 /* Menu de navigation */
@@ -133,6 +146,15 @@ mat-nav-list a:hover:not(.active-nav-item) {
 .sub-nav-item {
   padding-left: 32px !important;
 }
+
+
+
+
+.dashboard-container.modal-open {
+  background-color: #333; /* Exemple : fond assombri lorsque le modal est ouvert */
+  transition: background-color 0.3s ease;
+}
+
 
 
 @media (max-width: 768px) {

@@ -1,0 +1,142 @@
+<div class="container">
+  <div class="header">
+    <h2>Liste des catégories de problèmes</h2>
+    <button class="add-user-btn" (click)="openCategorieModal()">
+      <span class="material-icons">add</span> Ajouter
+    </button>
+  </div>
+
+  <!-- Zone de recherche -->
+  <table>
+    <thead>
+      <tr class="filter-row">
+        <td colspan="2">
+          <div class="search-wrapper">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Rechercher une catégorie..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+            />
+            <span class="material-icons search-icon">search</span>
+          </div>
+        </td>
+        <td colspan="2" class="filter-actions">
+          <button class="filter-btn">
+            <span class="material-icons">filter_list</span>
+          </button>
+          <button class="view-btn">
+            <span class="material-icons">grid_view</span>
+          </button>
+          <button class="view-btn active">
+            <span class="material-icons">view_list</span>
+          </button>
+        </td>
+      </tr>
+      <tr>
+        <!-- Colonne pour la sélection (avec "select all") -->
+        <th class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input 
+              type="checkbox" 
+              id="selectAllCategorie" 
+              class="custom-checkbox" 
+              (change)="selectAll($event)">
+            <label for="selectAllCategorie" class="checkbox-label"></label>
+          </div>
+        </th>
+        <th>Nom</th>
+        <th></th>
+        <!-- Bouton de suppression dans l'en-tête pour la suppression en masse -->
+        <th class="actions">
+          <button class="delete-btn" (click)="deleteSelectedCategories()">
+            <span class="material-icons">delete</span>
+          </button>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let categorie of categories; let i = index">
+        <td class="checkbox-column">
+          <div class="checkbox-wrapper">
+            <input
+              type="checkbox"
+              [id]="'categorie' + i"
+              class="custom-checkbox"
+              [(ngModel)]="categorie.selected"
+            />
+            <label [for]="'categorie' + i" class="checkbox-label"></label>
+          </div>
+        </td>
+        <td>
+          <ng-container *ngIf="categorie.editing; else displayNom">
+            <input type="text" [(ngModel)]="categorie.nom" class="form-control" />
+          </ng-container>
+          <ng-template #displayNom>
+            {{ categorie.nom }}
+          </ng-template>
+        </td>
+        <td>
+          <!-- Si on est en mode édition, afficher les boutons Save/Cancel -->
+          <ng-container *ngIf="categorie.editing">
+            <button class="save-btn" (click)="saveEdit(categorie)">
+              <span class="material-icons">check</span>
+            </button>
+            <button class="cancel-btn" (click)="cancelEdit(categorie)">
+              <span class="material-icons">close</span>
+            </button>
+          </ng-container>
+        </td>
+        <td class="actions">
+          <!-- Bouton pour voir les détails -->
+          <button class="edit-btn" (click)="editCategorie(categorie)">
+            <span class="material-icons">edit</span>
+          </button>
+          <!-- Bouton pour supprimer individuellement -->
+          <button class="delete-btn" (click)="deleteCategorie(categorie.id)">
+            <span class="material-icons">delete</span>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="categories.length === 0">
+        <td colspan="4">
+          <div class="no-content">
+            <span class="icon">✕</span>
+            <p>Aucune catégorie trouvée</p>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <!-- Ligne de pagination et per-page-selector -->
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <div class="pagination-container">
+            <div class="pagination-info">
+              Affichage de
+              {{ ((pageNumber - 1) * pageSize) + 1 }} à
+              {{ pageNumber * pageSize > totalItems ? totalItems : pageNumber * pageSize }}
+              sur {{ totalItems }} résultats
+            </div>
+            <div class="per-page-selector">
+              <select [(ngModel)]="pageSize" (change)="onPageChange(1)">
+                <option *ngFor="let size of range(1, 10)" [value]="size">{{ size }}</option>
+              </select>
+              <label>par page</label>
+            </div>
+            <div class="pagination-controls">
+              <button (click)="onPageChange(pageNumber - 1)" [disabled]="pageNumber <= 1">
+                &laquo;
+              </button>
+              <span>Page {{ pageNumber }} / {{ totalPages }}</span>
+              <button (click)="onPageChange(pageNumber + 1)" [disabled]="pageNumber >= totalPages">
+                &raquo;
+              </button>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

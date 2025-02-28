@@ -1,0 +1,324 @@
+<div class="container">
+  <!-- Affichage du nom de l'utilisateur ou d'un indicateur de chargement -->
+  <h1 *ngIf="userDetails; else loading">
+    {{ userDetails.firstName | default:'Aucun' }} {{ userDetails.lastName | default:'' }}
+  </h1>
+  <ng-template #loading>
+    <h2>Chargement...</h2>
+  </ng-template>
+
+  <!-- Formulaire de modification des informations de l'utilisateur -->
+  <div class="form-container">
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <!-- Ligne 1 : Nom et Prénom -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="lastName">Nom <span class="required">*</span></label>
+          <input id="lastName" type="text" formControlName="lastName" class="form-control"
+            [class.is-invalid]="userForm.controls['lastName'].touched && userForm.controls['lastName'].invalid" />
+          <div *ngIf="userForm.controls['lastName'].hasError('required')" class="invalid-feedback text-start">
+            Nom est obligatoire
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="firstName">Prénom <span class="required">*</span></label>
+          <input id="firstName" type="text" formControlName="firstName" class="form-control"
+            [class.is-invalid]="userForm.controls['firstName'].touched && userForm.controls['firstName'].invalid" />
+          <div *ngIf="userForm.controls['firstName'].hasError('required')" class="invalid-feedback text-start">
+            Prénom est obligatoire
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="email">Email <span class="required">*</span></label>
+          <input id="email" type="email" formControlName="email" class="form-control"
+            [class.is-invalid]="userForm.controls['email'].touched && userForm.controls['email'].invalid" />
+          <div *ngIf="userForm.controls['email'].hasError('required')" class="invalid-feedback text-start">
+            Email est obligatoire
+          </div>
+          <div *ngIf="userForm.controls['email'].hasError('email')" class="invalid-feedback text-start">
+            Email invalide
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pays">Pays <span class="required">*</span></label>
+          <select id="pays" formControlName="pays" class="form-control"
+            [class.is-invalid]="userForm.get('pays')?.touched && userForm.get('pays')?.invalid">
+            <option [ngValue]="null">Sélectionnez un pays</option>
+            <option *ngFor="let p of paysList" [value]="p.idPays">
+              {{ p.nom }}
+            </option>
+          </select>
+          <div *ngIf="userForm.get('pays')?.hasError('required')" class="invalid-feedback text-start">
+            Pays est obligatoire
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="role">Role <span class="required">*</span></label>
+          <select id="role" formControlName="role" class="form-control"
+            [class.is-invalid]="userForm.controls['role'].touched && userForm.controls['role'].invalid">
+            <option [ngValue]="null">Sélectionnez une option</option>
+            <option value="super admin">Super Admin</option>
+            <option value="chef de projet">Chef de Projet</option>
+            <option value="client">Client</option>
+            <option value="développeur">Développeur</option>
+          </select>
+          <div *ngIf="userForm.controls['role'].hasError('required')" class="invalid-feedback text-start">
+            Role est obligatoire
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="societe">Société</label>
+          <select id="societe" formControlName="societe" class="form-control"
+            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid">
+            <option [ngValue]="null">Sélectionnez une société</option>
+            <option *ngFor="let s of societesList" [value]="s.id">
+              {{ s.nom }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nouveauPassword">Mot de passe <span class="required">*</span></label>
+          <div class="password-container">
+            <input id="nouveauPassword" [type]="passwordVisible ? 'text' : 'password'" formControlName="nouveauPassword"
+              class="form-control"
+              [class.is-invalid]="userForm.controls['nouveauPassword'].touched && userForm.controls['nouveauPassword'].invalid" />
+            <i class="fa" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"
+              (click)="togglePasswordVisibility()"></i>
+            <div *ngIf="userForm.controls['nouveauPassword'].hasError('required')" class="invalid-feedback text-start">
+              Mot de passe est obligatoire
+            </div>
+            <div *ngIf="userForm.controls['nouveauPassword'].hasError('minlength')" class="invalid-feedback text-start">
+              Mot de passe doit avoir au moins 6 caractères
+            </div>
+            <div *ngIf="userForm.controls['nouveauPassword'].hasError('maxlength')" class="invalid-feedback text-start">
+              Mot de passe ne doit pas dépasser 8 caractères
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="numTelephone">Numéro de Téléphone <span class="required">*</span></label>
+          <input id="numTelephone" type="tel" class="form-control" formControlName="numTelephone"
+            [class.is-invalid]="userForm.controls['numTelephone'].touched && userForm.controls['numTelephone'].invalid">
+          <div *ngIf="userForm.controls['numTelephone'].hasError('required')" class="invalid-feedback text-start">
+            Numéro de téléphone est obligatoire
+          </div>
+          <div *ngIf="userForm.controls['numTelephone'].hasError('pattern')" class="invalid-feedback text-start">
+            Numéro de téléphone invalide (exemple : +216 54 567 589)
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="confirmNouveauPassword">Confirmer le mot de passe <span class="required">*</span></label>
+          <div class="password-container">
+            <input id="confirmNouveauPassword" [type]="confirmPasswordVisible ? 'text' : 'password'"
+              formControlName="confirmNouveauPassword" class="form-control"
+              [class.is-invalid]="userForm.controls['confirmNouveauPassword'].touched && userForm.controls['confirmNouveauPassword'].invalid" />
+            <i class="fa" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"
+              (click)="toggleConfirmPasswordVisibility()"></i>
+            <div *ngIf="userForm.controls['confirmNouveauPassword'].hasError('required')" class="invalid-feedback text-start">
+              Confirmation du mot de passe est obligatoire
+            </div>
+            <div *ngIf="userForm.controls['confirmNouveauPassword'].hasError('passwordMismatch')"
+              class="invalid-feedback text-start">
+              Les mots de passe ne sont pas identiques
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group toggle-container">
+          <div class="toggle-row">
+            <div class="toggle-group">
+              <label for="actif">Actif <span class="required">*</span></label>
+              <div class="toggle-switch">
+                <input type="checkbox" id="actif" formControlName="actif" />
+                <label for="actif" class="toggle-label"></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons -->
+      <div class="button-group">
+        <button type="submit" class="btn-create">Sauvegarder</button>
+        <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Navigation par onglets -->
+  <nav class="tabs-nav">
+    <ul>
+      <li [class.active]="activeTab === 'projets'">
+        <a href="#" (click)="switchTab('projets'); $event.preventDefault()">Projets</a>
+      </li>
+      <li [class.active]="activeTab === 'tickets'">
+        <a href="#" (click)="switchTab('tickets'); $event.preventDefault()">Tickets</a>
+      </li>
+      <li [class.active]="activeTab === 'contrat'">
+        <a href="#" (click)="switchTab('contrat'); $event.preventDefault()">Contrat</a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Onglet Projets -->
+  <div *ngIf="activeTab === 'projets'" class="tab-pane">
+    <table>
+      <colgroup>
+        <col style="width: 33%;">
+        <col style="width: 33%;">
+        <col style="width: 33%;">
+        <col style="width: 1%;">
+      </colgroup>
+      <thead>
+        <tr class="filter-row">
+          <td colspan="1">
+            <h3>Projets associés</h3>
+          </td>
+          <td colspan="3">
+            <div class="search-wrapper">
+              <input type="text" class="search-input" placeholder="Rechercher un projet..."
+                [(ngModel)]="projectSearchTerm" (ngModelChange)="onProjectSearch()" />
+              <span class="material-icons search-icon">search</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>Nom du projet</th>
+          <th>Pays</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="displayedProjects && displayedProjects.length > 0; else noProjects">
+          <tr *ngFor="let projet of displayedProjects">
+            <td>{{ projet.nom | default:'Aucun' }}</td>
+            <td>{{ projet.nomPays | default:'Aucun pays' }}</td>
+            <td>{{ projet.description | default:'Aucune description' }}</td>
+            <td class="actions">
+              <button class="view-btn" (click)="viewProjet(projet.id)">
+                <span class="material-icons">visibility</span>
+              </button>
+              <button class="delete-btn" (click)="onDeleteUserFromProject(projet.id)">
+                <span class="material-icons">delete</span>
+              </button>
+            </td>
+          </tr>
+        </ng-container>
+        <ng-template #noProjects>
+          <tr>
+            <td colspan="4">
+              <div class="no-content">
+                <span class="icon">✕</span>
+                <p>Aucun projet trouvé</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+    <!-- (Ajoutez ici vos contrôles de pagination si nécessaire) -->
+  </div>
+
+  <!-- Onglet Tickets -->
+  <div *ngIf="activeTab === 'tickets'" class="tab-pane">
+    <table>
+      <colgroup>
+        <col style="width: 25%;">
+        <col style="width: 35%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 10%;">
+      </colgroup>
+      <thead>
+        <tr class="filter-row">
+          <td colspan="4">
+            <h3>Tickets</h3>
+          </td>
+          <td colspan="1">
+            <div class="search-wrapper">
+              <input type="text" class="search-input" placeholder="Rechercher un ticket..."
+                [(ngModel)]="ticketSearchTerm" (ngModelChange)="onTicketSearch()" />
+              <span class="material-icons search-icon">search</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th>Titre</th>
+          <th>Description</th>
+          <th>Statut</th>
+          <th>Date création</th>
+          <th>Priorité</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="displayedTickets && displayedTickets.length > 0; else noTickets">
+          <tr *ngFor="let ticket of displayedTickets">
+            <td>{{ ticket.titre | default:'Aucun' }}</td>
+            <td>
+              {{ ticket.description ? (ticket.description | truncate:50) : 'Aucune description' }}
+            </td>
+            <td>{{ ticket.statuts | default:'Aucun statut' }}</td>
+            <td>
+              {{ ticket.dateCreation ? (ticket.dateCreation | date:'dd/MM/yyyy') : 'Aucune date' }}
+            </td>
+            <td>{{ ticket.priorite | default:'Aucune priorité' }}</td>
+          </tr>
+        </ng-container>
+        <ng-template #noTickets>
+          <tr>
+            <td colspan="5">
+              <div class="no-content">
+                <span class="icon">✕</span>
+                <p>Aucun ticket trouvé</p>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </tbody>
+    </table>
+    <!-- (Ajoutez ici vos contrôles de pagination si nécessaire) -->
+  </div>
+
+  <!-- Onglet Contrat -->
+<div *ngIf="activeTab === 'contrat'" class="tab-pane">
+  <div class="contract-form-container">
+    <h3>Contrat</h3>
+    <form [formGroup]="contratForm" (ngSubmit)="onSubmitContrat()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="dateDebut">Date de début</label>
+          <input id="dateDebut" type="date" formControlName="dateDebut" />
+        </div>
+        <div class="form-group">
+          <label for="dateFin">Date de fin</label>
+          <input id="dateFin" type="date" formControlName="dateFin" />
+        </div>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <input id="type" type="text" formControlName="type" placeholder="Standard" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-create" [disabled]="contratForm.invalid">Enregistrer</button>
+        <button type="button" class="btn-cancel" (click)="cancelContrat()">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+

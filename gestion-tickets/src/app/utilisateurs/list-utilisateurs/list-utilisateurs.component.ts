@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { AccountService } from '../../_services/account.service';
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { CommonModule, NgClass, NgFor, NgIf } from '@angular/common';
 import { User } from '../../_models/user';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
@@ -9,7 +9,7 @@ import { PaginatedResult } from '../../_models/pagination';
 @Component({
   selector: 'app-list-utilisateurs',
   standalone: true,
-  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink],
+  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
   templateUrl: './list-utilisateurs.component.html',
   styleUrls: ['./list-utilisateurs.component.css']
 })
@@ -68,14 +68,20 @@ export class ListUtilisateursComponent implements OnInit {
   getUsers(): void {
     this.accountService.getUsers(this.pageNumber, this.pageSize, this.usersSearchTerm).subscribe({
       next: (response) => {
-        const updatedItems = (response.items ?? []).map(user => ({ ...user, selected: false }));
+        const updatedItems = (response.items ?? []).map(user => {
+          if (user.contrat) {
+            user.contrat.dateDebut = new Date(user.contrat.dateDebut);
+            if (user.contrat.dateFin) {
+              user.contrat.dateFin = new Date(user.contrat.dateFin);
+            }
+          }
+          return { ...user, selected: false };
+        });
         const result: PaginatedResult<User[]> = {
           items: updatedItems,
           pagination: response.pagination
         };
-        // Met à jour le signal
         this.accountService.paginatedResult.set(result);
-        // Met à jour la variable locale
         this.paginatedResult = result;
       },
       error: (error) => {
@@ -83,6 +89,7 @@ export class ListUtilisateursComponent implements OnInit {
       }
     });
   }
+  
 
   // Méthode déclenchée lors de la modification du terme de recherche
   onSearchChange(): void {

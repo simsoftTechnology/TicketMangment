@@ -3,11 +3,12 @@ import { RouterOutlet, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AccountService } from './_services/account.service';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, MatDialogModule],
+  imports: [RouterOutlet, MatDialogModule, OverlayModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })

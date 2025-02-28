@@ -1,0 +1,110 @@
+<h2>Créer Ticket</h2>
+<div class="form-container">
+  <form [formGroup]="addTicketForm" (ngSubmit)="onSubmit()">
+
+    <!-- Ligne 1 : Qualification & Projet -->
+    <div class="form-group-inline">
+      <div class="form-group">
+        <label for="qualification">Qualification <span class="required">*</span></label>
+        <select id="qualification"
+                formControlName="qualification"
+                class="form-control"
+                [class.is-invalid]="addTicketForm.get('qualification')?.touched && addTicketForm.get('qualification')?.invalid">
+          <option value="" disabled selected>Sélectionnez une qualification</option>
+          <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
+        </select>
+        <div *ngIf="(addTicketForm.get('qualification')?.touched || formSubmitted) && addTicketForm.get('qualification')?.hasError('required')" class="invalid-feedback">
+          La qualification est obligatoire.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="projetId">Projet <span class="required">*</span></label>
+        <select id="projetId"
+                formControlName="projetId"
+                class="form-control"
+                [class.is-invalid]="addTicketForm.get('projetId')?.touched && addTicketForm.get('projetId')?.invalid">
+          <option value="" disabled selected>-- Sélectionnez un projet --</option>
+          <option *ngFor="let p of projets" [value]="p.id">{{ p.nom }}</option>
+        </select>
+        <div *ngIf="(addTicketForm.get('projetId')?.touched || formSubmitted) && addTicketForm.get('projetId')?.hasError('required')" class="invalid-feedback">
+          Le projet est obligatoire.
+        </div>
+      </div>
+    </div>
+
+    <!-- Ligne 2 : Catégorie de problème & Priorité -->
+    <div class="form-group-inline">
+      <div class="form-group">
+        <label for="categorieProblemeId">Catégorie de Problème <span class="required">*</span></label>
+        <select id="categorieProblemeId"
+                formControlName="categorieProblemeId"
+                class="form-control"
+                [class.is-invalid]="addTicketForm.get('categorieProblemeId')?.touched && addTicketForm.get('categorieProblemeId')?.invalid">
+          <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
+        </select>
+        <div *ngIf="(addTicketForm.get('categorieProblemeId')?.touched || formSubmitted) && addTicketForm.get('categorieProblemeId')?.hasError('required')" class="invalid-feedback">
+          La catégorie de problème est obligatoire.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="priorite">Priorité <span class="required">*</span></label>
+        <select id="priorite"
+                formControlName="priorite"
+                class="form-control"
+                [class.is-invalid]="addTicketForm.get('priorite')?.touched && addTicketForm.get('priorite')?.invalid">
+          <option value="" disabled selected> Sélectionnez une priorité </option>
+          <option *ngFor="let p of prioriteOptions" [value]="p">{{ p }}</option>
+        </select>
+        <div *ngIf="(addTicketForm.get('priorite')?.touched || formSubmitted) && addTicketForm.get('priorite')?.hasError('required')" class="invalid-feedback">
+          La priorité est obligatoire.
+        </div>
+      </div>
+    </div>
+
+    <!-- Titre -->
+    <div class="form-group">
+      <label for="titre">Titre <span class="required">*</span></label>
+      <input id="titre"
+             type="text"
+             formControlName="titre"
+             class="form-control"
+             [class.is-invalid]="addTicketForm.get('titre')?.touched && addTicketForm.get('titre')?.invalid">
+      <div *ngIf="(addTicketForm.get('titre')?.touched || formSubmitted) && addTicketForm.get('titre')?.hasError('required')" class="invalid-feedback">
+        Le titre est obligatoire.
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label for="description">Description <span class="required">*</span></label>
+      <textarea id="description"
+                formControlName="description"
+                class="form-control"
+                [class.is-invalid]="addTicketForm.get('description')?.touched && addTicketForm.get('description')?.invalid">
+      </textarea>
+      <div *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')" class="invalid-feedback">
+        La description est obligatoire.
+      </div>
+    </div>
+
+    <!-- Attachement -->
+    <div class="form-group">
+      <label for="attachement">Attachement</label>
+      <input id="attachement"
+             type="file"
+             (change)="onFileSelected($event)"
+             class="form-control-file">
+    </div>
+
+    <!-- Boutons -->
+    <div class="button-group">
+      <button type="submit" class="btn-create">Créer</button>
+      <button type="button" class="btn-add" (click)="createAndReset()">Créer &amp; Ajouter un autre</button>
+      <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
+    </div>
+
+  </form>
+</div>

@@ -1,16 +1,20 @@
+import { Contrat } from "./contrat";
+import { ProjetMember } from "./projet-member"; // Assurez-vous du bon chemin
+
 export interface User {
   id: number;
-  firstName: any;
+  firstName: string;
   lastName: string;
   numTelephone: string;
   pays: number;
   email: string;
-  role: string;
+  role: 'Super Admin' | 'Chef de Projet' | 'Développeur' | 'Client';
   actif: boolean;
-  contrat: boolean;
+  contrat?: Contrat;
   dateDebut?: Date;
   dateFin?: Date;
   selected?: boolean;
   token: string;
-  societeId?: number; // Add this optional property
+  societeId?: number;
+  projetMembers?: ProjetMember[]; // Ajout de la relation aux projets
 }

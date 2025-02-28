@@ -18,6 +18,8 @@ namespace GestionTicketsAPI.Data
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<Photo> Photos { get; set; }
     public DbSet<ProjetUser> ProjetUser { get; set; }
+    public DbSet<CategorieProbleme> CategorieProblemes { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -103,6 +105,13 @@ namespace GestionTicketsAPI.Data
           .HasOne(c => c.SocietePartenaire)
           .WithMany(s => s.ContratsPartenaire)
           .HasForeignKey(c => c.SocietePartenaireId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+      // Configuration de la relation Ticket -> CategorieProbleme
+      modelBuilder.Entity<Ticket>()
+          .HasOne(t => t.Projet)
+          .WithMany(p => p.Tickets)
+          .HasForeignKey(t => t.ProjetId)
           .OnDelete(DeleteBehavior.Cascade);
 
     }

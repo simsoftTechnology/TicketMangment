@@ -16,7 +16,6 @@ public static class ApplicationServiceExtensions
     public static IServiceCollection AddApplicationServices(this IServiceCollection services, IConfiguration config)
     {
       services.AddControllers();
-      // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
       services.AddEndpointsApiExplorer();
       services.AddSwaggerGen();
       services.AddDbContext<DataContext>(opt =>
@@ -39,6 +38,11 @@ public static class ApplicationServiceExtensions
       services.AddScoped<ISocieteService, SocieteService>();
       services.AddScoped<IContratRepository, ContratRepository>();
       services.AddScoped<IContratService, ContratService>();
+      services.AddScoped<ITicketRepository, TicketRepository>();
+      services.AddScoped<ITicketService, TicketService>();
+      services.AddScoped<ICategorieProblemeRepository, CategorieProblemeRepository>();
+      services.AddScoped<ICategorieProblemeService, CategorieProblemeService>();
+
 
       services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
       services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
