@@ -1,11 +1,10 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
-  selector: 'app-projet-modal',
-  standalone: true,
-  imports: [],
-  templateUrl: './projet-modal.component.html',
-  styleUrls: ['./projet-modal.component.css']
+    selector: 'app-projet-modal',
+    imports: [],
+    templateUrl: './projet-modal.component.html',
+    styleUrls: ['./projet-modal.component.css']
 })
 export class ProjetModalComponent {
   @Output() projectTypeSelected = new EventEmitter<boolean>();

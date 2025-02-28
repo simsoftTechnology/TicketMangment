@@ -20,26 +20,25 @@ import { NgIf } from '@angular/common';
 import { User } from '../_models/user';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [
-    MatToolbarModule,
-    MatSidenavModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatCardModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatIconModule,
-    MatListModule,
-    FormsModule,
-    MatExpansionModule,
-    NgIf,
-    RouterModule
-  ],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+    selector: 'app-dashboard',
+    imports: [
+        MatToolbarModule,
+        MatSidenavModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatCardModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        MatIconModule,
+        MatListModule,
+        FormsModule,
+        MatExpansionModule,
+        NgIf,
+        RouterModule
+    ],
+    templateUrl: './dashboard.component.html',
+    styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 

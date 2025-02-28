@@ -5,11 +5,10 @@ import { Router } from '@angular/router';
 import { NgClass, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [NgClass, NgIf, ReactiveFormsModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+    selector: 'app-login',
+    imports: [NgClass, NgIf, ReactiveFormsModule],
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   accountService = inject(AccountService);

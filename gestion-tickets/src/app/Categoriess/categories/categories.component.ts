@@ -9,11 +9,10 @@ import { CategorieModalComponent } from '../categorie-modal/categorie-modal.comp
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
-  selector: 'app-categories',
-  standalone: true,
-  imports: [FormsModule, RouterLink, CommonModule, CategorieModalComponent],
-  templateUrl: './categories.component.html',
-  styleUrls: ['./categories.component.css']
+    selector: 'app-categories',
+    imports: [FormsModule, RouterLink, CommonModule, CategorieModalComponent],
+    templateUrl: './categories.component.html',
+    styleUrls: ['./categories.component.css']
 })
 export class CategoriesComponent implements OnInit {
   categories: CategorieProbleme[] = [];

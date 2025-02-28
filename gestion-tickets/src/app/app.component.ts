@@ -6,11 +6,10 @@ import { AccountService } from './_services/account.service';
 import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [RouterOutlet, MatDialogModule, OverlayModule],
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+    selector: 'app-root',
+    imports: [RouterOutlet, MatDialogModule, OverlayModule],
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   http = inject(HttpClient);

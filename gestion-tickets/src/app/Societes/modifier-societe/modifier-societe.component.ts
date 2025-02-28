@@ -14,11 +14,10 @@ import { Projet } from '../../_models/Projet';
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-modifier-societe',
-  standalone: true,
-  imports: [ ReactiveFormsModule, NgIf, NgFor, FormsModule, CommonModule],
-  templateUrl: './modifier-societe.component.html',
-  styleUrls: ['./modifier-societe.component.css']
+    selector: 'app-modifier-societe',
+    imports: [ReactiveFormsModule, NgIf, NgFor, FormsModule, CommonModule],
+    templateUrl: './modifier-societe.component.html',
+    styleUrls: ['./modifier-societe.component.css']
 })
 export class ModifierSocieteComponent implements OnInit {
   societeForm!: FormGroup;

@@ -5,11 +5,10 @@ import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-pays',
-  standalone: true,
-  imports: [ NgFor, NgIf, RouterLink],
-  templateUrl: './pays.component.html',
-  styleUrl: './pays.component.css'
+    selector: 'app-pays',
+    imports: [NgFor, NgIf, RouterLink],
+    templateUrl: './pays.component.html',
+    styleUrl: './pays.component.css'
 })
 export class PaysComponent {
   private paysService = inject(PaysService);

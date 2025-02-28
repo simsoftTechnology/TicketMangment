@@ -7,11 +7,10 @@ import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
 
 @Component({
-  selector: 'app-list-utilisateurs',
-  standalone: true,
-  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
-  templateUrl: './list-utilisateurs.component.html',
-  styleUrls: ['./list-utilisateurs.component.css']
+    selector: 'app-list-utilisateurs',
+    imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
+    templateUrl: './list-utilisateurs.component.html',
+    styleUrls: ['./list-utilisateurs.component.css']
 })
 export class ListUtilisateursComponent implements OnInit {
   public accountService = inject(AccountService);

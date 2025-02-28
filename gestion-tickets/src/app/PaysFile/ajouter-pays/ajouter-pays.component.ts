@@ -5,11 +5,10 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-ajouter-pays',
-  standalone: true,
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf], 
-  templateUrl: './ajouter-pays.component.html',
-  styleUrl: './ajouter-pays.component.css',
+    selector: 'app-ajouter-pays',
+    imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf],
+    templateUrl: './ajouter-pays.component.html',
+    styleUrl: './ajouter-pays.component.css'
 })
 export class AjouterPaysComponent {
   paysForm: FormGroup;

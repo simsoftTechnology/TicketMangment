@@ -13,21 +13,20 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SidenavService } from '../_services/sideNavService.service';
 
 @Component({
-  selector: 'app-header',
-  standalone: true,
-  imports: [ 
-    MatToolbarModule, 
-    MatSidenavModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatCardModule, 
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatIconModule,
-  ],
-  templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css']
+    selector: 'app-header',
+    imports: [
+        MatToolbarModule,
+        MatSidenavModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatCardModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        MatIconModule,
+    ],
+    templateUrl: './header.component.html',
+    styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
   accountService = inject(AccountService);

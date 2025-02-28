@@ -4,11 +4,10 @@ import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angula
 import { NgIf } from '@angular/common';
 
 @Component({
-  selector: 'app-contract-dialog',
-  standalone: true,
-  imports: [ReactiveFormsModule, NgIf],
-  templateUrl: './contract-dialog.component.html',
-  styleUrls: ['./contract-dialog.component.css']
+    selector: 'app-contract-dialog',
+    imports: [ReactiveFormsModule, NgIf],
+    templateUrl: './contract-dialog.component.html',
+    styleUrls: ['./contract-dialog.component.css']
 })
 export class ContractDialogComponent implements OnInit {
 

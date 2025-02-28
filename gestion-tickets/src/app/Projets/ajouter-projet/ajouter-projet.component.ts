@@ -16,11 +16,10 @@ import { ProjetModalComponent } from '../projet-modal/projet-modal.component';
 import { DropdownService } from './../../_services/dropdown.service';
 
 @Component({
-  selector: 'app-ajouter-projet',
-  standalone: true,
-  imports: [CommonModule, FormsModule, NgIf, RouterLink, ProjetModalComponent],
-  templateUrl: './ajouter-projet.component.html',
-  styleUrls: ['./ajouter-projet.component.css']
+    selector: 'app-ajouter-projet',
+    imports: [CommonModule, FormsModule, NgIf, RouterLink, ProjetModalComponent],
+    templateUrl: './ajouter-projet.component.html',
+    styleUrls: ['./ajouter-projet.component.css']
 })
 export class AjouterProjetComponent implements OnInit {
   projet: Projet = {

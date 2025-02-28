@@ -5,11 +5,10 @@ import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Pays } from '../../_models/pays';
 
 @Component({
-  selector: 'app-modifier-pays',
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './modifier-pays.component.html',
-  styleUrl: './modifier-pays.component.css',
+    selector: 'app-modifier-pays',
+    imports: [ReactiveFormsModule, RouterLink],
+    templateUrl: './modifier-pays.component.html',
+    styleUrl: './modifier-pays.component.css'
 })
 export class ModifierPaysComponent implements OnInit {
   paysForm: FormGroup;

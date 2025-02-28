@@ -8,11 +8,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs'; // Import de forkJoin
 
 @Component({
-  selector: 'app-liste-societes',
-  standalone: true,
-  imports: [NgFor, FormsModule, RouterLink, NgIf],
-  templateUrl: './liste-societes.component.html',
-  styleUrls: ['./liste-societes.component.css']
+    selector: 'app-liste-societes',
+    imports: [NgFor, FormsModule, RouterLink, NgIf],
+    templateUrl: './liste-societes.component.html',
+    styleUrls: ['./liste-societes.component.css']
 })
 export class ListeSocietesComponent implements OnInit {
   societes: Societe[] = [];

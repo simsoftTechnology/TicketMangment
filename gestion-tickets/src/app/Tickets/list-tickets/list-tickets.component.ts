@@ -7,11 +7,10 @@ import { PaginatedResult } from '../../_models/pagination';
 import { Ticket } from '../../_models/ticket';
 
 @Component({
-  selector: 'app-list-tickets',
-  standalone: true,
-  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
-  templateUrl: './list-tickets.component.html',
-  styleUrls: ['./list-tickets.component.css']
+    selector: 'app-list-tickets',
+    imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
+    templateUrl: './list-tickets.component.html',
+    styleUrls: ['./list-tickets.component.css']
 })
 export class ListTicketsComponent implements OnInit {
   private ticketService = inject(TicketService);

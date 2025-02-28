@@ -20,11 +20,10 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProjetService } from '../../_services/projet.service';
 
 @Component({
-  selector: 'app-details-utilisateur',
-  standalone: true,
-  imports: [FormsModule, NgIf, NgFor, CommonModule, PipesModule, ReactiveFormsModule, DefaultPipe],
-  templateUrl: './details-utilisateur.component.html',
-  styleUrls: ['./details-utilisateur.component.css']
+    selector: 'app-details-utilisateur',
+    imports: [FormsModule, NgIf, NgFor, CommonModule, PipesModule, ReactiveFormsModule, DefaultPipe],
+    templateUrl: './details-utilisateur.component.html',
+    styleUrls: ['./details-utilisateur.component.css']
 })
 export class DetailsUtilisateurComponent implements OnInit {
   private user: User | null = null;  // stocke les données utilisateur récupérées

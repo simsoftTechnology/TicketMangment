@@ -13,11 +13,10 @@ import { PaginatedResult } from '../../_models/pagination';
 import { User } from '../../_models/user';
 
 @Component({
-  selector: 'app-ajouter-ticket',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './ajouter-ticket.component.html',
-  styleUrls: ['./ajouter-ticket.component.css']
+    selector: 'app-ajouter-ticket',
+    imports: [CommonModule, ReactiveFormsModule],
+    templateUrl: './ajouter-ticket.component.html',
+    styleUrls: ['./ajouter-ticket.component.css']
 })
 export class AjouterTicketComponent implements OnInit {
   addTicketForm: FormGroup;

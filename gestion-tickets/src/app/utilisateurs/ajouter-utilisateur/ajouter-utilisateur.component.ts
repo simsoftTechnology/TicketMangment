@@ -13,11 +13,10 @@ import { Router } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
-  selector: 'app-ajouter-utilisateur',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatTooltipModule],
-  templateUrl: './ajouter-utilisateur.component.html',
-  styleUrls: ['./ajouter-utilisateur.component.css']
+    selector: 'app-ajouter-utilisateur',
+    imports: [CommonModule, ReactiveFormsModule, MatTooltipModule],
+    templateUrl: './ajouter-utilisateur.component.html',
+    styleUrls: ['./ajouter-utilisateur.component.css']
 })
 export class AjouterUtilisateurComponent implements OnInit {
   registerForm: FormGroup;

@@ -12,20 +12,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 
 @Component({
-  selector: 'app-user-selector-dialog',
-  standalone: true,
-  imports: [ 
-    CommonModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatListModule,
-    MatButtonModule,
-    MatIconModule,
-    FormsModule
-  ],
-  templateUrl: './user-selector-dialog.component.html',
-  styleUrls: ['./user-selector-dialog.component.css']
+    selector: 'app-user-selector-dialog',
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatListModule,
+        MatButtonModule,
+        MatIconModule,
+        FormsModule
+    ],
+    templateUrl: './user-selector-dialog.component.html',
+    styleUrls: ['./user-selector-dialog.component.css']
 })
 export class UserSelectorDialogComponent implements OnInit {
   users: User[] = [];

@@ -2,11 +2,10 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-categorie-modal',
-  standalone: true,
-  imports: [ FormsModule],
-  templateUrl: './categorie-modal.component.html',
-  styleUrl: './categorie-modal.component.css'
+    selector: 'app-categorie-modal',
+    imports: [FormsModule],
+    templateUrl: './categorie-modal.component.html',
+    styleUrl: './categorie-modal.component.css'
 })
 export class CategorieModalComponent {
   categoryName: string = '';

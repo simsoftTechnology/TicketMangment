@@ -9,11 +9,10 @@ import { ContractDialogComponent } from '../../contract-dialog/contract-dialog.c
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
-  selector: 'app-ajouter-societe',
-  standalone: true,
-  imports: [ReactiveFormsModule, CommonModule],
-  templateUrl: './ajouter-societe.component.html',
-  styleUrls: ['./ajouter-societe.component.css']
+    selector: 'app-ajouter-societe',
+    imports: [ReactiveFormsModule, CommonModule],
+    templateUrl: './ajouter-societe.component.html',
+    styleUrls: ['./ajouter-societe.component.css']
 })
 export class AjouterSocieteComponent implements OnInit {
   societeForm!: FormGroup;

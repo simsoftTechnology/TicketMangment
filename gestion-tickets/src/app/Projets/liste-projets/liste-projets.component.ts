@@ -9,11 +9,10 @@ import { ProjetService } from '../../_services/projet.service';
 import { AccountService } from '../../_services/account.service';
 
 @Component({
-  selector: 'app-liste-projets',
-  standalone: true,
-  imports: [NgFor, NgIf, FormsModule, RouterLink],
-  templateUrl: './liste-projets.component.html',
-  styleUrls: ['./liste-projets.component.css']
+    selector: 'app-liste-projets',
+    imports: [NgFor, NgIf, FormsModule, RouterLink],
+    templateUrl: './liste-projets.component.html',
+    styleUrls: ['./liste-projets.component.css']
 })
 export class ListeProjetsComponent implements OnInit {
   paginatedResult: PaginatedResult<Projet[]> | null = null;
