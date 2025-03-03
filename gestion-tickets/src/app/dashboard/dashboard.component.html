@@ -87,7 +87,7 @@
       <!-- Pour Client : pas de section « Données de Base » -->
 
       <!-- Section COMPTE : visible pour tous -->
-      <div class="section-divider"></div>
+      <div *ngIf="isChefDeProjet() || isDeveloppeur() || isSuperAdmin()" class="section-divider"></div>
       <div class="menu-section">
         <div class="section-title" (click)="toggleAccount()">
           <span class="section-title-text">Compte</span>

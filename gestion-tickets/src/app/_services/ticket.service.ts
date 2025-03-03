@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { Ticket } from '../_models/ticket';
 import { PaginatedResult } from '../_models/pagination';
+import { TicketUpdateDto } from '../_models/ticketUpdateDto';
 
 @Injectable({
   providedIn: 'root'
@@ -44,9 +45,10 @@ export class TicketService {
     return this.http.post<Ticket>(this.baseUrl, ticket);
   }
 
-  updateTicket(id: number, ticket: Ticket): Observable<any> {
+  updateTicket(id: number, ticket: TicketUpdateDto): Observable<any> {
     return this.http.put(`${this.baseUrl}/${id}`, ticket);
   }
+  
 
   deleteTicket(id: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/${id}`);
@@ -57,7 +59,13 @@ export class TicketService {
     return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
   }
 
+  // Utilise l'endpoint qui gère l'upload via Cloudinary
   createTicketWithAttachment(formData: FormData): Observable<Ticket> {
     return this.http.post<Ticket>(`${this.baseUrl}/withAttachment`, formData);
+  }
+  
+  // Pour la mise à jour avec attachment
+  uploadAttachment(formData: FormData): Observable<{ secureUrl: string }> {
+    return this.http.post<{ secureUrl: string }>(`${this.baseUrl}/upload`, formData);
   }
 }

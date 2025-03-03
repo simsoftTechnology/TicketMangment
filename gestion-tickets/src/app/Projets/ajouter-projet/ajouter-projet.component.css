@@ -313,6 +313,25 @@ select[multiple] {
   transform: translateY(-2px);
 } 
 
+/* État vide - aucun résultat */
+.no-results {
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.no-results-icon {
+  font-size: 32px;
+  color: #f57c00;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.no-results-text {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
 /* Responsive styles */
 @media (max-width: 1199px) {
   .form-container {

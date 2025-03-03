@@ -411,6 +411,77 @@ input, select, button {
 }
 
 
+/* Badges de priorité - style de type tag/pill */
+/* Style commun pour toutes les priorités */
+.priority-urgent,
+.priority-eleve,
+.priority-moyen,
+.priority-faible {
+  display: inline-block;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+/* Couleurs de fond spécifiques pour chaque priorité */
+.priority-urgent {
+  color: #dc3545;
+  background-color: rgba(211, 47, 47, 0.1);
+}
+
+.priority-eleve {
+  background-color: rgba(229, 150, 47, 0.1); /* Orange */
+  color: rgb(209, 105, 49);
+}
+
+.priority-moyen {
+  background-color: rgba(229, 211, 47, 0.1); /* Jaune */
+  color: #acac1d;
+}
+
+.priority-faible {
+  color: #28a745;
+  background-color: rgba(61, 219, 68, 0.1);
+}
+/* Badges de statut - style de type tag/pill */
+/* Style commun pour tous les statuts */
+.status-non-ouvert,
+.status-accepte,
+.status-refuse,
+.status-en-cours,
+.status-resolu {
+  display: inline-block;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+/* Couleurs spécifiques pour chaque statut */
+.status-non-ouvert {
+  color: #6c757d;
+  background-color: rgba(108, 117, 125, 0.1);
+}
+
+.status-accepte {
+  color: #28a794;
+  background-color: rgba(40, 167, 163, 0.1);
+}
+
+.status-refuse {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.1);
+}
+
+.status-en-cours {
+  color: #ffc107;
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.status-resolu {
+  color: #28a745;
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
 
 /* Responsive adjustments */
 @media (max-width: 1200px) {
@@ -534,6 +605,5 @@ input, select, button {
     padding: 8px 12px;
   }
 }
-
 
 

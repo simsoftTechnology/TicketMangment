@@ -25,6 +25,7 @@ import { CategoriesComponent } from './Categoriess/categories/categories.compone
 import { RoleGuard } from './_guards/role.guard';
 import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
 import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
+import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -40,6 +41,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'Tickets', component: ListTicketsComponent },
       { path: 'Tickets/ajouterTicket', component: AjouterTicketComponent },
+      { path: 'Tickets/details/:id', component: TicketDetailsComponent },
       // Utilisateurs : Super Admin uniquement
       {
         path: 'utilisateurs',

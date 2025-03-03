@@ -4,10 +4,14 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MatDialogModule } from '@angular/material/dialog';
 import { AccountService } from './_services/account.service';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { AngularEditorModule } from '@kolkov/angular-editor';
+import { NgxEditorModule } from 'ngx-editor';
 
 @Component({
     selector: 'app-root',
-    imports: [RouterOutlet, MatDialogModule, OverlayModule],
+    imports: [RouterOutlet, MatDialogModule, OverlayModule,
+      AngularEditorModule,
+      NgxEditorModule],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })

@@ -17,7 +17,7 @@ import { DropdownService } from './../../_services/dropdown.service';
 
 @Component({
     selector: 'app-ajouter-projet',
-    imports: [CommonModule, FormsModule, NgIf, RouterLink, ProjetModalComponent],
+    imports: [CommonModule, FormsModule, NgIf, RouterLink],
     templateUrl: './ajouter-projet.component.html',
     styleUrls: ['./ajouter-projet.component.css']
 })

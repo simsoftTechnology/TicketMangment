@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
 import { Ticket } from '../../_models/ticket';
+import { AccountService } from '../../_services/account.service';
+import { User } from '../../_models/user';
 
 @Component({
     selector: 'app-list-tickets',
@@ -16,7 +18,9 @@ export class ListTicketsComponent implements OnInit {
   private ticketService = inject(TicketService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-
+  accountService = inject(AccountService);
+  
+  currentUser: User | null = null;
   // Variables pour la pagination
   pageNumber: number = 1;
   pageSize: number = 9;
@@ -30,6 +34,7 @@ export class ListTicketsComponent implements OnInit {
   newTicketId: number | null = null;
 
   ngOnInit(): void {
+    this.currentUser = this.accountService.currentUser();
     this.route.queryParams.subscribe(params => {
       const newTicket = params['newTicket'];
       if (newTicket) {
@@ -162,4 +167,40 @@ export class ListTicketsComponent implements OnInit {
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
+
+  getPriorityClass(priority: string): string {
+    if (!priority) return '';
+    switch (priority.toLowerCase()) {
+      case 'urgent':
+        return 'priority-urgent';
+      case 'élevé':
+        return 'priority-eleve';
+      case 'moyen':
+        return 'priority-moyen';
+      case 'faible':
+        return 'priority-faible';
+      default:
+        return '';
+    }
+  }
+  
+  getStatusClass(status: string): string {
+    if (!status) return '';
+    switch (status.toLowerCase()) {
+      case 'non ouvert':
+        return 'status-non-ouvert';
+      case 'accepté':
+        return 'status-accepte';
+      case 'refusé':
+        return 'status-refuse';
+      case 'en cours':
+        return 'status-en-cours';
+      case 'résolu':
+        return 'status-resolu';
+      default:
+        return '';
+    }
+  }
+  
+  
 }

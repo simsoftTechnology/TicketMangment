@@ -7,6 +7,7 @@ namespace GestionTicketsAPI.Interfaces
     public interface ITicketService
     {
         Task<TicketDto?> GetTicketByIdAsync(int id);
+        Task<Ticket?> GetTicketEntityByIdAsync(int id);
         Task<IEnumerable<TicketDto>> GetTicketsAsync();
         Task<PagedList<TicketDto>> GetTicketsPagedAsync(UserParams ticketParams);
         Task AddTicketAsync(Ticket ticket);

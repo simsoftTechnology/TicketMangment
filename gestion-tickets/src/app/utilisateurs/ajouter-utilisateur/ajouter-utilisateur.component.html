@@ -38,7 +38,7 @@
         <label for="pays">Pays <span class="required">*</span></label>
         <select id="pays" formControlName="pays" class="form-control"
           [class.is-invalid]="registerForm.get('pays')?.touched && registerForm.get('pays')?.invalid">
-          <option value="" disabled selected>-- Sélectionnez un pays --</option>
+          <option value="" disabled selected> Sélectionnez un pays </option>
           <option *ngFor="let p of paysList" [value]="p.idPays">{{ p.nom }}</option>
         </select>
         <div *ngIf="registerForm.get('pays')?.hasError('required')" class="invalid-feedback text-start">
@@ -52,7 +52,7 @@
         <label for="role">Role <span class="required">*</span></label>
         <select id="role" formControlName="role" class="form-control"
           [class.is-invalid]="registerForm.controls['role'].touched && registerForm.controls['role'].invalid">
-          <option value="">Sélectionnez une option</option>
+          <option value="">Sélectionnez un role</option>
           <option value="super admin">Super Admin</option>
           <option value="chef de projet">Chef de Projet</option>
           <option value="client">Client</option>

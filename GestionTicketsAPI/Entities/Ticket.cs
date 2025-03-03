@@ -28,27 +28,29 @@ public class Ticket
 
     [ForeignKey("Utilisateur")]
     public int UtilisateurId { get; set; }
-
     public User? Utilisateur { get; set; }
 
     // Relation avec CategorieProbleme
     [ForeignKey("CategorieProbleme")]
     public int CategorieProblemeId { get; set; }
-
     public CategorieProbleme? CategorieProbleme { get; set; }
 
     public ICollection<Commentaire>? Commentaires { get; set; }
 
-    // Nouvelle propriété : Qualification (string)
+    // Nouvelle propriété : Qualification
     [Required]
     public string Qualification { get; set; } = string.Empty;
 
-    // Nouvelle propriété : Attachement (par exemple, chemin d'accès ou URL du fichier attaché)
+    // Nouvelle propriété : Attachement (chemin ou URL)
     public string? Attachement { get; set; }
 
-    // Ticket associé à un unique projet
+    // Ticket associé à un projet
     [ForeignKey("Projet")]
     public int ProjetId { get; set; }
-
     public Projet? Projet { get; set; }
+
+    // Nouvelle propriété : Développeur assigné
+    public int? DeveloppeurId { get; set; }
+    [ForeignKey("DeveloppeurId")]
+    public User? Developpeur { get; set; }
 }

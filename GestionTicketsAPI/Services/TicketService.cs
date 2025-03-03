@@ -24,6 +24,10 @@ namespace GestionTicketsAPI.Services
                 return null;
             return _mapper.Map<TicketDto>(ticket);
         }
+        public async Task<Ticket?> GetTicketEntityByIdAsync(int id)
+        {
+            return await _ticketRepository.GetTicketByIdAsync(id);
+        }
 
         public async Task<IEnumerable<TicketDto>> GetTicketsAsync()
         {

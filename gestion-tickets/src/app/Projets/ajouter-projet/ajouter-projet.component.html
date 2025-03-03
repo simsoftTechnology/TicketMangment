@@ -44,17 +44,19 @@
                 placeholder="Rechercher un pays..."
                 [(ngModel)]="searchPays"
                 (input)="filterItems('pays')"
-                name="searchPays"  
+                name="searchPays"
               />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let pays of filteredPays"
-                class="option-item"
-                (click)="selectItem(pays, 'pays')"
-              >
-                {{ pays.nom }}
-              </div>
+              <ng-container *ngIf="filteredPays && filteredPays.length > 0; else noResults">
+                <div
+                  *ngFor="let pays of filteredPays"
+                  class="option-item"
+                  (click)="selectItem(pays, 'pays')"
+                >
+                  {{ pays.nom }}
+                </div>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -77,17 +79,19 @@
                 placeholder="Rechercher une société..."
                 [(ngModel)]="searchSociete"
                 (input)="filterItems('societe')"
-                name="searchSociete" 
+                name="searchSociete"
               />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let societe of filteredSocietes"
-                class="option-item"
-                (click)="selectItem(societe, 'societe')"
-              >
-                {{ societe.nom }}
-              </div>
+              <ng-container *ngIf="filteredSocietes && filteredSocietes.length > 0; else noResults">
+                <div
+                  *ngFor="let societe of filteredSocietes"
+                  class="option-item"
+                  (click)="selectItem(societe, 'societe')"
+                >
+                  {{ societe.nom }}
+                </div>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -109,17 +113,19 @@
                 placeholder="Rechercher un client..."
                 [(ngModel)]="searchClient"
                 (input)="filterItems('client')"
-                name="searchClient"  
+                name="searchClient"
               />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let client of filteredClients"
-                class="option-item"
-                (click)="selectItem(client, 'client')"
-              >
-                {{ client.firstName }} {{ client.lastName }}
-              </div>
+              <ng-container *ngIf="filteredClients && filteredClients.length > 0; else noResults">
+                <div
+                  *ngFor="let client of filteredClients"
+                  class="option-item"
+                  (click)="selectItem(client, 'client')"
+                >
+                  {{ client.firstName }} {{ client.lastName }}
+                </div>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -144,17 +150,19 @@
                 placeholder="Rechercher un chef..."
                 [(ngModel)]="searchChef"
                 (input)="filterItems('chef')"
-                name="searchChef" 
+                name="searchChef"
               />
             </div>
             <div class="option-list">
-              <div
-                *ngFor="let chef of filteredChefs"
-                class="option-item"
-                (click)="selectItem(chef, 'chef')"
-              >
-                {{ chef.firstName }} {{ chef.lastName }}
-              </div>
+              <ng-container *ngIf="filteredChefs && filteredChefs.length > 0; else noResults">
+                <div
+                  *ngFor="let chef of filteredChefs"
+                  class="option-item"
+                  (click)="selectItem(chef, 'chef')"
+                >
+                  {{ chef.firstName }} {{ chef.lastName }}
+                </div>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -187,16 +195,18 @@
             </div>
 
             <div class="checkbox-list">
-              <label *ngFor="let dev of filteredDevelopers" class="checkbox-item">
-                <input
-                  type="checkbox"
-                  [value]="dev.id"
-                  [checked]="isSelected(dev.id)"
-                  (change)="toggleSelection(dev.id)"
-                />
-                <span class="checkmark"></span>
-                {{ dev.firstName }} {{ dev.lastName }}
-              </label>
+              <ng-container *ngIf="filteredDevelopers && filteredDevelopers.length > 0; else noResults">
+                <label *ngFor="let dev of filteredDevelopers" class="checkbox-item">
+                  <input
+                    type="checkbox"
+                    [value]="dev.id"
+                    [checked]="isSelected(dev.id)"
+                    (change)="toggleSelection(dev.id)"
+                  />
+                  <span class="checkmark"></span>
+                  {{ dev.firstName }} {{ dev.lastName }}
+                </label>
+              </ng-container>
             </div>
           </div>
         </div>
@@ -215,3 +225,11 @@
     </div>
   </form>
 </div>
+
+<!-- Template réutilisable pour afficher un message en cas de recherche sans résultat -->
+<ng-template #noResults>
+  <div class="no-results">
+    <span class="no-results-icon">🔍</span>
+    <p class="no-results-text">Aucun résultat trouvé</p>
+  </div>
+</ng-template>

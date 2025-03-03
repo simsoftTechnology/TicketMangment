@@ -3,14 +3,13 @@ import { CategorieProbleme } from '../../_models/categorie-probleme.model';
 import { PaginatedResult } from '../../_models/pagination';
 import { CategorieProblemeService } from '../../_services/categorie-probleme.service';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CategorieModalComponent } from '../categorie-modal/categorie-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
     selector: 'app-categories',
-    imports: [FormsModule, RouterLink, CommonModule, CategorieModalComponent],
+    imports: [FormsModule, CommonModule],
     templateUrl: './categories.component.html',
     styleUrls: ['./categories.component.css']
 })

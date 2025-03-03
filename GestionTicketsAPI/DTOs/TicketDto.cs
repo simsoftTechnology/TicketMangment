@@ -18,8 +18,10 @@ namespace GestionTicketsAPI.DTOs
         public string Qualification { get; set; } = string.Empty;
         public string? Attachement { get; set; }
         public int ProjetId { get; set; }
-
-        // Remplace la navigation complète par un DTO qui ne pose pas de risque de cycle
         public ProjetDto? Projet { get; set; }
+
+        // Propriétés pour le développeur assigné
+        public int? DeveloppeurId { get; set; }
+        public UserDto? Developpeur { get; set; }
     }
 }

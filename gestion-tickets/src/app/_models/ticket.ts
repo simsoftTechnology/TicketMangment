@@ -2,7 +2,6 @@ import { CategorieProbleme } from "./categorie-probleme.model";
 import { Projet } from "./Projet";
 import { User } from "./user";
 
-
 export interface Ticket {
   id: number;
   titre: string;
@@ -20,4 +19,8 @@ export interface Ticket {
   projetId: number;
   projet?: Projet;
   selected?: boolean;
+  raisonRejet?: string;
+  developpeur?: User;
+  developpeurId?: number; // Propriété ajoutée
 }
+

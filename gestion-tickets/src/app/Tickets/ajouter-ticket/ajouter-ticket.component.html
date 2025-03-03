@@ -1,110 +1,156 @@
-<h2>Créer Ticket</h2>
-<div class="form-container">
-  <form [formGroup]="addTicketForm" (ngSubmit)="onSubmit()">
+<div class="container">
+  <h2>Créer Ticket</h2>
+  <div class="form-container">
+    <form [formGroup]="addTicketForm" (ngSubmit)="onSubmit()">
 
-    <!-- Ligne 1 : Qualification & Projet -->
-    <div class="form-group-inline">
-      <div class="form-group">
-        <label for="qualification">Qualification <span class="required">*</span></label>
-        <select id="qualification"
-                formControlName="qualification"
-                class="form-control"
-                [class.is-invalid]="addTicketForm.get('qualification')?.touched && addTicketForm.get('qualification')?.invalid">
-          <option value="" disabled selected>Sélectionnez une qualification</option>
-          <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
-        </select>
-        <div *ngIf="(addTicketForm.get('qualification')?.touched || formSubmitted) && addTicketForm.get('qualification')?.hasError('required')" class="invalid-feedback">
-          La qualification est obligatoire.
+      <!-- Ligne 1 : Qualification & Projet -->
+      <div class="form-group-inline">
+        <!-- Qualification -->
+        <div class="form-group">
+          <label for="qualification">Qualification <span class="required">*</span></label>
+          <select id="qualification" formControlName="qualification" class="form-control"
+            [class.is-invalid]="addTicketForm.get('qualification')?.touched && addTicketForm.get('qualification')?.invalid">
+            <option value="" disabled selected>Sélectionnez une qualification</option>
+            <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
+          </select>
+          <div
+            *ngIf="(addTicketForm.get('qualification')?.touched || formSubmitted) && addTicketForm.get('qualification')?.hasError('required')"
+            class="invalid-feedback">
+            La qualification est obligatoire.
+          </div>
+        </div>
+
+        <!-- Dropdown personnalisé pour le Projet -->
+        <!-- Dropdown personnalisé pour le Projet -->
+        <div class="form-group">
+          <label for="projetId">Projet <span class="required">*</span></label>
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('projet')">
+              <div class="selected-item">
+                {{ selectedProjet?.nom || 'Sélectionnez un projet' }}
+              </div>
+            </div>
+            <div class="dropdown-content" [class.show]="isProjetDropdownOpen">
+              <div class="search-box">
+                <input type="text" name="searchProjet" placeholder="Rechercher un projet..." [(ngModel)]="searchProjet"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterProjets()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredProjets && filteredProjets.length > 0; else noProjetResults">
+                  <div *ngFor="let p of filteredProjets" class="option-item" (click)="selectProjet(p)">
+                    {{ p.nom }}
+                  </div>
+                </ng-container>
+                <ng-template #noProjetResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucun projet trouvé</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="formSubmitted && !selectedProjet" class="invalid-feedback">
+            Le projet est obligatoire.
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Ligne 2 : Catégorie de problème & Priorité -->
+      <div class="form-group-inline">
+        <!-- Dropdown personnalisé pour la Catégorie de Problème -->
+        <!-- Dropdown personnalisé pour la Catégorie de Problème -->
+        <div class="form-group">
+          <label for="categorieProblemeId">Catégorie de Problème <span class="required">*</span></label>
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('categorie')">
+              <div class="selected-item">
+                {{ selectedCategorie?.nom || 'Sélectionnez une catégorie' }}
+              </div>
+            </div>
+            <div class="dropdown-content" [class.show]="isCategorieDropdownOpen">
+              <div class="search-box">
+                <input type="text" name="searchCategorie" placeholder="Rechercher une catégorie..."
+                  [(ngModel)]="searchCategorie" [ngModelOptions]="{ standalone: true }"
+                  (ngModelChange)="filterCategories()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredCategories && filteredCategories.length > 0; else noCategorieResults">
+                  <div *ngFor="let cat of filteredCategories" class="option-item" (click)="selectCategorie(cat)">
+                    {{ cat.nom }}
+                  </div>
+                </ng-container>
+                <ng-template #noCategorieResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucune catégorie trouvée</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="formSubmitted && !selectedCategorie" class="invalid-feedback">
+            La catégorie de problème est obligatoire.
+          </div>
+        </div>
+
+
+        <!-- Priorité -->
+        <div class="form-group">
+          <label for="priorite">Priorité <span class="required">*</span></label>
+          <select id="priorite" formControlName="priorite" class="form-control"
+            [class.is-invalid]="addTicketForm.get('priorite')?.touched && addTicketForm.get('priorite')?.invalid">
+            <option value="" disabled selected>Sélectionnez une priorité</option>
+            <option *ngFor="let p of prioriteOptions" [value]="p">{{ p }}</option>
+          </select>
+          <div
+            *ngIf="(addTicketForm.get('priorite')?.touched || formSubmitted) && addTicketForm.get('priorite')?.hasError('required')"
+            class="invalid-feedback">
+            La priorité est obligatoire.
+          </div>
         </div>
       </div>
 
+      <!-- Titre -->
       <div class="form-group">
-        <label for="projetId">Projet <span class="required">*</span></label>
-        <select id="projetId"
-                formControlName="projetId"
-                class="form-control"
-                [class.is-invalid]="addTicketForm.get('projetId')?.touched && addTicketForm.get('projetId')?.invalid">
-          <option value="" disabled selected>-- Sélectionnez un projet --</option>
-          <option *ngFor="let p of projets" [value]="p.id">{{ p.nom }}</option>
-        </select>
-        <div *ngIf="(addTicketForm.get('projetId')?.touched || formSubmitted) && addTicketForm.get('projetId')?.hasError('required')" class="invalid-feedback">
-          Le projet est obligatoire.
-        </div>
-      </div>
-    </div>
-
-    <!-- Ligne 2 : Catégorie de problème & Priorité -->
-    <div class="form-group-inline">
-      <div class="form-group">
-        <label for="categorieProblemeId">Catégorie de Problème <span class="required">*</span></label>
-        <select id="categorieProblemeId"
-                formControlName="categorieProblemeId"
-                class="form-control"
-                [class.is-invalid]="addTicketForm.get('categorieProblemeId')?.touched && addTicketForm.get('categorieProblemeId')?.invalid">
-          <option value="" disabled selected>-- Sélectionnez une catégorie --</option>
-          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
-        </select>
-        <div *ngIf="(addTicketForm.get('categorieProblemeId')?.touched || formSubmitted) && addTicketForm.get('categorieProblemeId')?.hasError('required')" class="invalid-feedback">
-          La catégorie de problème est obligatoire.
+        <label for="titre">Titre <span class="required">*</span></label>
+        <input id="titre" type="text" formControlName="titre" class="form-control"
+          [class.is-invalid]="addTicketForm.get('titre')?.touched && addTicketForm.get('titre')?.invalid">
+        <div
+          *ngIf="(addTicketForm.get('titre')?.touched || formSubmitted) && addTicketForm.get('titre')?.hasError('required')"
+          class="invalid-feedback">
+          Le titre est obligatoire.
         </div>
       </div>
 
+      <!-- Description (éditeur de texte avec ngx-editor) -->
       <div class="form-group">
-        <label for="priorite">Priorité <span class="required">*</span></label>
-        <select id="priorite"
-                formControlName="priorite"
-                class="form-control"
-                [class.is-invalid]="addTicketForm.get('priorite')?.touched && addTicketForm.get('priorite')?.invalid">
-          <option value="" disabled selected> Sélectionnez une priorité </option>
-          <option *ngFor="let p of prioriteOptions" [value]="p">{{ p }}</option>
-        </select>
-        <div *ngIf="(addTicketForm.get('priorite')?.touched || formSubmitted) && addTicketForm.get('priorite')?.hasError('required')" class="invalid-feedback">
-          La priorité est obligatoire.
+        <label for="description">Description <span class="required">*</span></label>
+        <div class="editor-container">
+          <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+          <ngx-editor [editor]="editor" formControlName="description" id="description"></ngx-editor>
+        </div>
+        <div
+          *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')"
+          class="invalid-feedback">
+          La description est obligatoire.
         </div>
       </div>
-    </div>
 
-    <!-- Titre -->
-    <div class="form-group">
-      <label for="titre">Titre <span class="required">*</span></label>
-      <input id="titre"
-             type="text"
-             formControlName="titre"
-             class="form-control"
-             [class.is-invalid]="addTicketForm.get('titre')?.touched && addTicketForm.get('titre')?.invalid">
-      <div *ngIf="(addTicketForm.get('titre')?.touched || formSubmitted) && addTicketForm.get('titre')?.hasError('required')" class="invalid-feedback">
-        Le titre est obligatoire.
+      <!-- Attachement -->
+      <div class="form-group">
+        <label for="attachement">Attachement</label>
+        <input id="attachement" type="file" (change)="onFileSelected($event)" class="form-control-file">
       </div>
-    </div>
 
-    <!-- Description -->
-    <div class="form-group">
-      <label for="description">Description <span class="required">*</span></label>
-      <textarea id="description"
-                formControlName="description"
-                class="form-control"
-                [class.is-invalid]="addTicketForm.get('description')?.touched && addTicketForm.get('description')?.invalid">
-      </textarea>
-      <div *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')" class="invalid-feedback">
-        La description est obligatoire.
+      <!-- Boutons -->
+      <div class="button-group">
+        <button type="submit" class="btn-create">Créer</button>
+        <button type="button" class="btn-add" (click)="createAndReset()">Créer &amp; Ajouter un autre</button>
+        <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
       </div>
-    </div>
 
-    <!-- Attachement -->
-    <div class="form-group">
-      <label for="attachement">Attachement</label>
-      <input id="attachement"
-             type="file"
-             (change)="onFileSelected($event)"
-             class="form-control-file">
-    </div>
-
-    <!-- Boutons -->
-    <div class="button-group">
-      <button type="submit" class="btn-create">Créer</button>
-      <button type="button" class="btn-add" (click)="createAndReset()">Créer &amp; Ajouter un autre</button>
-      <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
-    </div>
-
-  </form>
+    </form>
+  </div>
 </div>

@@ -22,6 +22,7 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Commentaires)
           .Include(t => t.CategorieProbleme)
           .Include(t => t.Projet)
+          .Include(t => t.Developpeur)
           .FirstOrDefaultAsync(t => t.Id == id);
     }
 
@@ -32,6 +33,7 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Commentaires)
           .Include(t => t.CategorieProbleme)
           .Include(t => t.Projet)
+          .Include(t => t.Developpeur)
           .ToListAsync();
     }
 
@@ -42,6 +44,7 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Commentaires)
           .Include(t => t.CategorieProbleme)
           .Include(t => t.Projet)
+          .Include(t => t.Developpeur)
           .AsQueryable();
 
       if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
