@@ -83,7 +83,7 @@ export const routes: Routes = [
         path: 'Projets',
         component: ListeProjetsComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['Super Admin', 'Chef de Projet', 'Développeur'] }
+        data: { roles: ['Super Admin', 'Chef de Projet', 'Collaborateur'] }
       },
       {
         path: 'Projets/ajouterProjet',
@@ -95,7 +95,7 @@ export const routes: Routes = [
         path: 'Projets/details/:id',
         component: DetailsProjetComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['Super Admin', 'Chef de Projet', 'Développeur'] }
+        data: { roles: ['Super Admin', 'Chef de Projet', 'Collaborateur'] }
       },
       {
         path: 'Societes',

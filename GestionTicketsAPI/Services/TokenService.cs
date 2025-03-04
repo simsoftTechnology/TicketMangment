@@ -27,7 +27,7 @@ public class TokenService : ITokenService
   {
     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
     new Claim(JwtRegisteredClaimNames.UniqueName, user.Email),
-    new Claim(ClaimTypes.Role, user.Role) // Ajout du claim pour le rôle
+    new Claim(ClaimTypes.Role, user.Role.Name) // Ajout du claim pour le rôle
   };
 
     var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);

@@ -68,7 +68,7 @@
       </ng-container>
 
       <!-- Pour Chef de Projet et Développeur : afficher uniquement « Projets » -->
-      <ng-container *ngIf="isChefDeProjet() || isDeveloppeur()">
+      <ng-container *ngIf="isChefDeProjet() || isCollaborateur()">
         <div class="menu-section">
           <div class="section-title" (click)="toggleBaseData()">
             <span class="section-title-text">Mes Projets</span>
@@ -87,7 +87,7 @@
       <!-- Pour Client : pas de section « Données de Base » -->
 
       <!-- Section COMPTE : visible pour tous -->
-      <div *ngIf="isChefDeProjet() || isDeveloppeur() || isSuperAdmin()" class="section-divider"></div>
+      <div *ngIf="isChefDeProjet() || isCollaborateur() || isSuperAdmin()" class="section-divider"></div>
       <div class="menu-section">
         <div class="section-title" (click)="toggleAccount()">
           <span class="section-title-text">Compte</span>

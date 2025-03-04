@@ -1,14 +1,9 @@
-using AutoMapper;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace GestionTicketsAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -103,7 +98,9 @@ namespace GestionTicketsAPI.Controllers
             return Ok(new { message = "Utilisateur ajouté au projet avec succès." });
         }
 
-        // Assigner un rôle à un utilisateur sur un projet
+        // L'action pour assigner un rôle a été supprimée car le rôle n'est plus utilisé.
+        // Vous pouvez supprimer ou commenter l'action suivante :
+        /*
         [HttpPost("assigner-role")]
         public async Task<IActionResult> AssignerRole(
             [FromQuery] int projetId,
@@ -113,6 +110,7 @@ namespace GestionTicketsAPI.Controllers
             var projetUser = await _projetService.AssignerRoleAsync(projetId, userId, role);
             return Ok(projetUser);
         }
+        */
 
         // Récupérer les membres d'un projet
         [HttpGet("membres/{projetId}")]

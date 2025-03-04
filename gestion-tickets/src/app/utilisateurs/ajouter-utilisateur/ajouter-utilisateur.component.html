@@ -49,19 +49,16 @@
 
     <div class="form-row">
       <div class="form-group">
-        <label for="role">Role <span class="required">*</span></label>
+        <label for="role">Rôle <span class="required">*</span></label>
         <select id="role" formControlName="role" class="form-control"
           [class.is-invalid]="registerForm.controls['role'].touched && registerForm.controls['role'].invalid">
-          <option value="">Sélectionnez un role</option>
-          <option value="super admin">Super Admin</option>
-          <option value="chef de projet">Chef de Projet</option>
-          <option value="client">Client</option>
-          <option value="développeur">Développeur</option>
+          <option value="">Sélectionnez un rôle</option>
+          <option *ngFor="let r of roles" [value]="r.name">{{ r.name }}</option>
         </select>
         <div *ngIf="registerForm.controls['role'].hasError('required')" class="invalid-feedback text-start">
-          Role est obligatoire
+          Le rôle est obligatoire.
         </div>
-      </div>
+      </div>      
 
       <div class="form-group">
         <label for="societe">Société</label>

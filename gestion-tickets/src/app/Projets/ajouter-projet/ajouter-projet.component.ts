@@ -108,7 +108,7 @@ export class AjouterProjetComponent implements OnInit {
       data => {
         this.utilisateurs = data;
         this.chefsProjet = data.filter(user => user.role.toLowerCase().trim() === 'chef de projet');
-        this.developpeurs = data.filter(user => user.role.toLowerCase().includes('développeur'));
+        this.developpeurs = data.filter(user => user.role.toLowerCase().includes('collaborateur'));
         this.clients = data.filter(user => user.role.toLowerCase().trim() === 'client');
       },
       error => { console.error('Erreur chargement utilisateurs', error); }
@@ -159,7 +159,7 @@ export class AjouterProjetComponent implements OnInit {
 
     this.selectedDevIds.forEach(devId => {
       requests.push(
-        this.projetService.ajouterUtilisateurAuProjet(projetId, devId, 'Développeur')
+        this.projetService.ajouterUtilisateurAuProjet(projetId, devId, 'Collaborateur')
       );
     });
 

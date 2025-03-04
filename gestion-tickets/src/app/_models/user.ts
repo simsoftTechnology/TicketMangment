@@ -6,7 +6,7 @@ export interface User {
   firstName: string;
   lastName: string;
   numTelephone: string;
-  pays: number;
+  pays: string;
   email: string;
   role: 'Super Admin' | 'Chef de Projet' | 'Développeur' | 'Client';
   actif: boolean;

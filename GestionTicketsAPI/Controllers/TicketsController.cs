@@ -6,6 +6,7 @@ using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
@@ -53,7 +54,7 @@ namespace GestionTicketsAPI.Controllers
     public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
     {
       var ticket = _mapper.Map<Ticket>(ticketCreateDto);
-      ticket.DateCreation = DateTime.UtcNow;
+      ticket.CreatedAt = DateTime.UtcNow;
       await _ticketService.AddTicketAsync(ticket);
       var ticketDto = _mapper.Map<TicketDto>(ticket);
       return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
@@ -71,10 +72,10 @@ namespace GestionTicketsAPI.Controllers
           return BadRequest(uploadResult.Error.Message);
       }
       var ticket = _mapper.Map<Ticket>(ticketDto);
-      ticket.DateCreation = DateTime.UtcNow;
+      ticket.CreatedAt = DateTime.UtcNow;
       if (uploadResult?.SecureUrl != null)
       {
-        ticket.Attachement = uploadResult.SecureUrl.AbsoluteUri;
+        ticket.Attachments = uploadResult.SecureUrl.AbsoluteUri;
       }
       await _ticketService.AddTicketAsync(ticket);
       var resultDto = _mapper.Map<TicketDto>(ticket);
@@ -88,22 +89,20 @@ namespace GestionTicketsAPI.Controllers
       if (id != ticketDto.Id)
         return BadRequest("L'ID du ticket ne correspond pas");
 
-      // Récupérez l'entité existante
+      // Récupère l'entité existante
       var existingTicket = await _ticketService.GetTicketEntityByIdAsync(id);
       if (existingTicket == null)
         return NotFound();
 
       // Mettez à jour uniquement les champs modifiables
-      // Par exemple, on ne modifie pas existingTicket.UtilisateurId ou DeveloppeurId
-      existingTicket.Titre = ticketDto.Titre;
+      existingTicket.Title = ticketDto.Title;
       existingTicket.Description = ticketDto.Description;
-      existingTicket.Priorite = ticketDto.Priorite;
-      existingTicket.Qualification = ticketDto.Qualification;
+      existingTicket.PriorityId = ticketDto.PriorityId;
+      existingTicket.QualificationId = ticketDto.QualificationId;
       existingTicket.ProjetId = ticketDto.ProjetId;
-      existingTicket.CategorieProblemeId = ticketDto.CategorieProblemeId;
-      existingTicket.Statuts = ticketDto.Statuts;
-      // Vous pouvez également mettre à jour d'autres champs comme DateModification
-      existingTicket.DateModification = DateTime.UtcNow;
+      existingTicket.ProblemCategoryId = ticketDto.ProblemCategoryId;
+      existingTicket.StatutId = ticketDto.StatutId;
+      existingTicket.UpdatedAt = DateTime.UtcNow;
 
       var result = await _ticketService.UpdateTicketAsync(existingTicket);
       if (result)
@@ -111,7 +110,6 @@ namespace GestionTicketsAPI.Controllers
 
       return BadRequest("La mise à jour du ticket a échoué");
     }
-
 
     // PUT api/tickets/withAttachment/{id}
     [HttpPut("withAttachment/{id}")]
@@ -128,16 +126,16 @@ namespace GestionTicketsAPI.Controllers
           return BadRequest(uploadResult.Error.Message);
 
         if (uploadResult.SecureUrl != null)
-          existingTicket.Attachement = uploadResult.SecureUrl.AbsoluteUri;
+          existingTicket.Attachments = uploadResult.SecureUrl.AbsoluteUri;
       }
 
-      existingTicket.Titre = ticketDto.Titre;
+      existingTicket.Title = ticketDto.Title;
       existingTicket.Description = ticketDto.Description;
-      existingTicket.Qualification = ticketDto.Qualification;
+      existingTicket.QualificationId = ticketDto.QualificationId;
       existingTicket.ProjetId = ticketDto.ProjetId;
-      existingTicket.CategorieProblemeId = ticketDto.CategorieProblemeId;
-      existingTicket.Priorite = ticketDto.Priorite;
-      existingTicket.DateModification = DateTime.UtcNow;
+      existingTicket.ProblemCategoryId = ticketDto.ProblemCategoryId;
+      existingTicket.PriorityId = ticketDto.PriorityId;
+      existingTicket.UpdatedAt = DateTime.UtcNow;
 
       var result = await _ticketService.UpdateTicketAsync(existingTicket);
       if (!result)
@@ -147,7 +145,7 @@ namespace GestionTicketsAPI.Controllers
       return Ok(updatedTicketDto);
     }
 
-    // Nouveau endpoint pour l'upload du fichier en arrière-plan
+    // Endpoint pour l'upload du fichier en arrière-plan
     [HttpPost("upload")]
     public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
     {

@@ -24,14 +24,11 @@ public class ProjetService : IProjetService
     return _mapper.Map<IEnumerable<ProjetDto>>(projets);
   }
 
-
-  // Nouvelle méthode pour la récupération paginée
   public async Task<PagedList<ProjetDto>> GetProjetsPagedAsync(UserParams projetParams)
   {
     var projetsPaged = await _projetRepository.GetProjetsPagedAsync(projetParams);
     var projetsDto = _mapper.Map<IEnumerable<ProjetDto>>(projetsPaged);
 
-    // Création d'une PagedList de ProjetDto en préservant les métadonnées de pagination
     var pagedProjetDtos = new PagedList<ProjetDto>(
         projetsDto.ToList(),
         projetsPaged.TotalCount,
@@ -50,19 +47,17 @@ public class ProjetService : IProjetService
   }
 
   public async Task<ProjetDto> AddProjetAsync(ProjetDto projetDto)
-{
-    // Vérification : on doit avoir soit une société soit un client renseigné, mais pas les deux ni aucun
-    if ((projetDto.SocieteId == null && projetDto.ClientId == null) ||
-        (projetDto.SocieteId != null && projetDto.ClientId != null))
+  {
+    if (projetDto.SocieteId == null)
     {
-        throw new ArgumentException("Un projet doit être associé à une société ou à un client, et non aux deux ou à aucun.");
+      throw new ArgumentException("Un projet doit être associé à une société.");
     }
 
     var projet = _mapper.Map<Projet>(projetDto);
     await _projetRepository.AddProjetAsync(projet);
     await _projetRepository.SaveAllAsync();
     return _mapper.Map<ProjetDto>(projet);
-}
+  }
 
 
   public async Task<bool> UpdateProjetAsync(int id, ProjetDto projetDto)
@@ -94,7 +89,6 @@ public class ProjetService : IProjetService
     var projet = await _projetRepository.GetProjetByIdAsync(id);
     if (projet == null) return false;
 
-    // Supprimer les associations dans ProjetUser, s'il y en a
     if (projet.ProjetUsers != null && projet.ProjetUsers.Any())
     {
       foreach (var pu in projet.ProjetUsers)
@@ -116,44 +110,22 @@ public class ProjetService : IProjetService
     return true;
   }
 
-
   public async Task<bool> AjouterUtilisateurAuProjetAsync(int projetId, ProjetUserDto projetUserDto)
   {
     var projet = await _projetRepository.GetProjetByIdAsync(projetId);
     if (projet == null) return false;
-    // On considère que la vérification de l'existence de l'utilisateur est effectuée ailleurs
+
+    // Création de l'association sans le rôle
     var projetUser = new ProjetUser
     {
       ProjetId = projetId,
-      UserId = projetUserDto.UserId,
-      Role = projetUserDto.Role
+      UserId = projetUserDto.UserId
     };
     await _projetRepository.AddProjetUserAsync(projetUser);
     return await _projetRepository.SaveAllAsync();
   }
 
-  public async Task<object> AssignerRoleAsync(int projetId, int userId, string role)
-  {
-    var projetUser = await _projetRepository.GetProjetUserAsync(projetId, userId);
-    if (projetUser == null)
-    {
-      // Création d'une nouvelle association
-      projetUser = new ProjetUser
-      {
-        ProjetId = projetId,
-        UserId = userId,
-        Role = role
-      };
-      await _projetRepository.AddProjetUserAsync(projetUser);
-    }
-    else
-    {
-      // Mise à jour du rôle existant
-      projetUser.Role = role;
-    }
-    await _projetRepository.SaveAllAsync();
-    return projetUser;
-  }
+  // La méthode AssignerRoleAsync a été supprimée car le rôle n'est plus utilisé
 
   public async Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId)
   {

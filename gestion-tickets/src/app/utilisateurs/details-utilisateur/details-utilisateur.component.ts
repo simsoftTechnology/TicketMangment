@@ -18,6 +18,8 @@ import { ToastrService } from 'ngx-toastr';
 import { DefaultPipe } from '../../_pipes/default.pipe';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProjetService } from '../../_services/projet.service';
+import { Role } from '../../_models/role.model';
+import { RoleService } from '../../_services/role.service';
 
 @Component({
     selector: 'app-details-utilisateur',
@@ -50,6 +52,8 @@ export class DetailsUtilisateurComponent implements OnInit {
   paysList: Pays[] = [];
   societesList: Societe[] = [];
   
+  roles: Role[] = [];
+  
   constructor(
     private paysService: PaysService,
     private societeService: SocieteService,
@@ -59,7 +63,8 @@ export class DetailsUtilisateurComponent implements OnInit {
     private toastr: ToastrService,
     private router: Router,
     private projetService: ProjetService,
-    private contratService: ContratService
+    private contratService: ContratService,
+    private roleService: RoleService 
   ) {}
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
@@ -72,6 +77,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   ngOnInit(): void {
     this.loadPays();
     this.loadSocietes();
+    this.loadRoles(); 
 
     this.ticketSearchSubject.pipe(
       debounceTime(300),          // Attendre 300ms de pause
@@ -110,6 +116,19 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
+
+  loadRoles(): void {
+    this.roleService.getRoles().subscribe({
+      next: (roles: Role[]) => {
+        this.roles = roles;
+      },
+      error: (error) => {
+        console.error("Erreur lors du chargement des rôles", error);
+        this.toastr.error("Erreur lors du chargement des rôles.");
+      }
+    });
+  }
+  
   initForm(): void {
     this.userForm = this.fb.group({
       id: [null],

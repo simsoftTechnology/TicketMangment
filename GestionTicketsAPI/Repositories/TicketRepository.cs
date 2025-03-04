@@ -1,4 +1,4 @@
-using GestionTicketsAPI.Data;
+using GestionTicketsAPI.Data; 
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
@@ -18,39 +18,36 @@ namespace GestionTicketsAPI.Repositories
     public async Task<Ticket?> GetTicketByIdAsync(int id)
     {
       return await _context.Tickets
-          .Include(t => t.Utilisateur)
-          .Include(t => t.Commentaires)
-          .Include(t => t.CategorieProbleme)
+          .Include(t => t.Owner)
+          .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
-          .Include(t => t.Developpeur)
+          .Include(t => t.Responsible)
           .FirstOrDefaultAsync(t => t.Id == id);
     }
 
     public async Task<IEnumerable<Ticket>> GetTicketsAsync()
     {
       return await _context.Tickets
-          .Include(t => t.Utilisateur)
-          .Include(t => t.Commentaires)
-          .Include(t => t.CategorieProbleme)
+          .Include(t => t.Owner)
+          .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
-          .Include(t => t.Developpeur)
+          .Include(t => t.Responsible)
           .ToListAsync();
     }
 
     public async Task<PagedList<Ticket>> GetTicketsPagedAsync(UserParams ticketParams)
     {
       var query = _context.Tickets
-          .Include(t => t.Utilisateur)
-          .Include(t => t.Commentaires)
-          .Include(t => t.CategorieProbleme)
+          .Include(t => t.Owner)
+          .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
-          .Include(t => t.Developpeur)
+          .Include(t => t.Responsible)
           .AsQueryable();
 
       if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
       {
         var lowerSearchTerm = ticketParams.SearchTerm.ToLower();
-        query = query.Where(t => t.Titre.ToLower().Contains(lowerSearchTerm)
+        query = query.Where(t => t.Title.ToLower().Contains(lowerSearchTerm)
                                || t.Description.ToLower().Contains(lowerSearchTerm));
       }
 
@@ -76,22 +73,20 @@ namespace GestionTicketsAPI.Repositories
     {
       return await _context.SaveChangesAsync() > 0;
     }
+    
     public async Task<bool> DeleteMultipleTicketsAsync(IEnumerable<int> ticketIds)
     {
-      // Récupère tous les tickets correspondant aux IDs fournis
       var tickets = await _context.Tickets
           .Where(t => ticketIds.Contains(t.Id))
           .ToListAsync();
 
       if (!tickets.Any())
       {
-        return false; // Aucun ticket trouvé
+        return false;
       }
 
       _context.Tickets.RemoveRange(tickets);
       return await SaveAllAsync();
     }
-
   }
-
 }

@@ -20,4 +20,6 @@ public interface IAccountRepository
 
         // Récupère un pays par son identifiant
         Task<Pays?> GetPaysByIdAsync(int paysId);
+        Task<int> GetRoleIdByNameAsync(string roleName);
+
     }

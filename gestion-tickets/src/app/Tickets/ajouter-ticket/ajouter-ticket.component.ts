@@ -11,6 +11,8 @@ import { TicketService } from '../../_services/ticket.service';
 import { CategorieProblemeService } from '../../_services/categorie-probleme.service';
 import { ProjetService } from '../../_services/projet.service';
 import { AccountService } from '../../_services/account.service';
+import { PrioriteService } from '../../_services/priorite.service';
+import { QualificationService } from '../../_services/qualification.service';
 
 @Component({
   selector: 'app-ajouter-ticket',
@@ -28,8 +30,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   projets: any[] = [];
 
   // Options pour les selects standards
-  qualificationOptions: string[] = ['Ticket Support', 'Demande de formation', 'Demande D\'information'];
-  prioriteOptions: string[] = ['Urgent', 'élevé', 'moyen', 'faible'];
+  qualificationOptions: string[] = [];
+  prioriteOptions: string[] = [];
 
   selectedFile: File | null = null;
   formSubmitted = false;
@@ -56,6 +58,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     private categorieProblemeService: CategorieProblemeService,
     private projetService: ProjetService,
     private accountService: AccountService,
+    private prioriteService: PrioriteService,
+    private qualificationService: QualificationService,
     private toastr: ToastrService,
     private router: Router
   ) {
@@ -74,6 +78,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadCategories();
     this.loadProjets();
+    this.loadPriorites();
+    this.loadQualifications();
 
     // Initialisation de ngx-editor
     this.editor = new Editor();
@@ -120,6 +126,33 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error("Erreur lors du chargement des projets", err);
         this.toastr.error("Erreur lors du chargement des projets.");
+      }
+    });
+  }
+
+
+  loadPriorites(): void {
+    this.prioriteService.getPriorites().subscribe({
+      next: (priorites) => {
+        // Supposons que chaque objet Priorite possède une propriété 'name'
+        this.prioriteOptions = priorites.map(p => p.name);
+      },
+      error: (err) => {
+        console.error("Erreur lors du chargement des priorités", err);
+        this.toastr.error("Erreur lors du chargement des priorités.");
+      }
+    });
+  }
+
+  loadQualifications(): void {
+    this.qualificationService.getQualifications().subscribe({
+      next: (qualifications) => {
+        // Supposons que chaque objet Qualification possède une propriété 'name'
+        this.qualificationOptions = qualifications.map(q => q.name);
+      },
+      error: (err) => {
+        console.error("Erreur lors du chargement des qualifications", err);
+        this.toastr.error("Erreur lors du chargement des qualifications.");
       }
     });
   }

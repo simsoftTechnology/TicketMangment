@@ -11,6 +11,8 @@ import { AccountService } from '../../_services/account.service';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RoleService } from '../../_services/role.service';
+import { Role } from '../../_models/role.model';
 
 @Component({
     selector: 'app-ajouter-utilisateur',
@@ -20,6 +22,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class AjouterUtilisateurComponent implements OnInit {
   registerForm: FormGroup;
+  roles: Role[] = [];
   passwordVisible = false;
   confirmPasswordVisible = false;
   paysList: Pays[] = [];
@@ -28,6 +31,7 @@ export class AjouterUtilisateurComponent implements OnInit {
   constructor(
     private paysService: PaysService,
     private societeService: SocieteService,
+    private roleService: RoleService,
     private dialog: MatDialog,
     private fb: FormBuilder,
     private accountService: AccountService,
@@ -58,6 +62,7 @@ export class AjouterUtilisateurComponent implements OnInit {
     // Chargement des listes de pays et de sociétés
     this.loadPays();
     this.loadSocietes();
+    this.loadRoles();
 
     // Récupération des contrôles pour plus de lisibilité
     const contratControl = this.registerForm.get('contrat');
@@ -129,6 +134,18 @@ export class AjouterUtilisateurComponent implements OnInit {
       error: (err) => {
         console.error('Erreur lors de la récupération des sociétés', err);
         this.toastr.error("Erreur lors du chargement des sociétés.");
+      }
+    });
+  }
+
+  loadRoles(): void {
+    this.roleService.getRoles().subscribe({
+      next: (roles: Role[]) => {
+        this.roles = roles;
+      },
+      error: (err) => {
+        console.error("Erreur lors du chargement des rôles", err);
+        this.toastr.error("Erreur lors du chargement des rôles.");
       }
     });
   }

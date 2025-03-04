@@ -17,7 +17,7 @@ namespace GestionTicketsAPI.Repositories
         
         public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
         {
-            var query = _context.Users.Include(u => u.Contrats).AsQueryable();
+            var query = _context.Users.Include(u => u.Contrats).Include(u => u.Role).AsQueryable();
 
             if (!string.IsNullOrEmpty(userParams.SearchTerm))
             {
@@ -31,13 +31,14 @@ namespace GestionTicketsAPI.Repositories
         
         public async Task<IEnumerable<User>> GetUsersNoPaginationAsync()
         {
-            return await _context.Users.Include(u => u.Contrats).ToListAsync();
+            return await _context.Users.Include(u => u.Contrats).Include(u => u.Role).ToListAsync();
         }
         
         public async Task<User?> GetUserByIdAsync(int id)
         {
             return await _context.Users
                 .Include(u => u.Contrats)
+                .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
         
@@ -45,6 +46,7 @@ namespace GestionTicketsAPI.Repositories
         {
             return await _context.Users
                 .Include(u => u.ProjetUsers)
+                .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
         
@@ -92,12 +94,12 @@ namespace GestionTicketsAPI.Repositories
         public async Task<PagedList<Ticket>> GetUserTicketsAsync(int userId, UserParams userParams)
         {
             var query = _context.Tickets
-                .Where(t => t.UtilisateurId == userId)
+                .Where(t => t.OwnerId == userId) // Mise à jour : Utiliser OwnerId
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(userParams.SearchTerm))
             {
-                query = query.Where(t => t.Titre.Contains(userParams.SearchTerm));
+                query = query.Where(t => t.Title.Contains(userParams.SearchTerm)); // Mise à jour : Utiliser Title
             }
 
             return await PagedList<Ticket>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);

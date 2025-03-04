@@ -23,7 +23,6 @@ public class ProjetRepository : IProjetRepository
         .ToListAsync();
   }
 
-  // Nouvelle méthode pour la pagination
   public async Task<PagedList<Projet>> GetProjetsPagedAsync(UserParams projetParams)
   {
     var query = _context.Projets
@@ -31,24 +30,21 @@ public class ProjetRepository : IProjetRepository
         .Include(p => p.Pays)
         .AsQueryable();
 
-    // Si un terme de recherche est fourni, filtrer la requête
     if (!string.IsNullOrEmpty(projetParams.SearchTerm))
     {
       var lowerSearchTerm = projetParams.SearchTerm.ToLower();
       query = query.Where(p => p.Nom.ToLower().Contains(lowerSearchTerm));
-      // Vous pouvez étendre ce filtre pour d'autres propriétés si nécessaire
     }
 
     return await PagedList<Projet>.CreateAsync(query, projetParams.PageNumber, projetParams.PageSize);
   }
-
 
   public async Task<Projet?> GetProjetByIdAsync(int id)
   {
     return await _context.Projets
         .Include(p => p.Societe)
         .Include(p => p.Pays)
-        .Include(p => p.ProjetUsers)  // Pour la gestion des associations
+        .Include(p => p.ProjetUsers)
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 
@@ -77,7 +73,6 @@ public class ProjetRepository : IProjetRepository
     return await _context.SaveChangesAsync() > 0;
   }
 
-  // --- Gestion des associations ProjetUser ---
   public async Task AddProjetUserAsync(ProjetUser projetUser)
   {
     await _context.ProjetUser.AddAsync(projetUser);
@@ -102,8 +97,7 @@ public class ProjetRepository : IProjetRepository
         {
           pu.UserId,
           pu.User.FirstName,
-          pu.User.LastName,
-          pu.Role
+          pu.User.LastName
         })
         .ToListAsync();
   }

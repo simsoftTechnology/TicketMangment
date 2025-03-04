@@ -53,7 +53,6 @@ export class ListeProjetsComponent implements OnInit {
           }
         });
     } else if (currentUser) {
-      
       // Autres utilisateurs : affiche uniquement les projets qui leur sont associés
       this.accountService.getUserProjects(currentUser.id, this.pageNumber, this.pageSize, this.projetsSearchTerm)
         .subscribe({

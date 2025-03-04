@@ -10,6 +10,7 @@ namespace GestionTicketsAPI.Helpers
         public AutoMapperProfiles()
         {
             CreateMap<User, UserDto>()
+                .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name))
                 .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.Contrats != null && src.Contrats.Any() 
                                                                               ? src.Contrats.First() 
                                                                               : null));
@@ -21,7 +22,6 @@ namespace GestionTicketsAPI.Helpers
             CreateMap<Projet, ProjetDto>()
                 .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Pays.Nom))
                 .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe.Nom));
-
             CreateMap<ProjetDto, Projet>();
             CreateMap<Societe, SocieteDto>();
             CreateMap<SocieteDto, Societe>()
@@ -30,21 +30,23 @@ namespace GestionTicketsAPI.Helpers
                 .ForMember(dest => dest.Utilisateurs, opt => opt.MapFrom(src => src.Utilisateurs))
                 .ForMember(dest => dest.Projets, opt => opt.MapFrom(src => src.Projets))
                 .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.ContratsPartenaire.FirstOrDefault()));
-
             CreateMap<Contrat, ContratDto>().ReverseMap();
 
+            // Mise à jour pour l'entité Ticket et ses DTOs :
             CreateMap<Ticket, TicketDto>()
+                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.Owner))
+                .ForMember(dest => dest.ProblemCategory, opt => opt.MapFrom(src => src.ProblemCategory))
                 .ForMember(dest => dest.Projet, opt => opt.MapFrom(src => src.Projet))
-                .ForMember(dest => dest.Utilisateur, opt => opt.MapFrom(src => src.Utilisateur))
-                .ForMember(dest => dest.Developpeur, opt => opt.MapFrom(src => src.Developpeur))
-                .ForMember(dest => dest.CategorieProbleme, opt => opt.MapFrom(src => src.CategorieProbleme))
+                .ForMember(dest => dest.Responsible, opt => opt.MapFrom(src => src.Responsible))
                 .ReverseMap()
-                    .ForMember(dest => dest.Utilisateur, opt => opt.Ignore())
-                    .ForMember(dest => dest.Developpeur, opt => opt.Ignore())
-                    .ForMember(dest => dest.CategorieProbleme, opt => opt.Ignore())
-                    .ForMember(dest => dest.Projet, opt => opt.Ignore());
+                    .ForMember(dest => dest.Owner, opt => opt.Ignore())
+                    .ForMember(dest => dest.ProblemCategory, opt => opt.Ignore())
+                    .ForMember(dest => dest.Projet, opt => opt.Ignore())
+                    .ForMember(dest => dest.Responsible, opt => opt.Ignore());
 
-            CreateMap<TicketCreateDto, Ticket>();
+            CreateMap<TicketCreateDto, Ticket>()
+                // Le fichier attaché est géré séparément, donc on l'ignore ici
+                .ForMember(dest => dest.Attachments, opt => opt.Ignore());
         }
     }
 }

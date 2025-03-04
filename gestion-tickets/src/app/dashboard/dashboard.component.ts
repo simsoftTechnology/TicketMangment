@@ -106,8 +106,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.currentUser?.role?.toLowerCase() === 'chef de projet';
   }
   
-  isDeveloppeur(): boolean {
-    return this.currentUser?.role?.toLowerCase() === 'développeur';
+  isCollaborateur(): boolean {
+    // Ici, le rôle est "collaborateur" d'après l'API
+    return this.currentUser?.role?.toLowerCase() === 'collaborateur';
   }
   
   isClient(): boolean {

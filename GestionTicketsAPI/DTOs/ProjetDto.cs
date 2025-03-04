@@ -10,10 +10,6 @@ namespace GestionTicketsAPI.DTOs
         public int? SocieteId { get; set; }
         public string? NomSociete { get; set; }
 
-        // Association au client
-        public int? ClientId { get; set; }
-        public string? NomClient { get; set; }
-
         public int IdPays { get; set; }
         public string? NomPays { get; set; }
     }

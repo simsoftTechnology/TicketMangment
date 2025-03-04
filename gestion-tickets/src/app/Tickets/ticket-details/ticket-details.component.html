@@ -90,7 +90,7 @@
         <span class="info-label">Statuts</span>
         <!-- Si l'utilisateur est développeur et qu'il a activé le mode édition du statut, affiche le select -->
         <ng-container
-          *ngIf="(currentUser?.role?.toLowerCase() === 'développeur' && editStatusMode); else displayStatus">
+          *ngIf="(currentUser?.role?.toLowerCase() === 'collaborateur' && editStatusMode); else displayStatus">
           <select id="statuts" formControlName="statuts" class="form-control"
             [class.is-invalid]="editTicketForm.get('statuts')?.touched && editTicketForm.get('statuts')?.invalid">
             <option value="" disabled>Sélectionnez un statut</option>
@@ -195,7 +195,7 @@
   </div>
 
   <!-- Bouton pour Développeur : Afficher "Modifier Statuts" si le mode édition n'est pas activé -->
-  <div *ngIf="!editStatusMode && currentUser?.role?.toLowerCase() === 'développeur'" class="buttons">
+  <div *ngIf="!editStatusMode && currentUser?.role?.toLowerCase() === 'collaborateur'" class="buttons">
     <button class="edit-btn" (click)="enableEditStatusMode()">Modifier Statuts</button>
   </div>
 
@@ -212,13 +212,13 @@
   </div>
 
   <!-- Ajout des boutons pour le développeur -->
-  <div class="button-group" *ngIf="currentUser?.role?.toLowerCase() === 'développeur' && editStatusMode">
+  <div class="button-group" *ngIf="currentUser?.role?.toLowerCase() === 'collaborateur' && editStatusMode">
     <button type="submit" class="edit-btn">Enregistrer</button>
     <button type="button" class="delete-btn" (click)="cancelEditStatusMode()">Annuler</button>
   </div>
 
   <!-- Nouvelle section pour l'acceptation/rejet par le développeur -->
-  <div *ngIf="currentUser?.role?.toLowerCase() === 'développeur' && ticket?.statuts?.toLowerCase() === 'accepté'"
+  <div *ngIf="currentUser?.role?.toLowerCase() === 'collaborateur' && ticket?.statuts?.toLowerCase() === 'accepté'"
     class="buttons">
     <button class="edit-btn" (click)="developerAccept()">Accepter et commencer</button>
     <button class="delete-btn" (click)="openDeveloperRejectForm()">Refuser et réassigner</button>

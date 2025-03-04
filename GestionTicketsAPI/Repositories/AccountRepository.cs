@@ -25,6 +25,7 @@ namespace GestionTicketsAPI.Repositories
         {
             return await _context.Users
                 .Include(u => u.PaysNavigation)
+                .Include(u => u.Role)
                 .FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
@@ -47,6 +48,14 @@ namespace GestionTicketsAPI.Repositories
         public async Task<Pays?> GetPaysByIdAsync(int paysId)
         {
             return await _context.Pays.FindAsync(paysId);
+        }
+
+        public async Task<int> GetRoleIdByNameAsync(string roleName)
+        {
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.Name.ToLower() == roleName.ToLower());
+            if (role == null)
+                throw new Exception("Role not found");
+            return role.Id;
         }
     }
 }
