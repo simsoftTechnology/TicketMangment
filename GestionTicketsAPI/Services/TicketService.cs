@@ -24,6 +24,7 @@ namespace GestionTicketsAPI.Services
                 return null;
             return _mapper.Map<TicketDto>(ticket);
         }
+
         public async Task<Ticket?> GetTicketEntityByIdAsync(int id)
         {
             return await _ticketRepository.GetTicketByIdAsync(id);
@@ -39,7 +40,7 @@ namespace GestionTicketsAPI.Services
         {
             var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(ticketParams);
             var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
-            // Utilise le constructeur de PagedList<T> pour créer un PagedList<TicketDto>
+            // Utilisation du constructeur de PagedList<T> pour créer un PagedList<TicketDto>
             return new PagedList<TicketDto>(
                 ticketDtos,
                 pagedTickets.TotalCount,

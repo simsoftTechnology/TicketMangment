@@ -26,6 +26,7 @@ import { RoleGuard } from './_guards/role.guard';
 import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
 import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
 import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
+import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -39,6 +40,7 @@ export const routes: Routes = [
       { path: 'members/:id', component: MemberDetailComponent },
       { path: 'lists', component: ListsComponent },
       { path: 'dashboard', component: DashboardComponent },
+      { path: 'TableauDeBord', component: TableauBordComponent },
       { path: 'Tickets', component: ListTicketsComponent },
       { path: 'Tickets/ajouterTicket', component: AjouterTicketComponent },
       { path: 'Tickets/details/:id', component: TicketDetailsComponent },

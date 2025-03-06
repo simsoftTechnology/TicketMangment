@@ -1,5 +1,5 @@
 import { ContratService } from './../../_services/contrat.service';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Pipe } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
@@ -20,6 +20,10 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ProjetService } from '../../_services/projet.service';
 import { Role } from '../../_models/role.model';
 import { RoleService } from '../../_services/role.service';
+import { StatutDesTicket } from '../../_models/statut-des-ticket.model';
+import { Priorite } from '../../_models/priorite.model';
+import { StatusService } from '../../_services/status.service';
+import { PrioriteService } from '../../_services/priorite.service';
 
 @Component({
     selector: 'app-details-utilisateur',
@@ -53,6 +57,8 @@ export class DetailsUtilisateurComponent implements OnInit {
   societesList: Societe[] = [];
   
   roles: Role[] = [];
+  statuses: StatutDesTicket[] = [];
+  priorities: Priorite[] = [];
   
   constructor(
     private paysService: PaysService,
@@ -64,7 +70,9 @@ export class DetailsUtilisateurComponent implements OnInit {
     private router: Router,
     private projetService: ProjetService,
     private contratService: ContratService,
-    private roleService: RoleService 
+    private roleService: RoleService ,
+    private statusService: StatusService,
+    private prioriteService: PrioriteService
   ) {}
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
@@ -78,6 +86,8 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.loadPays();
     this.loadSocietes();
     this.loadRoles(); 
+    this.loadStatuses();
+    this.loadPriorities();
 
     this.ticketSearchSubject.pipe(
       debounceTime(300),          // Attendre 300ms de pause
@@ -127,6 +137,28 @@ export class DetailsUtilisateurComponent implements OnInit {
         this.toastr.error("Erreur lors du chargement des rôles.");
       }
     });
+  }
+
+  private loadStatuses(): void {
+    this.statusService.getStatuses().subscribe({
+      next: (statuses) => this.statuses = statuses,
+      error: (err) => console.error('Erreur chargement statuts', err)
+    });
+  }
+
+  private loadPriorities(): void {
+    this.prioriteService.getPriorites().subscribe({
+      next: (priorities) => this.priorities = priorities,
+      error: (err) => console.error('Erreur chargement priorités', err)
+    });
+  }
+
+  getStatusName(statusId: number): string {
+    return this.statuses.find(s => s.id === statusId)?.name || 'Inconnu';
+  }
+
+  getPriorityName(priorityId: number): string {
+    return this.priorities.find(p => p.id === priorityId)?.name || 'Inconnu';
   }
   
   initForm(): void {
@@ -387,7 +419,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       });
     }
   }
-  
+
   
 }
 
@@ -404,3 +436,4 @@ export const newPasswordMatchValidator: ValidatorFn = (control: AbstractControl)
     ? { passwordMismatch: true }
     : null;
 };
+

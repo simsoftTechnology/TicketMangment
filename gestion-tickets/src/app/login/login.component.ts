@@ -36,7 +36,7 @@ export class LoginComponent {
   
     this.accountService.login(this.loginForm.value).subscribe({
       next: () => {
-        this.router.navigateByUrl('/home');
+        this.router.navigateByUrl('/home/TableauDeBord');
       },
       error: (error) => {
         if (error.errorType === 'email') {

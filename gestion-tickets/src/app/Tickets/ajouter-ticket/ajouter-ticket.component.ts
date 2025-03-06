@@ -28,6 +28,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Listes chargées depuis la base
   categories: any[] = [];
   projets: any[] = [];
+  usersOptions: any[] = []; // Liste des utilisateurs (responsables)
 
   // Options pour les selects standards
   qualificationOptions: string[] = [];
@@ -63,15 +64,17 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     private toastr: ToastrService,
     private router: Router
   ) {
-    // Création du formulaire réactif
+    // Création du formulaire réactif avec les nouvelles clés du modèle
     this.addTicketForm = this.fb.group({
-      titre: ['', Validators.required],
+      title: ['', Validators.required],
       description: ['', Validators.required],
-      qualification: ['', Validators.required],
-      priorite: ['', Validators.required],
-      categorieProblemeId: [null, Validators.required],
+      qualificationId: ['', Validators.required],
+      priorityId: ['', Validators.required],
+      problemCategoryId: [null, Validators.required],
       projetId: [null, Validators.required],
-      attachement: [null]
+      attachments: [null],
+      responsibleId: [null],      // Champ optionnel pour le responsable
+      reasonRejection: ['']       // Champ optionnel pour la raison de rejet
     });
   }
 
@@ -80,6 +83,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     this.loadProjets();
     this.loadPriorites();
     this.loadQualifications();
+    this.loadUsers(); // Charger la liste des utilisateurs
 
     // Initialisation de ngx-editor
     this.editor = new Editor();
@@ -100,12 +104,11 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     this.editor.destroy();
   }
 
-  // Chargement des catégories depuis la base
+  // Méthode pour charger la liste des catégories depuis la base
   loadCategories(): void {
     this.categorieProblemeService.getCategories().subscribe({
       next: (categories) => {
         this.categories = categories;
-        // Initialiser la liste filtrée avec toutes les catégories
         this.filteredCategories = [...this.categories];
       },
       error: (err) => {
@@ -115,12 +118,11 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Chargement des projets depuis la base
+  // Méthode pour charger la liste des projets depuis la base
   loadProjets(): void {
     this.projetService.getProjets().subscribe({
       next: (projets) => {
         this.projets = projets;
-        // Initialiser la liste filtrée avec tous les projets
         this.filteredProjets = [...this.projets];
       },
       error: (err) => {
@@ -130,11 +132,10 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     });
   }
 
-
+  // Méthode pour charger les priorités depuis la base
   loadPriorites(): void {
     this.prioriteService.getPriorites().subscribe({
       next: (priorites) => {
-        // Supposons que chaque objet Priorite possède une propriété 'name'
         this.prioriteOptions = priorites.map(p => p.name);
       },
       error: (err) => {
@@ -144,10 +145,10 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Méthode pour charger les qualifications depuis la base
   loadQualifications(): void {
     this.qualificationService.getQualifications().subscribe({
       next: (qualifications) => {
-        // Supposons que chaque objet Qualification possède une propriété 'name'
         this.qualificationOptions = qualifications.map(q => q.name);
       },
       error: (err) => {
@@ -156,6 +157,22 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  // Méthode pour charger la liste des utilisateurs (responsables)
+  loadUsers(): void {
+    // On passe par exemple pageNumber = 1 et pageSize = 1000 pour récupérer un grand nombre d'utilisateurs
+    this.accountService.getUsers(1, 1000).subscribe({
+      next: (result) => { 
+        // On affecte result.items s'il existe, sinon un tableau vide
+        this.usersOptions = result.items ?? []; 
+      },
+      error: (err) => { 
+        console.error("Erreur lors du chargement des utilisateurs", err); 
+      }
+    });
+  }
+  
+
 
   // Gestion de l'ouverture/fermeture des dropdowns pour "projet" et "catégorie"
   toggleDropdown(type: string): void {
@@ -185,7 +202,6 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   selectProjet(projet: any): void {
     this.selectedProjet = projet;
     this.isProjetDropdownOpen = false;
-    // Mise à jour du formulaire réactif
     this.addTicketForm.patchValue({ projetId: projet.id });
   }
 
@@ -200,15 +216,14 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   selectCategorie(categorie: any): void {
     this.selectedCategorie = categorie;
     this.isCategorieDropdownOpen = false;
-    // Mise à jour du formulaire réactif
-    this.addTicketForm.patchValue({ categorieProblemeId: categorie.id });
+    this.addTicketForm.patchValue({ problemCategoryId: categorie.id });
   }
 
   // Gestion de la sélection d'un fichier pour l'attachement
   onFileSelected(event: any): void {
     if (event.target.files && event.target.files.length > 0) {
       this.selectedFile = event.target.files[0];
-      this.addTicketForm.patchValue({ attachement: this.selectedFile });
+      this.addTicketForm.patchValue({ attachments: this.selectedFile });
     }
   }
 
@@ -224,21 +239,30 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     }
 
     const formData = new FormData();
-    formData.append('titre', this.addTicketForm.get('titre')?.value);
+    formData.append('title', this.addTicketForm.get('title')?.value);
     formData.append('description', this.addTicketForm.get('description')?.value);
-    formData.append('qualification', this.addTicketForm.get('qualification')?.value);
-    formData.append('priorite', this.addTicketForm.get('priorite')?.value);
-    formData.append('categorieProblemeId', this.addTicketForm.get('categorieProblemeId')?.value);
+    formData.append('qualificationId', this.addTicketForm.get('qualificationId')?.value);
+    formData.append('priorityId', this.addTicketForm.get('priorityId')?.value);
+    formData.append('problemCategoryId', this.addTicketForm.get('problemCategoryId')?.value);
     formData.append('projetId', this.addTicketForm.get('projetId')?.value);
-    formData.append('statuts', 'Non ouvert');
+    // Pour le statut, utilisation de l'ID correspondant à "Non ouvert" (exemple : 1)
+    formData.append('statutId', '1');
 
     const currentUser = this.accountService.currentUser();
     if (currentUser) {
-      formData.append('utilisateurId', currentUser.id.toString());
+      formData.append('ownerId', currentUser.id.toString());
+    }
+
+    // Champs optionnels
+    if (this.addTicketForm.get('responsibleId')?.value) {
+      formData.append('responsibleId', this.addTicketForm.get('responsibleId')?.value);
+    }
+    if (this.addTicketForm.get('reasonRejection')?.value) {
+      formData.append('reasonRejection', this.addTicketForm.get('reasonRejection')?.value);
     }
 
     if (this.selectedFile) {
-      formData.append('attachement', this.selectedFile, this.selectedFile.name);
+      formData.append('attachments', this.selectedFile, this.selectedFile.name);
     }
 
     this.ticketService.createTicketWithAttachment(formData).subscribe({
@@ -261,21 +285,29 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     }
 
     const formData = new FormData();
-    formData.append('titre', this.addTicketForm.get('titre')?.value);
+    formData.append('title', this.addTicketForm.get('title')?.value);
     formData.append('description', this.addTicketForm.get('description')?.value);
-    formData.append('qualification', this.addTicketForm.get('qualification')?.value);
-    formData.append('priorite', this.addTicketForm.get('priorite')?.value);
-    formData.append('categorieProblemeId', this.addTicketForm.get('categorieProblemeId')?.value);
+    formData.append('qualificationId', this.addTicketForm.get('qualificationId')?.value);
+    formData.append('priorityId', this.addTicketForm.get('priorityId')?.value);
+    formData.append('problemCategoryId', this.addTicketForm.get('problemCategoryId')?.value);
     formData.append('projetId', this.addTicketForm.get('projetId')?.value);
-    formData.append('statuts', 'Non ouvert');
+    formData.append('statutId', '1');
 
     const currentUser = this.accountService.currentUser();
     if (currentUser) {
-      formData.append('utilisateurId', currentUser.id.toString());
+      formData.append('ownerId', currentUser.id.toString());
+    }
+
+    // Champs optionnels
+    if (this.addTicketForm.get('responsibleId')?.value) {
+      formData.append('responsibleId', this.addTicketForm.get('responsibleId')?.value);
+    }
+    if (this.addTicketForm.get('reasonRejection')?.value) {
+      formData.append('reasonRejection', this.addTicketForm.get('reasonRejection')?.value);
     }
 
     if (this.selectedFile) {
-      formData.append('attachement', this.selectedFile, this.selectedFile.name);
+      formData.append('attachments', this.selectedFile, this.selectedFile.name);
     }
 
     this.ticketService.createTicketWithAttachment(formData).subscribe({
@@ -313,11 +345,9 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    // Si le clic n'est pas dans un élément qui a la classe 'custom-select', fermer les dropdowns
     if (!target.closest('.custom-select')) {
       this.isProjetDropdownOpen = false;
       this.isCategorieDropdownOpen = false;
     }
   }
-
 }

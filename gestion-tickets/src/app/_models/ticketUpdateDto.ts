@@ -1,13 +1,13 @@
 export interface TicketUpdateDto {
   id: number;
-  titre: string;
+  title: string;
   description: string;
-  priorite: string;
-  qualification: string;
+  priorityId: number;
+  qualificationId: number;
   projetId: number;
-  categorieProblemeId: number;
-  statuts: string;
-  attachement?: string;
-  developpeurId?: number;
-  raisonRejet?: string;
+  problemCategoryId: number;
+  statutId: number;
+  attachments?: string;
+  responsibleId?: number;
+  reasonRejection?: string;
 }

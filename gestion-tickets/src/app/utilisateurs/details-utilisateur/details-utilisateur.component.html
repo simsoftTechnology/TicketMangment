@@ -266,15 +266,15 @@
       <tbody>
         <ng-container *ngIf="displayedTickets && displayedTickets.length > 0; else noTickets">
           <tr *ngFor="let ticket of displayedTickets">
-            <td>{{ ticket.titre | default:'Aucun' }}</td>
+            <td>{{ ticket.title | default:'Aucun' }}</td>
             <td>
               {{ ticket.description ? (ticket.description | truncate:50) : 'Aucune description' }}
             </td>
-            <td>{{ ticket.statuts | default:'Aucun statut' }}</td>
+            <td>{{ getStatusName(ticket.statutId) | default:'Aucun statut' }}</td>
             <td>
-              {{ ticket.dateCreation ? (ticket.dateCreation | date:'dd/MM/yyyy') : 'Aucune date' }}
+              {{ ticket.createdAt ? (ticket.createdAt | date:'dd/MM/yyyy') : 'Aucune date' }}
             </td>
-            <td>{{ ticket.priorite | default:'Aucune priorité' }}</td>
+            <td>{{ getPriorityName(ticket.priorityId) | default:'Aucune priorité' }}</td>
           </tr>
         </ng-container>
         <ng-template #noTickets>
@@ -293,29 +293,29 @@
   </div>
 
   <!-- Onglet Contrat -->
-<div *ngIf="activeTab === 'contrat'" class="tab-pane">
-  <div class="contract-form-container">
-    <h3>Contrat</h3>
-    <form [formGroup]="contratForm" (ngSubmit)="onSubmitContrat()">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="dateDebut">Date de début</label>
-          <input id="dateDebut" type="date" formControlName="dateDebut" />
+  <div *ngIf="activeTab === 'contrat'" class="tab-pane">
+    <div class="contract-form-container">
+      <h3>Contrat</h3>
+      <form [formGroup]="contratForm" (ngSubmit)="onSubmitContrat()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="dateDebut">Date de début</label>
+            <input id="dateDebut" type="date" formControlName="dateDebut" />
+          </div>
+          <div class="form-group">
+            <label for="dateFin">Date de fin</label>
+            <input id="dateFin" type="date" formControlName="dateFin" />
+          </div>
+          <div class="form-group">
+            <label for="type">Type</label>
+            <input id="type" type="text" formControlName="type" placeholder="Standard" />
+          </div>
         </div>
-        <div class="form-group">
-          <label for="dateFin">Date de fin</label>
-          <input id="dateFin" type="date" formControlName="dateFin" />
+        <div class="form-actions">
+          <button type="submit" class="btn-create" [disabled]="contratForm.invalid">Enregistrer</button>
+          <button type="button" class="btn-cancel" (click)="cancelContrat()">Annuler</button>
         </div>
-        <div class="form-group">
-          <label for="type">Type</label>
-          <input id="type" type="text" formControlName="type" placeholder="Standard" />
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn-create" [disabled]="contratForm.invalid">Enregistrer</button>
-        <button type="button" class="btn-cancel" (click)="cancelContrat()">Annuler</button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
 </div>
-

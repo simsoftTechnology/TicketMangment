@@ -15,6 +15,8 @@ namespace GestionTicketsAPI.Entities
     // Nouveau champ optionnel Description
     public string? Description { get; set; }
 
+    public int? ChefProjetId { get; set; } // Propriété ajoutée pour le chef de projet
+    public User? ChefProjet { get; set; } 
     // Un projet peut appartenir soit à une société, soit à un client (mais pas aux deux)
     public int? SocieteId { get; set; }
     public Societe? Societe { get; set; }

@@ -1,4 +1,4 @@
-<div class="container">
+<div class="container"> 
   <div class="header">
     <h2>Liste des tickets</h2>
     <button class="add-ticket-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'client'" routerLink="/home/Tickets/ajouterTicket">
@@ -56,21 +56,21 @@
             <label [for]="'ticket' + i" class="checkbox-label"></label>
           </div>
         </td>
-        <td>{{ ticket.titre }}</td>
-        <td>{{ ticket.qualification }}</td>
+        <td>{{ ticket.title }}</td>
+        <td>{{ getQualificationLabel(ticket.qualificationId) }}</td>
         <td>{{ ticket.projet?.nom || 'Non défini' }}</td>
         <td *ngIf="(currentUser?.role?.toLowerCase() !== 'client')">
-          {{ ticket.utilisateur?.firstName }} {{ ticket.utilisateur?.lastName || '' }}
+          {{ ticket.owner?.firstName }} {{ ticket.owner?.lastName || '' }}
         </td>
-        <td>{{ ticket.categorieProbleme?.nom || 'Non défini' }}</td>
+        <td>{{ ticket.problemCategory?.nom || 'Non défini' }}</td>
         <td>
-          <span [ngClass]="getPriorityClass(ticket.priorite)">
-            {{ ticket.priorite }}
+          <span [ngClass]="getPriorityClass(ticket.priorityId)">
+            {{ getPriorityLabel(ticket.priorityId) }}
           </span>
-        </td>                       
+        </td>                        
         <td>
-          <span [ngClass]="getStatusClass(ticket.statuts)">
-            {{ ticket.statuts }}
+          <span [ngClass]="getStatusClass(ticket.statutId)">
+            {{ getStatusLabel(ticket.statutId) }}
           </span>
         </td>        
         <td class="actions">
@@ -101,15 +101,12 @@
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de
-              {{ (((paginatedResult?.pagination?.currentPage || 1) - 1) *
-                (paginatedResult?.pagination?.itemsPerPage || pageSize)) + 1 }}
+              {{ (((paginatedResult?.pagination?.currentPage || 1) - 1) * (paginatedResult?.pagination?.itemsPerPage || pageSize)) + 1 }}
               à
-              {{ ((paginatedResult?.pagination?.currentPage || 1) *
-                (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
+              {{ ((paginatedResult?.pagination?.currentPage || 1) * (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
               (paginatedResult?.pagination?.totalItems || 0)
                 ? (paginatedResult?.pagination?.totalItems || 0)
-                : ((paginatedResult?.pagination?.currentPage || 1) *
-                  (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
+                : ((paginatedResult?.pagination?.currentPage || 1) * (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
               sur {{ paginatedResult?.pagination?.totalItems || 0 }} résultats
             </div>
             <div class="per-page-selector">

@@ -1,0 +1,488 @@
+<div class="dashboard-container">
+  <h1 class="page-title">Tableau de bord</h1>
+  
+  <!-- User Greeting -->
+  <div class="user-greeting">
+    <div class="user-avatar">{{ userInitials }}</div>
+    <div class="greeting-text">
+      <h2>Bonjour {{ currentUser?.firstName }} {{ currentUser?.lastName}}</h2>
+      <div class="user-role">{{ userRole }}</div>
+      <a  class="logout-link" (click)="logout()">Déconnexion</a>
+    </div>
+  </div>
+  
+  <!-- Filtres et Recherche -->
+  <div class="filters-section">
+    <div class="section-header">
+      <h2>Filtres et Recherche</h2>
+    </div>
+    <div class="filters-container">
+      <div class="search-box">
+        <input type="text" placeholder="Rechercher un ticket..." #searchInput (keyup.enter)="search(searchInput.value)">
+        <button class="search-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="filter-group">
+        <div class="filter-item">
+          <label>Période</label>
+          <select #periodSelect (change)="changePeriod(periodSelect.value)">
+            <option *ngFor="let period of filters.periods" [value]="period">{{ period }}</option>
+          </select>          
+        </div>
+        
+        <div class="filter-item">
+          <label>Priorité</label>
+          <select>
+            <option *ngFor="let priority of filters.priorities">{{ priority }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Statut</label>
+          <select>
+            <option *ngFor="let status of filters.statuses">{{ status }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Qualification</label>
+          <select>
+            <option *ngFor="let qualification of filters.qualifications">{{ qualification }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Catégorie</label>
+          <select>
+            <option *ngFor="let category of filters.categories">{{ category }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Rôle</label>
+          <select>
+            <option *ngFor="let role of filters.roles">{{ role }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Société</label>
+          <select>
+            <option *ngFor="let company of filters.companies">{{ company }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Pays</label>
+          <select>
+            <option *ngFor="let country of filters.countries">{{ country }}</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="filter-actions">
+        <button class="apply-button" (click)="applyFilters()">Appliquer</button>
+        <button class="reset-button" (click)="resetFilters()">Réinitialiser</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 1. Vue d'ensemble (KPI et Statistiques Globales) -->
+  <div class="overview-section">
+    <div class="section-header">
+      <h2>Vue d'ensemble</h2>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="kpi-cards">
+      <div class="kpi-card total">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <h3>Total des tickets</h3>
+          <div class="kpi-value">{{ ticketStats.total }}</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card in-progress">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <h3>En cours</h3>
+          <div class="kpi-value">{{ ticketStats.enCours }}</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card resolved">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <h3>Résolus</h3>
+          <div class="kpi-value">{{ ticketStats.resolus }}</div>
+        </div>
+      </div>
+      
+      <div class="kpi-card validated">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-content">
+          <h3>Validés</h3>
+          <div class="kpi-value">{{ ticketStats.valides }}</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Tickets par Priorité et Statut -->
+    <div class="charts-row">
+      <div class="chart-container">
+        <h3>Tickets par Priorité</h3>
+        <ngx-charts-pie-chart
+          [results]="priorityChartData"
+          [scheme]="priorityColorScheme"
+          [gradient]="gradient"
+          [legend]="showLegend"
+          [legendTitle]="'Priorités'"
+          [labels]="true"
+          [doughnut]="doughnut"
+          [arcWidth]="arcWidth"
+          [tooltipDisabled]="false">
+        </ngx-charts-pie-chart>
+      </div>
+      
+      <div class="chart-container">
+        <h3>Tickets par Statut</h3>
+        <ngx-charts-bar-vertical
+          [results]="statusChartData"
+          [scheme]="statusColorScheme"
+          [gradient]="gradient"
+          [xAxis]="showXAxis"
+          [yAxis]="showYAxis"
+          [legend]="showLegend"
+          [showXAxisLabel]="showXAxisLabel"
+          [showYAxisLabel]="showYAxisLabel"
+          [xAxisLabel]="'Statut'"
+          [yAxisLabel]="'Nombre de tickets'"
+          [tooltipDisabled]="false">
+        </ngx-charts-bar-vertical>
+      </div>
+    </div>
+    
+    <!-- Tickets par Qualification et Catégorie -->
+    <div class="charts-row">
+      <div class="chart-container">
+        <h3>Tickets par Qualification</h3>
+        <div class="qualification-list">
+          <div class="qualification-item" *ngFor="let item of ticketsByQualification">
+            <div class="qualification-name">{{ item.name }}</div>
+            <div class="qualification-count">{{ item.count }}</div>
+            <div class="qualification-bar">
+              <div class="qualification-progress" [style.width]="getPercentage(item.count) + '%'"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <h3>Tickets par Catégorie de Problème</h3>
+        <ngx-charts-advanced-pie-chart
+          [results]="categoryChartData"
+          [scheme]="categoryColorScheme"
+          [gradient]="gradient"
+          [tooltipDisabled]="false">
+        </ngx-charts-advanced-pie-chart>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 2. Graphiques et Visualisations -->
+  <div class="visualizations-section">
+    <div class="section-header">
+      <h2>Graphiques et Visualisations</h2>
+    </div>
+    
+    <!-- Évolution Temporelle -->
+    <div class="chart-container full-width">
+      <h3>Évolution Temporelle des Tickets</h3>
+      <div class="period-selector">
+        <button [class.active]="selectedPeriod === 'day'" (click)="changePeriod('day')">Jour</button>
+        <button [class.active]="selectedPeriod === 'week'" (click)="changePeriod('week')">Semaine</button>
+        <button [class.active]="selectedPeriod === 'month'" (click)="changePeriod('month')">Mois</button>
+        <button [class.active]="selectedPeriod === 'year'" (click)="changePeriod('year')">Année</button>
+      </div>
+      <ngx-charts-line-chart
+        [results]="timelineChartData"
+        [scheme]="timelineColorScheme"
+        [gradient]="gradient"
+        [xAxis]="showXAxis"
+        [yAxis]="showYAxis"
+        [legend]="showLegend"
+        [showXAxisLabel]="showXAxisLabel"
+        [showYAxisLabel]="showYAxisLabel"
+        [xAxisLabel]="'Période'"
+        [yAxisLabel]="'Nombre de tickets'"
+        [autoScale]="autoScale"
+        [timeline]="timeline"
+        [tooltipDisabled]="false">
+      </ngx-charts-line-chart>
+    </div>
+    
+    <!-- Répartition par Rôle et Temps de Résolution -->
+    <div class="charts-row">
+      <div class="chart-container">
+        <h3>Répartition par Rôle</h3>
+        <ngx-charts-bar-horizontal-2d
+          [results]="roleChartData"
+          [scheme]="roleColorScheme"
+          [gradient]="gradient"
+          [xAxis]="showXAxis"
+          [yAxis]="showYAxis"
+          [legend]="showLegend"
+          [showXAxisLabel]="showXAxisLabel"
+          [showYAxisLabel]="showYAxisLabel"
+          [xAxisLabel]="'Nombre de tickets'"
+          [yAxisLabel]="'Rôle'"
+          [tooltipDisabled]="false">
+        </ngx-charts-bar-horizontal-2d>
+      </div>
+      
+      <div class="chart-container">
+        <h3>Temps de Résolution Moyen</h3>
+        <div class="average-resolution">
+          <div class="average-value">{{ averageResolutionTime }}h</div>
+          <div class="average-label">Temps moyen</div>
+        </div>
+        <ngx-charts-bar-horizontal
+          [results]="resolutionTimeChartData"
+          [scheme]="resolutionTimeColorScheme"
+          [gradient]="gradient"
+          [xAxis]="showXAxis"
+          [yAxis]="showYAxis"
+          [showXAxisLabel]="showXAxisLabel"
+          [showYAxisLabel]="showYAxisLabel"
+          [xAxisLabel]="'Heures'"
+          [yAxisLabel]="'Priorité'"
+          [tooltipDisabled]="false">
+        </ngx-charts-bar-horizontal>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 4. Détails et Alertes -->
+  <div class="details-alerts-section">
+    <div class="section-header">
+      <h2>Détails et Alertes</h2>
+    </div>
+    
+    <div class="details-alerts-container">
+      <!-- Liste des tickets -->
+      <div class="tickets-list-container">
+        <h3>Liste des Tickets Récents</h3>
+        <table class="tickets-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Titre</th>
+              <th>Auteur</th>
+              <th>Priorité</th>
+              <th>Statut</th>
+              <th>Date</th>
+              <th>Catégorie</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ticket of recentTickets">
+              <td>{{ ticket.id }}</td>
+              <td>{{ ticket.title }}</td>
+              <td>{{ ticket.author }}</td>
+              <td [class]="'priority-' + ticket.priority.toLowerCase()">{{ ticket.priority }}</td>
+              <td [class]="'status-' + ticket.status.toLowerCase().replace(' ', '-')">{{ ticket.status }}</td>
+              <td>{{ ticket.created }}</td>
+              <td>{{ ticket.category }}</td>
+              <td>
+                <button class="action-button">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1"></circle>
+                    <circle cx="19" cy="12" r="1"></circle>
+                    <circle cx="5" cy="12" r="1"></circle>
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <button class="pagination-button">Précédent</button>
+          <div class="pagination-info">Page 1 sur 5</div>
+          <button class="pagination-button">Suivant</button>
+        </div>
+      </div>
+      
+      <!-- Alertes et Commentaires -->
+      <div class="alerts-comments-container">
+        <div class="alerts-container">
+          <h3>Alertes et Notifications</h3>
+          <div class="alerts-list">
+            <div class="alert-item" *ngFor="let alert of alerts" [class]="'alert-' + alert.type">
+              <div class="alert-icon">
+                <svg *ngIf="alert.type === 'urgent'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <svg *ngIf="alert.type === 'delay'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <svg *ngIf="alert.type === 'update'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <div class="alert-content">
+                <div class="alert-message">{{ alert.message }}</div>
+                <div class="alert-time">{{ alert.time }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="comments-container">
+          <h3>Commentaires Récents</h3>
+          <div class="comments-list">
+            <div class="comment-item" *ngFor="let comment of recentComments">
+              <div class="comment-header">
+                <div class="comment-ticket">{{ comment.ticket }}</div>
+                <div class="comment-time">{{ comment.time }}</div>
+              </div>
+              <div class="comment-author">{{ comment.author }}</div>
+              <div class="comment-text">{{ comment.comment }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 5. Analyse par Utilisateur et Par Projet -->
+  <div class="analysis-section">
+    <div class="section-header">
+      <h2>Analyse par Utilisateur et Par Projet</h2>
+    </div>
+    
+    <div class="analysis-container">
+      <!-- Statistiques par Utilisateur -->
+      <div class="user-stats-container">
+        <h3>Statistiques par Utilisateur</h3>
+        <table class="user-stats-table">
+          <thead>
+            <tr>
+              <th>Utilisateur</th>
+              <th>Rôle</th>
+              <th>Tickets Créés</th>
+              <th>Tickets Résolus</th>
+              <th>Temps Moyen (h)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of userStats">
+              <td>{{ user.name }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.created }}</td>
+              <td>{{ user.resolved }}</td>
+              <td>{{ user.avgTime }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Vue Projet -->
+      <div class="project-view-container">
+        <h3>Vue Projet</h3>
+        <div class="projects-grid">
+          <div class="project-card" *ngFor="let project of projects">
+            <div class="project-header">
+              <h4>{{ project.name }}</h4>
+              <div class="project-company">{{ project.company }}</div>
+            </div>
+            <div class="project-stats">
+              <div class="project-stat">
+                <div class="stat-value">{{ project.tickets }}</div>
+                <div class="stat-label">Total</div>
+              </div>
+              <div class="project-stat">
+                <div class="stat-value">{{ project.open }}</div>
+                <div class="stat-label">Ouverts</div>
+              </div>
+              <div class="project-stat">
+                <div class="stat-value">{{ project.closed }}</div>
+                <div class="stat-label">Fermés</div>
+              </div>
+            </div>
+            <div class="project-progress">
+              <div class="progress-bar">
+                <div class="progress-value" [style.width]="(project.closed / project.tickets * 100) + '%'"></div>
+              </div>
+              <div class="progress-label">{{ (project.closed / project.tickets * 100).toFixed(0) }}% terminé</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 7. Intégration des Contrats -->
+  <div class="contracts-section">
+    <div class="section-header">
+      <h2>Intégration des Contrats</h2>
+    </div>
+    
+    <div class="contracts-container">
+      <h3>Contrats en Cours</h3>
+      <table class="contracts-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Client</th>
+            <th>Société</th>
+            <th>Date de début</th>
+            <th>Date de fin</th>
+            <th>Statut</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let contract of contracts">
+            <td>{{ contract.id }}</td>
+            <td>{{ contract.type }}</td>
+            <td>{{ contract.client }}</td>
+            <td>{{ contract.company }}</td>
+            <td>{{ contract.startDate }}</td>
+            <td>{{ contract.endDate }}</td>
+            <td [class]="'contract-status-' + contract.status.toLowerCase()">{{ contract.status }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+

@@ -24,7 +24,7 @@ public class Ticket
     public StatutDesTicket Statut { get; set; }
     public int? ResponsibleId { get; set; }
     public User Responsible { get; set; }
-    public string Attachments { get; set; }
+    public string? Attachments { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }

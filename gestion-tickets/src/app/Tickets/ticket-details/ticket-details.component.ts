@@ -10,6 +10,9 @@ import { TicketService } from '../../_services/ticket.service';
 import { AccountService } from '../../_services/account.service';
 import { ProjetService } from '../../_services/projet.service';
 import { CategorieProblemeService } from '../../_services/categorie-probleme.service';
+import { QualificationService } from '../../_services/qualification.service';
+import { StatusService } from '../../_services/status.service';
+import { PrioriteService } from '../../_services/priorite.service';
 
 @Component({
   selector: 'app-ticket-details',
@@ -23,8 +26,12 @@ export class TicketDetailsComponent implements OnInit {
   currentUser: User | null = null;
   projets: any[] = [];
   categories: any[] = [];
-  qualificationOptions: string[] = ['Ticket Support', 'Demande de formation', "Demande d'information"];
-  prioriteOptions: string[] = ['Urgent', 'élevé', 'moyen', 'faible'];
+
+  // Listes chargées depuis les services
+  qualifications: { id: number, name: string }[] = [];
+  priorities: { id: number, name: string }[] = [];
+  statuses: { id: number, name: string }[] = [];
+
   editTicketForm!: FormGroup;
   selectedFile: File | null = null;
   editMode: boolean = false;
@@ -45,6 +52,9 @@ export class TicketDetailsComponent implements OnInit {
     private accountService: AccountService,
     private projetService: ProjetService,
     private categorieProblemeService: CategorieProblemeService,
+    private qualificationService: QualificationService,
+    private priorityService: PrioriteService,
+    private statusService: StatusService,
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder
@@ -65,8 +75,11 @@ export class TicketDetailsComponent implements OnInit {
     }
     this.loadProjets();
     this.loadCategories();
+    this.loadQualifications();
+    this.loadPriorities();
+    this.loadStatuses();
 
-    if (this.currentUser && (this.isAdminOrChef() || this.currentUser.role.toLowerCase() === 'développeur')) {
+    if (this.currentUser && (this.isAdminOrChef() || this.currentUser.role.toLowerCase() === 'collaborateur')) {
       this.loadDevelopers();
     }
   }
@@ -74,9 +87,9 @@ export class TicketDetailsComponent implements OnInit {
   loadTicket(id: number): void {
     this.ticketService.getTicket(id).subscribe({
       next: (ticket) => {
-        ticket.dateCreation = new Date(ticket.dateCreation);
-        if (ticket.dateModification) {
-          ticket.dateModification = new Date(ticket.dateModification);
+        ticket.createdAt = new Date(ticket.createdAt);
+        if (ticket.updatedAt) {
+          ticket.updatedAt = new Date(ticket.updatedAt);
         }
         this.ticket = ticket;
         this.initializeEditForm();
@@ -109,10 +122,43 @@ export class TicketDetailsComponent implements OnInit {
     });
   }
 
+  loadQualifications(): void {
+    this.qualificationService.getQualifications().subscribe({
+      next: (qualifications) => {
+        this.qualifications = qualifications;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des qualifications', err);
+      }
+    });
+  }
+
+  loadPriorities(): void {
+    this.priorityService.getPriorites().subscribe({
+      next: (priorities) => {
+        this.priorities = priorities;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des priorités', err);
+      }
+    });
+  }
+
+  loadStatuses(): void {
+    this.statusService.getStatuses().subscribe({
+      next: (statuses) => {
+        this.statuses = statuses;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des statuts', err);
+      }
+    });
+  }
+
   loadDevelopers(): void {
     this.accountService.getAllUsers().subscribe({
       next: (users: User[]) => {
-        this.developers = users.filter(u => u.role.toLowerCase() === 'développeur');
+        this.developers = users.filter(u => u.role.toLowerCase() === 'collaborateur');
       },
       error: (error) => {
         console.error('Erreur lors du chargement des développeurs', error);
@@ -123,16 +169,18 @@ export class TicketDetailsComponent implements OnInit {
   initializeEditForm(): void {
     if (!this.ticket) { return; }
     const formControls: any = {
-      qualification: [this.ticket.qualification, Validators.required],
-      projetId: [this.ticket.projet?.id, Validators.required],
-      categorieProblemeId: [this.ticket.categorieProbleme?.id, Validators.required],
-      priorite: [this.ticket.priorite, Validators.required],
-      titre: [this.ticket.titre, Validators.required],
+      title: [this.ticket.title, Validators.required],
       description: [this.ticket.description, Validators.required],
-      developpeurId: [this.ticket.developpeur?.id]
+      qualificationId: [this.ticket.qualificationId, Validators.required],
+      projetId: [this.ticket.projet?.id, Validators.required],
+      problemCategoryId: [this.ticket.problemCategory?.id, Validators.required],
+      priorityId: [this.ticket.priorityId, Validators.required]
     };
-    if (this.currentUser?.role.toLowerCase() === 'développeur') {
-      formControls['statuts'] = [this.ticket.statuts, Validators.required];
+    if (this.currentUser?.role.toLowerCase() === 'collaborateur') {
+      formControls['statutId'] = [this.ticket.statutId, Validators.required];
+    }
+    if (this.isAdminOrChef()) {
+      formControls['responsibleId'] = [this.ticket.responsible?.id];
     }
     this.editTicketForm = this.fb.group(formControls);
   }
@@ -143,27 +191,42 @@ export class TicketDetailsComponent implements OnInit {
     }
   }
 
-  getPriorityClass(priority: string): string {
-    if (!priority) return '';
-    switch (priority.toLowerCase()) {
-      case 'urgent': return 'priority-urgent';
-      case 'élevé': return 'priority-eleve';
-      case 'moyen': return 'priority-moyen';
-      case 'faible': return 'priority-faible';
+  getPriorityClass(priorityId: number): string {
+    // Mapping basé sur l'id de la priorité
+    switch (priorityId) {
+      case 1: return 'priority-urgent';
+      case 2: return 'priority-eleve';
+      case 3: return 'priority-moyen';
+      case 4: return 'priority-faible';
       default: return '';
     }
   }
 
-  getStatusClass(status: string): string {
-    if (!status) return '';
-    switch (status.toLowerCase()) {
-      case 'non ouvert': return 'status-non-ouvert';
-      case 'accepté': return 'status-accepte';
-      case 'refusé': return 'status-refuse';
-      case 'en cours': return 'status-en-cours';
-      case 'résolu': return 'status-resolu';
+  getStatusClass(statusId: number): string {
+    switch (statusId) {
+      case 1: return 'status-non-ouvert';
+      case 2: return 'status-accepte';
+      case 3: return 'status-refuse';
+      case 4: return 'status-en-cours';
+      case 5: return 'status-resolu';
       default: return '';
     }
+  }
+
+  getPriorityLabel(priorityId: number): string {
+    const found = this.priorities.find(p => p.id === priorityId);
+    return found ? found.name : '';
+  }
+
+  getStatusLabel(statutId: number): string {
+    const found = this.statuses.find(s => s.id === statutId);
+    return found ? found.name : '';
+  }
+  
+
+  getQualificationLabel(qualificationId: number): string {
+    const found = this.qualifications.find(q => q.id === qualificationId);
+    return found ? found.name : '';
   }
 
   enableEditMode(): void {
@@ -179,28 +242,34 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   enableEditStatusMode(): void {
-    if (this.currentUser?.role.toLowerCase() === 'développeur') {
+    if (this.currentUser?.role.toLowerCase() === 'collaborateur') {
       this.editStatusMode = true;
     }
   }
 
   cancelEdit(): void {
     this.editMode = false;
-    this.loadTicket(this.ticket!.id);
+    if (this.ticket) {
+      this.loadTicket(this.ticket.id);
+    }
   }
 
   cancelEditDevMode(): void {
     this.editDevMode = false;
-    this.loadTicket(this.ticket!.id);
+    if (this.ticket) {
+      this.loadTicket(this.ticket.id);
+    }
   }
 
   cancelEditStatusMode(): void {
     this.editStatusMode = false;
-    this.loadTicket(this.ticket!.id);
+    if (this.ticket) {
+      this.loadTicket(this.ticket.id);
+    }
   }
 
   saveTicket(): void {
-    if (!this.ticket) return;
+    if (!this.ticket) { return; }
 
     if (this.currentUser?.role.toLowerCase() === 'client') {
       if (this.editTicketForm.invalid) {
@@ -210,15 +279,15 @@ export class TicketDetailsComponent implements OnInit {
       this.isLoading = true;
       const baseUpdatedTicket: TicketUpdateDto = {
         id: this.ticket.id,
-        titre: this.editTicketForm.value.titre,
+        title: this.editTicketForm.value.title,
         description: this.editTicketForm.value.description,
-        priorite: this.editTicketForm.value.priorite,
-        qualification: this.editTicketForm.value.qualification,
-        projetId: this.ticket.projet!.id,
-        categorieProblemeId: this.ticket.categorieProbleme!.id,
-        statuts: this.ticket.statuts
+        priorityId: this.editTicketForm.value.priorityId,
+        qualificationId: this.editTicketForm.value.qualificationId,
+        projetId: this.editTicketForm.value.projetId,
+        problemCategoryId: this.editTicketForm.value.problemCategoryId,
+        statutId: this.ticket.statutId
       };
-      
+
       if (this.selectedFile) {
         const formData = new FormData();
         formData.append('file', this.selectedFile, this.selectedFile.name);
@@ -226,7 +295,7 @@ export class TicketDetailsComponent implements OnInit {
           switchMap((uploadResult: { secureUrl: string }) => {
             const updatedTicket: TicketUpdateDto = {
               ...baseUpdatedTicket,
-              attachement: uploadResult.secureUrl
+              attachments: uploadResult.secureUrl
             };
             return this.ticketService.updateTicket(this.ticket!.id, updatedTicket);
           })
@@ -244,7 +313,7 @@ export class TicketDetailsComponent implements OnInit {
           }
         });
       } else {
-        this.ticketService.updateTicket(this.ticket!.id, baseUpdatedTicket).subscribe({
+        this.ticketService.updateTicket(this.ticket.id, baseUpdatedTicket).subscribe({
           next: () => {
             alert('Ticket mis à jour avec succès.');
             this.editMode = false;
@@ -258,22 +327,21 @@ export class TicketDetailsComponent implements OnInit {
           }
         });
       }
-    }
-    else if (this.isAdminOrChef() && this.editDevMode) {
-      if (!this.editTicketForm.value.developpeurId) {
+    } else if (this.isAdminOrChef() && this.editDevMode) {
+      if (!this.editTicketForm.value.responsibleId) {
         alert('Veuillez sélectionner un développeur.');
         return;
       }
       const updatedTicket: TicketUpdateDto = {
         id: this.ticket.id,
-        titre: this.ticket.titre,
+        title: this.ticket.title,
         description: this.ticket.description,
-        priorite: this.ticket.priorite,
-        qualification: this.ticket.qualification,
+        priorityId: this.ticket.priorityId,
+        qualificationId: this.ticket.qualificationId,
         projetId: this.ticket.projet!.id,
-        categorieProblemeId: this.ticket.categorieProbleme!.id,
-        statuts: this.ticket.statuts,
-        developpeurId: this.editTicketForm.value.developpeurId
+        problemCategoryId: this.ticket.problemCategory!.id,
+        statutId: this.ticket.statutId,
+        responsibleId: this.editTicketForm.value.responsibleId
       };
       this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({
         next: () => {
@@ -286,21 +354,20 @@ export class TicketDetailsComponent implements OnInit {
           alert('Une erreur est survenue lors de la mise à jour.');
         }
       });
-    }
-    else if (this.currentUser?.role.toLowerCase() === 'développeur' && this.editStatusMode) {
-      if (!this.editTicketForm.value.statuts) {
+    } else if (this.currentUser?.role.toLowerCase() === 'collaborateur' && this.editStatusMode) {
+      if (!this.editTicketForm.value.statutId) {
         alert('Veuillez sélectionner un statut.');
         return;
       }
       const updatedTicket: TicketUpdateDto = {
         id: this.ticket.id,
-        titre: this.ticket.titre,
+        title: this.ticket.title,
         description: this.ticket.description,
-        priorite: this.ticket.priorite,
-        qualification: this.ticket.qualification,
+        priorityId: this.ticket.priorityId,
+        qualificationId: this.ticket.qualificationId,
         projetId: this.ticket.projet!.id,
-        categorieProblemeId: this.ticket.categorieProbleme!.id,
-        statuts: this.editTicketForm.value.statuts
+        problemCategoryId: this.ticket.problemCategory!.id,
+        statutId: this.editTicketForm.value.statutId
       };
       this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({
         next: () => {
@@ -317,7 +384,7 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   isAdminOrChef(): boolean {
-    if (!this.currentUser) return false;
+    if (!this.currentUser) { return false; }
     const role = this.currentUser.role.toLowerCase();
     return role === 'super admin' || role === 'chef de projet';
   }
@@ -327,10 +394,10 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   isActionable(): boolean {
-    if (!this.ticket || !this.currentUser) return false;
+    if (!this.ticket || !this.currentUser) { return false; }
     const role = this.currentUser.role.toLowerCase();
-    return (role === 'super admin' || role === 'chef de projet') &&
-           this.ticket.statuts.toLowerCase() === 'non ouvert';
+    // Exemple : actionnable si le statut est "Non ouvert" (statusId = 1) pour Super Admin / Chef de projet
+    return (role === 'super admin' || role === 'chef de projet') && this.ticket.statutId === 5;
   }
 
   showAccept(): void {
@@ -354,18 +421,18 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   acceptTicket(): void {
-    if (!this.ticket || !this.selectedDevId) return;
+    if (!this.ticket || !this.selectedDevId) { return; }
     
     const updatedTicket: TicketUpdateDto = {
       id: this.ticket.id,
-      titre: this.ticket.titre,
+      title: this.ticket.title,
       description: this.ticket.description,
-      priorite: this.ticket.priorite,
-      qualification: this.ticket.qualification,
+      priorityId: this.ticket.priorityId,
+      qualificationId: this.ticket.qualificationId,
       projetId: this.ticket.projet!.id,
-      categorieProblemeId: this.ticket.categorieProbleme!.id,
-      statuts: 'accepté',
-      developpeurId: this.selectedDevId
+      problemCategoryId: this.ticket.problemCategory!.id,
+      statutId: 2, // Accepté
+      responsibleId: this.selectedDevId
     };
 
     this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({
@@ -382,18 +449,18 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   rejectTicket(): void {
-    if (!this.ticket) return;
+    if (!this.ticket) { return; }
     
     const updatedTicket: TicketUpdateDto = {
       id: this.ticket.id,
-      titre: this.ticket.titre,
+      title: this.ticket.title,
       description: this.ticket.description,
-      priorite: this.ticket.priorite,
-      qualification: this.ticket.qualification,
+      priorityId: this.ticket.priorityId,
+      qualificationId: this.ticket.qualificationId,
       projetId: this.ticket.projet!.id,
-      categorieProblemeId: this.ticket.categorieProbleme!.id,
-      statuts: 'refusé',
-      raisonRejet: this.rejectionForm.value.reason
+      problemCategoryId: this.ticket.problemCategory!.id,
+      statutId: 3, // Refusé
+      reasonRejection: this.rejectionForm.value.reason
     };
 
     this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({
@@ -410,11 +477,17 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   developerAccept(): void {
-    if (!this.ticket) return;
+    if (!this.ticket) { return; }
     
     const updatedTicket: TicketUpdateDto = {
-      ...this.ticket,
-      statuts: 'en cours'
+      id: this.ticket.id,
+      title: this.ticket.title,
+      description: this.ticket.description,
+      priorityId: this.ticket.priorityId,
+      qualificationId: this.ticket.qualificationId,
+      projetId: this.ticket.projet!.id,
+      problemCategoryId: this.ticket.problemCategory!.id,
+      statutId: 4 // En cours
     };
 
     this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({
@@ -440,13 +513,19 @@ export class TicketDetailsComponent implements OnInit {
   }
 
   developerReject(): void {
-    if (!this.ticket || !this.selectedNewDevId) return;
+    if (!this.ticket || !this.selectedNewDevId) { return; }
 
     const updatedTicket: TicketUpdateDto = {
-      ...this.ticket,
-      developpeurId: this.selectedNewDevId,
-      raisonRejet: this.developerRejectionForm.value.reason,
-      statuts: 'accepté'
+      id: this.ticket.id,
+      title: this.ticket.title,
+      description: this.ticket.description,
+      priorityId: this.ticket.priorityId,
+      qualificationId: this.ticket.qualificationId,
+      projetId: this.ticket.projet!.id,
+      problemCategoryId: this.ticket.problemCategory!.id,
+      statutId: 2, // Replacer à « Accepté »
+      responsibleId: this.selectedNewDevId,
+      reasonRejection: this.developerRejectionForm.value.reason
     };
 
     this.ticketService.updateTicket(this.ticket.id, updatedTicket).subscribe({

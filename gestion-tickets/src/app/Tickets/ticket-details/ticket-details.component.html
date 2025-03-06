@@ -4,19 +4,17 @@
     <!-- En-tête : Titre -->
     <div class="header header-actions">
       <div class="smaller-container title-container">
-        <!-- Si c'est un client et qu'on est en mode édition, on affiche l'input sinon on affiche le titre en lecture seule -->
         <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayTitle">
           <div class="edit-name-container">
             <span class="info-label">Titre</span>
-            <input type="text" formControlName="titre" class="edit-field edit-name" />
-            <div *ngIf="editTicketForm.get('titre')?.touched && editTicketForm.get('titre')?.invalid"
-              class="invalid-feedback">
+            <input type="text" formControlName="title" class="edit-field edit-name" />
+            <div *ngIf="editTicketForm.get('title')?.touched && editTicketForm.get('title')?.invalid" class="invalid-feedback">
               Le titre est obligatoire.
             </div>
           </div>
         </ng-container>
         <ng-template #displayTitle>
-          <h1>{{ ticket.titre }}</h1>
+          <h1>{{ ticket.title }}</h1>
         </ng-template>
       </div>
       <button class="back-btn" routerLink="/home/Tickets">Retour</button>
@@ -28,14 +26,14 @@
       <div class="info-item">
         <span class="info-label">Qualification</span>
         <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayQualification">
-          <select id="qualification" formControlName="qualification" class="form-control"
-            [class.is-invalid]="editTicketForm.get('qualification')?.touched && editTicketForm.get('qualification')?.invalid">
+          <select id="qualificationId" formControlName="qualificationId" class="form-control"
+                  [class.is-invalid]="editTicketForm.get('qualificationId')?.touched && editTicketForm.get('qualificationId')?.invalid">
             <option value="" disabled>Sélectionnez une qualification</option>
-            <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
+            <option *ngFor="let q of qualifications" [value]="q.id">{{ q.name }}</option>
           </select>
         </ng-container>
         <ng-template #displayQualification>
-          <span class="info-value">{{ ticket.qualification }}</span>
+          <span class="info-value">{{ getQualificationLabel(ticket.qualificationId) }}</span>
         </ng-template>
       </div>
       <!-- Projet -->
@@ -43,7 +41,7 @@
         <span class="info-label">Projet</span>
         <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayProjet">
           <select id="projetId" formControlName="projetId" class="form-control"
-            [class.is-invalid]="editTicketForm.get('projetId')?.touched && editTicketForm.get('projetId')?.invalid">
+                  [class.is-invalid]="editTicketForm.get('projetId')?.touched && editTicketForm.get('projetId')?.invalid">
             <option value="" disabled>Sélectionnez un projet</option>
             <option *ngFor="let p of projets" [value]="p.id">{{ p.nom }}</option>
           </select>
@@ -54,77 +52,71 @@
       </div>
     </div>
 
-    <!-- Ligne 2 : Catégorie de Problème & Priorité -->
+    <!-- Ligne 2 : Catégorie, Priorité & Statut -->
     <div class="ticket-info info-grid">
-      <!-- Catégorie -->
+      <!-- Catégorie de problème -->
       <div class="info-item">
         <span class="info-label">Catégorie</span>
         <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayCategorie">
-          <select id="categorieProblemeId" formControlName="categorieProblemeId" class="form-control"
-            [class.is-invalid]="editTicketForm.get('categorieProblemeId')?.touched && editTicketForm.get('categorieProblemeId')?.invalid">
+          <select id="problemCategoryId" formControlName="problemCategoryId" class="form-control"
+                  [class.is-invalid]="editTicketForm.get('problemCategoryId')?.touched && editTicketForm.get('problemCategoryId')?.invalid">
             <option value="" disabled>Sélectionnez une catégorie</option>
             <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
           </select>
         </ng-container>
         <ng-template #displayCategorie>
-          <span class="info-value">{{ ticket.categorieProbleme?.nom }}</span>
+          <span class="info-value">{{ ticket.problemCategory?.nom || 'Non défini' }}</span>
         </ng-template>
       </div>
       <!-- Priorité -->
       <div class="info-item">
         <span class="info-label">Priorité</span>
-        <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayPriorite">
-          <select id="priorite" formControlName="priorite" class="form-control"
-            [class.is-invalid]="editTicketForm.get('priorite')?.touched && editTicketForm.get('priorite')?.invalid">
+        <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayPriority">
+          <select id="priorityId" formControlName="priorityId" class="form-control"
+                  [class.is-invalid]="editTicketForm.get('priorityId')?.touched && editTicketForm.get('priorityId')?.invalid">
             <option value="" disabled>Sélectionnez une priorité</option>
-            <option *ngFor="let p of prioriteOptions" [value]="p">{{ p }}</option>
+            <option *ngFor="let p of priorities" [value]="p.id">{{ p.name }}</option>
           </select>
         </ng-container>
-        <ng-template #displayPriorite>
-          <span class="info-value" [ngClass]="getPriorityClass(ticket.priorite)">
-            {{ ticket.priorite }}
+        <ng-template #displayPriority>
+          <span class="info-value" [ngClass]="getPriorityClass(ticket.priorityId)">
+            {{ getPriorityLabel(ticket.priorityId) }}
           </span>
         </ng-template>
       </div>
+      <!-- Statut -->
       <div class="info-item">
-        <span class="info-label">Statuts</span>
-        <!-- Si l'utilisateur est développeur et qu'il a activé le mode édition du statut, affiche le select -->
-        <ng-container
-          *ngIf="(currentUser?.role?.toLowerCase() === 'collaborateur' && editStatusMode); else displayStatus">
-          <select id="statuts" formControlName="statuts" class="form-control"
-            [class.is-invalid]="editTicketForm.get('statuts')?.touched && editTicketForm.get('statuts')?.invalid">
+        <span class="info-label">Statut</span>
+        <!-- Correction : vérification pour 'développeur' au lieu de 'collaborateur' -->
+        <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'collaborateur' && editStatusMode); else displayStatus">
+          <select id="statutId" formControlName="statutId" class="form-control"
+                  [class.is-invalid]="editTicketForm.get('statutId')?.touched && editTicketForm.get('statutId')?.invalid">
             <option value="" disabled>Sélectionnez un statut</option>
-            <option value="non ouvert">Non ouvert</option>
-            <option value="accepté">Accepté</option>
-            <option value="refusé">Refusé</option>
-            <option value="en cours">En cours</option>
-            <option value="résolu">Résolu</option>
+            <option *ngFor="let s of statuses" [value]="s.id">{{ s.name }}</option>
           </select>
         </ng-container>
         <ng-template #displayStatus>
-          <span class="info-value" [ngClass]="getStatusClass(ticket.statuts)">
-            {{ ticket.statuts }}
+          <span class="info-value" [ngClass]="getStatusClass(ticket.statutId)">
+            {{ getStatusLabel(ticket.statutId) }}
           </span>
         </ng-template>
       </div>
     </div>
 
-    <!-- Section Client & Développeur Assigné : visible uniquement pour super admin / chef de projet -->
+    <!-- Section Client & Développeur assigné (pour Super Admin / Chef de projet) -->
     <div class="ticket-info info-grid" *ngIf="shouldShowClientAndDev()">
       <!-- Client -->
       <div class="info-item">
         <span class="info-label">Client</span>
         <span class="info-value">
-          {{ ticket.utilisateur?.firstName }} {{ ticket.utilisateur?.lastName }}
+          {{ ticket.owner?.firstName }} {{ ticket.owner?.lastName }}
         </span>
       </div>
-
-      <!-- Développeur Assigné -->
+      <!-- Développeur assigné -->
       <div class="info-item">
-        <span class="info-label">Développeur Assigné</span>
-        <!-- Si le mode édition pour dev est activé, affiche le select -->
+        <span class="info-label">Développeur assigné</span>
         <ng-container *ngIf="(isAdminOrChef() && editDevMode); else displayDev">
-          <select formControlName="developpeurId" class="form-control">
+          <select formControlName="responsibleId" class="form-control">
             <option value="">Sélectionner un développeur</option>
             <option *ngFor="let dev of developers" [value]="dev.id">
               {{ dev.firstName }} {{ dev.lastName }}
@@ -133,13 +125,11 @@
         </ng-container>
         <ng-template #displayDev>
           <span class="info-value">
-            {{ ticket.developpeur?.firstName }} {{ ticket.developpeur?.lastName || 'Non assigné' }}
+            {{ ticket.responsible?.firstName }} {{ ticket.responsible?.lastName || 'Non assigné' }}
           </span>
         </ng-template>
       </div>
     </div>
-
-
 
     <!-- Ligne 3 : Description -->
     <div class="ticket-info info-grid">
@@ -147,9 +137,8 @@
         <span class="info-label">Description</span>
         <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayDescription">
           <textarea id="description" formControlName="description" class="edit-field description"
-            [class.is-invalid]="editTicketForm.get('description')?.touched && editTicketForm.get('description')?.invalid"></textarea>
-          <div *ngIf="editTicketForm.get('description')?.touched && editTicketForm.get('description')?.invalid"
-            class="invalid-feedback">
+                    [class.is-invalid]="editTicketForm.get('description')?.touched && editTicketForm.get('description')?.invalid"></textarea>
+          <div *ngIf="editTicketForm.get('description')?.touched && editTicketForm.get('description')?.invalid" class="invalid-feedback">
             La description est obligatoire.
           </div>
         </ng-container>
@@ -163,63 +152,62 @@
     <div class="ticket-info info-grid">
       <div class="info-item">
         <span class="info-label">Attachement</span>
-        <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayAttachement">
-          <input id="attachement" type="file" (change)="onFileSelected($event)" class="form-control-file">
+        <ng-container *ngIf="(currentUser?.role?.toLowerCase() === 'client' && editMode); else displayAttachment">
+          <input id="attachments" type="file" (change)="onFileSelected($event)" class="form-control-file">
         </ng-container>
-        <ng-template #displayAttachement>
-          <ng-container *ngIf="ticket.attachement; else noAttachement">
-            <a [href]="ticket.attachement" target="_blank">Voir l'attachement</a>
+        <ng-template #displayAttachment>
+          <ng-container *ngIf="ticket.attachments; else noAttachment">
+            <a [href]="ticket.attachments" target="_blank">Voir l'attachement</a>
           </ng-container>
-          <ng-template #noAttachement>
+          <ng-template #noAttachment>
             <span class="info-value">Aucun attachement</span>
           </ng-template>
         </ng-template>
       </div>
     </div>
 
-    <!-- Boutons de sauvegarde et d'annulation pour le client -->
+    <!-- Boutons de sauvegarde / annulation (client) -->
     <div class="button-group" *ngIf="currentUser?.role?.toLowerCase() === 'client' && editMode">
       <button type="submit" class="edit-btn">Enregistrer</button>
       <button type="button" class="delete-btn" (click)="cancelEdit()">Annuler</button>
     </div>
   </form>
 
-  <!-- Bouton pour le client -->
+  <!-- Bouton « Modifier » pour le client -->
   <div *ngIf="!editMode && currentUser?.role?.toLowerCase() === 'client'" class="buttons">
     <button class="edit-btn" (click)="enableEditMode()">Modifier</button>
   </div>
 
-  <!-- Bouton pour Admin/Chef : Afficher "Modifier Développeur" uniquement si un développeur est assigné -->
-  <div *ngIf="!editDevMode && isAdminOrChef() && ticket.developpeur" class="buttons">
+  <!-- Bouton « Modifier Développeur » pour Admin/Chef (si développeur assigné) -->
+  <div *ngIf="!editDevMode && isAdminOrChef() && ticket.responsible" class="buttons">
     <button class="edit-btn" (click)="enableEditDevMode()">Modifier Développeur</button>
   </div>
 
-  <!-- Bouton pour Développeur : Afficher "Modifier Statuts" si le mode édition n'est pas activé -->
+  <!-- Bouton « Modifier Statut » pour Développeur -->
   <div *ngIf="!editStatusMode && currentUser?.role?.toLowerCase() === 'collaborateur'" class="buttons">
-    <button class="edit-btn" (click)="enableEditStatusMode()">Modifier Statuts</button>
+    <button class="edit-btn" (click)="enableEditStatusMode()">Modifier Statut</button>
   </div>
 
-  <!-- Boutons d'actions pour super admin / chef de projet (exemple : Accepter / Refuser) -->
+  <!-- Boutons d'actions pour Super Admin / Chef (ex. : Accepter / Refuser) -->
   <div *ngIf="isActionable()" class="buttons">
     <button class="edit-btn" (click)="showAccept()">Accepter</button>
     <button class="delete-btn" (click)="showReject()">Refuser</button>
   </div>
 
-  <!-- Ajout des boutons pour l'admin -->
+  <!-- Boutons pour modification du développeur (Admin/Chef) -->
   <div class="button-group" *ngIf="isAdminOrChef() && editDevMode">
     <button type="submit" class="edit-btn">Enregistrer</button>
     <button type="button" class="delete-btn" (click)="cancelEditDevMode()">Annuler</button>
   </div>
 
-  <!-- Ajout des boutons pour le développeur -->
+  <!-- Boutons pour modification du statut (Développeur) -->
   <div class="button-group" *ngIf="currentUser?.role?.toLowerCase() === 'collaborateur' && editStatusMode">
     <button type="submit" class="edit-btn">Enregistrer</button>
     <button type="button" class="delete-btn" (click)="cancelEditStatusMode()">Annuler</button>
   </div>
 
-  <!-- Nouvelle section pour l'acceptation/rejet par le développeur -->
-  <div *ngIf="currentUser?.role?.toLowerCase() === 'collaborateur' && ticket?.statuts?.toLowerCase() === 'accepté'"
-    class="buttons">
+  <!-- Section pour acceptation/rejet par le développeur -->
+  <div *ngIf="currentUser?.role?.toLowerCase() === 'collaborateur' && getStatusLabel(ticket.statutId)?.toLowerCase() === 'accepté'" class="buttons">
     <button class="edit-btn" (click)="developerAccept()">Accepter et commencer</button>
     <button class="delete-btn" (click)="openDeveloperRejectForm()">Refuser et réassigner</button>
   </div>
@@ -233,14 +221,13 @@
       </select>
       <textarea formControlName="reason" placeholder="Raison du refus..." required></textarea>
       <div class="form-actions">
-        <button class="edit-btn" (click)="developerReject()"
-          [disabled]="!developerRejectionForm.valid">Confirmer</button>
+        <button class="edit-btn" (click)="developerReject()" [disabled]="!developerRejectionForm.valid">Confirmer</button>
         <button class="delete-btn" (click)="cancelDeveloperReject()">Annuler</button>
       </div>
     </form>
   </div>
 
-  <!-- Formulaire d'acceptation (pour assigner un développeur via le workflow d'acceptation) -->
+  <!-- Formulaire d'acceptation (assigner un développeur) -->
   <div *ngIf="showAcceptForm" class="action-form">
     <h4>Assigner un développeur</h4>
     <select [(ngModel)]="selectedDevId">

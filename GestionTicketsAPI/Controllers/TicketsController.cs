@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using AutoMapper;
 using CloudinaryDotNet.Actions;
 using GestionTicketsAPI.DTOs;
@@ -28,6 +29,15 @@ namespace GestionTicketsAPI.Controllers
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromQuery] UserParams ticketParams)
     {
+      // Extraction des informations de l'utilisateur connecté via les claims
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+      if (userIdClaim != null && roleClaim != null)
+      {
+        ticketParams.UserId = int.Parse(userIdClaim.Value);
+        ticketParams.Role = roleClaim.Value;
+      }
+
       var pagedTickets = await _ticketService.GetTicketsPagedAsync(ticketParams);
       var pagination = new
       {

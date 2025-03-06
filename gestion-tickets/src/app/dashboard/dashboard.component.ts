@@ -52,6 +52,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isModalOpen = false;
 
+  
+  userInitials = "";
   constructor(
     private sidenavService: SidenavService,
     private breakpointObserver: BreakpointObserver, 
@@ -60,6 +62,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    if (this.currentUser) {
+      this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
+    }
     // Gestion de la réactivité selon la taille de l'écran
     this.breakpointObserver.observe([Breakpoints.Small, Breakpoints.XSmall]).subscribe(result => {
       if (result.matches) {
@@ -75,7 +80,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.sidenavSubscription = this.sidenavService.sidenavState$.subscribe(state => {
       this.isSidenavOpen = state;
     });
-  }
+    }
 
   ngOnDestroy() {
     if (this.sidenavSubscription) {
@@ -116,3 +121,4 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
   
 }
+

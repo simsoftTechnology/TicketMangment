@@ -1,26 +1,26 @@
-import { CategorieProbleme } from "./categorie-probleme.model";
-import { Projet } from "./Projet";
-import { User } from "./user";
+import { CategorieProbleme } from './categorie-probleme.model';
+import { Projet } from './Projet';
+import { User } from './user';
+
 
 export interface Ticket {
   id: number;
-  titre: string;
+  title: string;
   description: string;
-  priorite: string;
-  statuts: string;
-  dateCreation: Date;
-  dateModification?: Date;
-  utilisateurId: number;
-  utilisateur?: User;
-  categorieProblemeId: number;
-  categorieProbleme?: CategorieProbleme;
-  qualification: string;
-  attachement?: string; 
+  priorityId: number;
+  statutId: number;
+  createdAt: Date;
+  updatedAt?: Date;
+  ownerId: number;
+  owner?: User;
+  problemCategoryId: number;
+  problemCategory?: CategorieProbleme;
+  qualificationId: number;
+  attachments?: string;
   projetId: number;
   projet?: Projet;
   selected?: boolean;
-  raisonRejet?: string;
-  developpeur?: User;
-  developpeurId?: number; // Propriété ajoutée
+  responsibleId?: number;
+  responsible?: User;
+  reasonRejection?: string; // Si nécessaire pour le workflow (ex : raison de rejet)
 }
-

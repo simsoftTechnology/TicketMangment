@@ -1,53 +1,61 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { TicketService } from '../../_services/ticket.service';
-import { CommonModule, NgFor, NgIf, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
 import { Ticket } from '../../_models/ticket';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
+import { QualificationService } from '../../_services/qualification.service';
+import { PrioriteService } from '../../_services/priorite.service';
+import { StatusService } from '../../_services/status.service';
 
 @Component({
-    selector: 'app-list-tickets',
-    imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
-    templateUrl: './list-tickets.component.html',
-    styleUrls: ['./list-tickets.component.css']
+  selector: 'app-list-tickets',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterLink],
+  templateUrl: './list-tickets.component.html',
+  styleUrls: ['./list-tickets.component.css']
 })
 export class ListTicketsComponent implements OnInit {
   private ticketService = inject(TicketService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   accountService = inject(AccountService);
-  
+  private qualificationService = inject(QualificationService);
+  private priorityService = inject(PrioriteService);
+  private statusService = inject(StatusService);
+
   currentUser: User | null = null;
-  // Variables pour la pagination
   pageNumber: number = 1;
   pageSize: number = 9;
   paginatedResult: PaginatedResult<Ticket[]> | null = null;
   jumpPage: number = 1;
-
-  // Terme de recherche pour filtrer les tickets
   ticketsSearchTerm: string = '';
-
-  // Variable pour conserver l'ID du ticket ajouté récemment (pour surligner)
   newTicketId: number | null = null;
+
+  // Nouveaux tableaux pour qualifications, priorités et statuts
+  qualifications: { id: number, name: string }[] = [];
+  priorities: { id: number, name: string }[] = [];
+  statuses: { id: number, name: string }[] = [];
 
   ngOnInit(): void {
     this.currentUser = this.accountService.currentUser();
+    this.loadQualifications();
+    this.loadPriorities();
+    this.loadStatuses();
+
     this.route.queryParams.subscribe(params => {
       const newTicket = params['newTicket'];
       if (newTicket) {
         this.newTicketId = +newTicket;
-        // Recharger la liste pour inclure le nouveau ticket
         this.getTickets();
-        // Supprimer le paramètre "newTicket" de l'URL pour éviter qu'il ne soit retraité
         this.router.navigate([], {
           queryParams: { newTicket: null },
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        // Supprimer la surbrillance après 2 secondes
         setTimeout(() => { this.newTicketId = null; }, 2000);
       } else {
         this.getTickets();
@@ -55,15 +63,46 @@ export class ListTicketsComponent implements OnInit {
     });
   }
 
-  // Appel du service pour charger les tickets paginés en passant le terme de recherche
+  loadQualifications(): void {
+    this.qualificationService.getQualifications().subscribe({
+      next: (data) => {
+        this.qualifications = data;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des qualifications', err);
+      }
+    });
+  }
+
+  loadPriorities(): void {
+    this.priorityService.getPriorites().subscribe({
+      next: (data) => {
+        this.priorities = data;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des priorités', err);
+      }
+    });
+  }
+
+  loadStatuses(): void {
+    this.statusService.getStatuses().subscribe({
+      next: (data) => {
+        this.statuses = data;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des statuts', err);
+      }
+    });
+  }
+
   getTickets(): void {
     this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, this.ticketsSearchTerm).subscribe({
       next: (response) => {
-        // Conversion des dates et initialisation de la propriété selected
         const updatedItems = (response.items ?? []).map(ticket => {
-          ticket.dateCreation = new Date(ticket.dateCreation);
-          if (ticket.dateModification) {
-            ticket.dateModification = new Date(ticket.dateModification);
+          ticket.createdAt = new Date(ticket.createdAt);
+          if (ticket.updatedAt) {
+            ticket.updatedAt = new Date(ticket.updatedAt);
           }
           return { ...ticket, selected: ticket.selected ?? false };
         });
@@ -78,13 +117,11 @@ export class ListTicketsComponent implements OnInit {
     });
   }
 
-  // Déclenché lors du changement de terme de recherche
   onSearchChange(): void {
     this.pageNumber = 1;
     this.getTickets();
   }
-  
-  // Changement de page
+
   onPageChange(newPage: number): void {
     const maxPage = this.paginatedResult?.pagination?.totalPages || 1;
     this.pageNumber = Math.min(Math.max(newPage, 1), maxPage);
@@ -92,27 +129,18 @@ export class ListTicketsComponent implements OnInit {
     this.getTickets();
   }
 
-  // Saut direct vers une page donnée
   jumpToPage(): void {
     const totalPages = this.paginatedResult?.pagination?.totalPages || 1;
     this.jumpPage = Math.min(Math.max(Number(this.jumpPage), 1), totalPages);
     this.onPageChange(this.jumpPage);
   }
 
-  // Retourne un tableau de numéros de page
-  getPages(): number[] {
-    const totalPages = this.paginatedResult?.pagination?.totalPages || 0;
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
-
-  // Sélection de tous les tickets de la page courante
   selectAll(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
     const currentItems = this.paginatedResult?.items ?? [];
     currentItems.forEach(ticket => ticket.selected = checkbox.checked);
   }
 
-  // Bascule la sélection d'un ticket
   toggleSelection(ticket: Ticket): void {
     ticket.selected = !ticket.selected;
     const currentItems = this.paginatedResult?.items ?? [];
@@ -123,9 +151,8 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  // Suppression d'un ticket
   deleteTicket(ticket: Ticket): void {
-    if (confirm(`Voulez-vous vraiment supprimer le ticket "${ticket.titre}" ?`)) {
+    if (confirm(`Voulez-vous vraiment supprimer le ticket "${ticket.title}" ?`)) {
       this.ticketService.deleteTicket(ticket.id).subscribe({
         next: () => {
           alert('Ticket supprimé avec succès.');
@@ -139,16 +166,15 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  // Suppression des tickets sélectionnés
   deleteSelectedTickets(): void {
     const items = this.paginatedResult?.items ?? [];
     const selectedIds = items.filter(ticket => ticket.selected).map(ticket => ticket.id);
-        
+
     if (selectedIds.length === 0) {
       alert("Aucun ticket sélectionné pour la suppression.");
       return;
     }
-  
+
     if (confirm("Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?")) {
       this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
         next: () => {
@@ -163,44 +189,54 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  // Génère un tableau pour itérer sur les tailles de page (par exemple de 1 à 10)
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
 
-  getPriorityClass(priority: string): string {
-    if (!priority) return '';
-    switch (priority.toLowerCase()) {
-      case 'urgent':
+  getPriorityClass(priorityId: number): string {
+    switch (priorityId) {
+      case 1:
         return 'priority-urgent';
-      case 'élevé':
+      case 2:
         return 'priority-eleve';
-      case 'moyen':
+      case 3:
         return 'priority-moyen';
-      case 'faible':
+      case 4:
         return 'priority-faible';
       default:
         return '';
     }
   }
-  
-  getStatusClass(status: string): string {
-    if (!status) return '';
-    switch (status.toLowerCase()) {
-      case 'non ouvert':
+
+  getStatusClass(statutId: number): string {
+    switch (statutId) {
+      case 1:
         return 'status-non-ouvert';
-      case 'accepté':
+      case 2:
         return 'status-accepte';
-      case 'refusé':
+      case 3:
         return 'status-refuse';
-      case 'en cours':
+      case 4:
         return 'status-en-cours';
-      case 'résolu':
+      case 5:
         return 'status-resolu';
       default:
         return '';
     }
   }
-  
-  
+
+  getQualificationLabel(qualificationId: number): string {
+    const found = this.qualifications.find(q => q.id === qualificationId);
+    return found ? found.name : 'Non défini';
+  }
+
+  getPriorityLabel(priorityId: number): string {
+    const found = this.priorities.find(p => p.id === priorityId);
+    return found ? found.name : '';
+  }
+
+  getStatusLabel(statutId: number): string {
+    const found = this.statuses.find(s => s.id === statutId);
+    return found ? found.name : '';
+  }
 }
