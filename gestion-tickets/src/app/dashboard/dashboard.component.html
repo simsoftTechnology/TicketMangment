@@ -14,12 +14,6 @@
           <span class="nav-text">Tickets</span>
         </div>
       </a>
-      <a mat-list-item [routerLink]="['/home', 'status-tickets']" routerLinkActive="active-nav-item">
-        <div class="menu-item">
-          <mat-icon class="nav-icon">assignment</mat-icon>
-          <span class="nav-text">Statuts des Tickets</span>
-        </div>
-      </a>
 
       <!-- Lien « Catégories des Problèmes » uniquement pour Super Admin -->
       <a mat-list-item *ngIf="isSuperAdmin()" [routerLink]="['/home', 'Categories']" routerLinkActive="active-nav-item">

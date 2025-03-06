@@ -24,12 +24,14 @@ import { StatutDesTicket } from '../../_models/statut-des-ticket.model';
 import { Priorite } from '../../_models/priorite.model';
 import { StatusService } from '../../_services/status.service';
 import { PrioriteService } from '../../_services/priorite.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AttachProjectDialogComponent } from '../attach-project-dialog/attach-project-dialog.component';
 
 @Component({
-    selector: 'app-details-utilisateur',
-    imports: [FormsModule, NgIf, NgFor, CommonModule, PipesModule, ReactiveFormsModule, DefaultPipe],
-    templateUrl: './details-utilisateur.component.html',
-    styleUrls: ['./details-utilisateur.component.css']
+  selector: 'app-details-utilisateur',
+  imports: [FormsModule, NgIf, NgFor, CommonModule, PipesModule, ReactiveFormsModule, DefaultPipe],
+  templateUrl: './details-utilisateur.component.html',
+  styleUrls: ['./details-utilisateur.component.css']
 })
 export class DetailsUtilisateurComponent implements OnInit {
   private user: User | null = null;  // stocke les données utilisateur récupérées
@@ -55,11 +57,11 @@ export class DetailsUtilisateurComponent implements OnInit {
   confirmPasswordVisible = false;
   paysList: Pays[] = [];
   societesList: Societe[] = [];
-  
+
   roles: Role[] = [];
   statuses: StatutDesTicket[] = [];
   priorities: Priorite[] = [];
-  
+
   constructor(
     private paysService: PaysService,
     private societeService: SocieteService,
@@ -70,10 +72,11 @@ export class DetailsUtilisateurComponent implements OnInit {
     private router: Router,
     private projetService: ProjetService,
     private contratService: ContratService,
-    private roleService: RoleService ,
+    private roleService: RoleService,
     private statusService: StatusService,
-    private prioriteService: PrioriteService
-  ) {}
+    private prioriteService: PrioriteService,
+    private dialog: MatDialog
+  ) { }
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
   get userDetails(): User | null {
@@ -85,7 +88,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   ngOnInit(): void {
     this.loadPays();
     this.loadSocietes();
-    this.loadRoles(); 
+    this.loadRoles();
     this.loadStatuses();
     this.loadPriorities();
 
@@ -106,6 +109,29 @@ export class DetailsUtilisateurComponent implements OnInit {
   }
 
 
+
+  openAttachProjectDialog(): void {
+    const dialogRef = this.dialog.open(AttachProjectDialogComponent, {
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.user) {
+        this.projetService.ajouterUtilisateurAuProjet(
+          result.projetId,
+          this.user.id,
+          'Membre' // Valeur par défaut
+        ).subscribe({
+          next: () => {
+            this.toastr.success('Projet attaché avec succès');
+            this.loadProjects();
+          },
+          error: (err) => {
+            this.toastr.error("Erreur lors de l'attachement du projet");
+          }
+        });
+      }
+    });
+  }
 
   loadPays(): void {
     this.paysService.getPays().subscribe({
@@ -160,7 +186,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   getPriorityName(priorityId: number): string {
     return this.priorities.find(p => p.id === priorityId)?.name || 'Inconnu';
   }
-  
+
   initForm(): void {
     this.userForm = this.fb.group({
       id: [null],
@@ -178,7 +204,7 @@ export class DetailsUtilisateurComponent implements OnInit {
     }, { validators: newPasswordMatchValidator });
   }
 
-  
+
 
   initContratForm(): void {
     this.contratForm = this.fb.group({
@@ -188,7 +214,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       type: ['', Validators.required]
     });
   }
-  
+
 
   loadUserDetails(userId: number): void {
     this.accountService.getUser(userId).subscribe({
@@ -218,7 +244,7 @@ export class DetailsUtilisateurComponent implements OnInit {
               : '',
             type: user.contrat.type
           });
-        }               
+        }
         this.loadProjects();
         this.loadTickets();
       },
@@ -226,7 +252,7 @@ export class DetailsUtilisateurComponent implements OnInit {
         console.error("Erreur lors du chargement de l'utilisateur", error)
     });
   }
-  
+
 
   // Mise à jour de l'utilisateur
   onSubmit(): void {
@@ -240,7 +266,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
-    
+
     const updatedUser: User = this.userForm.value;
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
@@ -254,7 +280,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
-  
+
 
   onCancel(): void {
     // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
@@ -272,11 +298,11 @@ export class DetailsUtilisateurComponent implements OnInit {
       });
     }
   }
-  
+
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;
   }
-  
+
   toggleConfirmPasswordVisibility(): void {
     this.confirmPasswordVisible = !this.confirmPasswordVisible;
   }
@@ -292,26 +318,26 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Aucun contrat trouvé pour cet utilisateur.");
       return;
     }
-  
+
     // Vérifier si au moins un champ du contrat a été modifié
     if (!this.contratForm.dirty) {
       this.toastr.warning("Veuillez modifier au moins un champ du contrat.");
       return;
     }
-    
+
     // Vérifier que le formulaire est valide
     if (this.contratForm.invalid) {
       this.toastr.error("Veuillez corriger les erreurs du formulaire de contrat.");
       return;
     }
-    
+
     // Fusionner l'objet contrat original avec les valeurs du formulaire pour conserver les valeurs non modifiées
     const originalContrat = this.user.contrat;
     const contratToUpdate = {
       ...originalContrat,      // Conserve toutes les valeurs actuelles (ClientId, SocietePartenaireId, etc.)
       ...this.contratForm.value // Écrase uniquement les valeurs modifiées (dateDebut, dateFin, type, etc.)
     };
-  
+
     // Appel au service en utilisant l'ID du contrat (et non l'ID de l'utilisateur)
     this.contratService.updateContract(contratToUpdate.id, contratToUpdate).subscribe({
       next: () => {
@@ -320,7 +346,7 @@ export class DetailsUtilisateurComponent implements OnInit {
         if (this.user) {
           this.user.contrat = contratToUpdate;
         }
-        
+
         console.log("Contrat mis à jour :", contratToUpdate);
       },
       error: (error) => {
@@ -329,8 +355,8 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
-  
-    
+
+
 
   cancelContrat(): void {
     if (this.user && this.user.contrat) {
@@ -349,7 +375,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   // Chargement des projets associés à l'utilisateur
   loadProjects(): void {
     if (!this.user) return;
-    
+
     this.accountService
       .getUserProjects(this.user.id, this.projetPageNumber, this.projetPageSize, this.projectSearchTerm)
       .subscribe((res: PaginatedResult<Projet[]>) => {
@@ -374,7 +400,7 @@ export class DetailsUtilisateurComponent implements OnInit {
     const member = this.user?.projetMembers?.find(m => m.projetId === projectId);
     return member ? member.role : 'Non défini';
   }
-  
+
   switchTab(tab: string): void {
     this.activeTab = tab;
     if (tab === 'projets') {
@@ -403,8 +429,8 @@ export class DetailsUtilisateurComponent implements OnInit {
 
   onDeleteUserFromProject(projetId: number): void {
     if (!this.user) return; // Vérification si l'utilisateur est chargé
-  
-    const firstName = this.user.firstName; 
+
+    const firstName = this.user.firstName;
     const lastName = this.user.lastName;
     if (confirm(`Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`)) {
       this.projetService.supprimerUtilisateurDuProjet(projetId, this.user.id).subscribe({
@@ -420,13 +446,13 @@ export class DetailsUtilisateurComponent implements OnInit {
     }
   }
 
-  
+
 }
 
 export const newPasswordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const nouveauPassword = control.get('nouveauPassword');
   const confirmNouveauPassword = control.get('confirmNouveauPassword');
-  
+
   // Si aucun des deux n'est renseigné, pas d'erreur (le changement de mot de passe est optionnel)
   if (!nouveauPassword?.value && !confirmNouveauPassword?.value) {
     return null;

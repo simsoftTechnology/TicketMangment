@@ -12,7 +12,6 @@ import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
 import { forkJoin } from 'rxjs';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
-import { ProjetModalComponent } from '../projet-modal/projet-modal.component';
 import { DropdownService } from './../../_services/dropdown.service';
 
 @Component({
@@ -78,16 +77,9 @@ export class AjouterProjetComponent implements OnInit {
     this.loadSocietes();
     this.loadPays();
     this.loadUtilisateurs();
-    this.openProjectTypeModal();
   }
 
-  openProjectTypeModal(): void {
-    const modalInstance = this.overlayModalService.open(ProjetModalComponent);
-    modalInstance.projectTypeSelected.subscribe((isSociete: boolean) => {
-      this.isSocieteProjet = isSociete;
-      this.overlayModalService.close();
-    });
-  }
+  
 
   loadSocietes(): void {
     this.societeService.getSocietes().subscribe(
@@ -116,11 +108,12 @@ export class AjouterProjetComponent implements OnInit {
   }
 
   ajouterProjet(): void {
-    if (!this.projet.nom || !this.projet.idPays || !this.selectedChefId) {
+    // Vérifiez les champs obligatoires (nom, chef, et société)
+    if (!this.projet.nom || !this.selectedChefId) {
       this.erreurMessage = "Veuillez remplir tous les champs obligatoires.";
       return;
     }
-
+    
     if (this.isSocieteProjet && !this.projet.societeId) {
       this.erreurMessage = "Veuillez sélectionner une société.";
       return;
@@ -128,15 +121,16 @@ export class AjouterProjetComponent implements OnInit {
       this.erreurMessage = "Veuillez sélectionner un client.";
       return;
     }
-
+    
     if (this.isSocieteProjet) {
       this.projet.clientId = null;
     } else {
       this.projet.societeId = null;
     }
-
+    
+    // Conversion en nombre si nécessaire
     this.projet.idPays = +this.projet.idPays;
-
+    
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
         this.ajouterUtilisateursAuProjet(projetCree.id);
@@ -147,6 +141,7 @@ export class AjouterProjetComponent implements OnInit {
       }
     });
   }
+  
 
   ajouterUtilisateursAuProjet(projetId: number): void {
     const requests = [];
@@ -240,11 +235,6 @@ export class AjouterProjetComponent implements OnInit {
 
   filterItems(type: string): void {
     switch (type) {
-      case 'pays':
-        this.filteredPays = this.pays.filter(p =>
-          p.nom.toLowerCase().includes(this.searchPays.toLowerCase())
-        );
-        break;
       case 'societe':
         this.filteredSocietes = this.societes.filter(s =>
           s.nom.toLowerCase().includes(this.searchSociete.toLowerCase())
@@ -265,12 +255,13 @@ export class AjouterProjetComponent implements OnInit {
 
   selectItem(item: any, type: string): void {
     switch (type) {
-      case 'pays':
-        this.projet.idPays = item.idPays;
-        this.isPaysDropdownOpen = false;
-        break;
       case 'societe':
         this.projet.societeId = item.id;
+        // Trouver la société sélectionnée et mettre à jour le pays
+        const selectedSociete = this.societes.find(s => s.id === item.id);
+        if (selectedSociete) {
+          this.projet.idPays = selectedSociete.paysId; // Assurez-vous que Societe possède idPays
+        }
         this.isSocieteDropdownOpen = false;
         break;
       case 'chef':
@@ -283,6 +274,7 @@ export class AjouterProjetComponent implements OnInit {
         break;
     }
   }
+  
 
   getPaysName(idPays: number): string {
     return this.pays.find(p => p.idPays === idPays)?.nom || '';
