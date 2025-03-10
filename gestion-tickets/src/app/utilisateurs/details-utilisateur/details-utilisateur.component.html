@@ -188,6 +188,13 @@
           </td>
           <td colspan="3">
             <div class="search-wrapper">
+              <button type="button" class="btn-create" (click)="openAttachProjectDialog()">Attacher</button>
+            </div>
+          </td>
+        </tr>
+        <tr class="filter-row">
+          <td colspan="4">
+            <div class="search-wrapper">
               <input type="text" class="search-input" placeholder="Rechercher un projet..."
                 [(ngModel)]="projectSearchTerm" (ngModelChange)="onProjectSearch()" />
               <span class="material-icons search-icon">search</span>

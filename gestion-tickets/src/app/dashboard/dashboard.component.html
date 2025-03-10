@@ -14,12 +14,6 @@
           <span class="nav-text">Tickets</span>
         </div>
       </a>
-      <a mat-list-item [routerLink]="['/home', 'status-tickets']" routerLinkActive="active-nav-item">
-        <div class="menu-item">
-          <mat-icon class="nav-icon">assignment</mat-icon>
-          <span class="nav-text">Statuts des Tickets</span>
-        </div>
-      </a>
 
       <!-- Lien « Catégories des Problèmes » uniquement pour Super Admin -->
       <a mat-list-item *ngIf="isSuperAdmin()" [routerLink]="['/home', 'Categories']" routerLinkActive="active-nav-item">
@@ -39,12 +33,6 @@
             <mat-icon class="nav-icon">{{ isBaseDataOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
           </div>
           <div *ngIf="isBaseDataOpen" class="submenu">
-            <a mat-list-item [routerLink]="['/home', 'Pays']" routerLinkActive="active-nav-item">
-              <div class="menu-item">
-                <mat-icon class="nav-icon">flag</mat-icon>
-                <span class="nav-text">Pays</span>
-              </div>
-            </a>
             <a mat-list-item [routerLink]="['/home', 'Projets']" routerLinkActive="active-nav-item">
               <div class="menu-item">
                 <mat-icon class="nav-icon">work</mat-icon>
@@ -57,10 +45,16 @@
                 <span class="nav-text">Sociétés</span>
               </div>
             </a>
+            <a mat-list-item [routerLink]="['/home', 'clients']" routerLinkActive="active-nav-item">
+              <div class="menu-item">
+                <mat-icon class="nav-icon">groups</mat-icon>
+                <span class="nav-text">Clients</span>
+              </div>
+            </a>
             <a mat-list-item [routerLink]="['/home', 'utilisateurs']" routerLinkActive="active-nav-item">
               <div class="menu-item">
                 <mat-icon class="nav-icon">groups</mat-icon>
-                <span class="nav-text">Utilisateurs</span>
+                <span class="nav-text">Personnels</span>
               </div>
             </a>
           </div>

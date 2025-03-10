@@ -27,6 +27,9 @@ import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.compon
 import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
 import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
 import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
+import { WorkflowCreationComponent } from './workflow-creation/workflow-creation.component';
+import { ListClientsComponent } from './Clients/list-clients/list-clients.component';
+import { AjouterClientComponent } from './Clients/ajouter-client/ajouter-client.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -60,6 +63,18 @@ export const routes: Routes = [
       {
         path: 'utilisateurs/details/:id',
         component: DetailsUtilisateurComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'clients',
+        component: ListClientsComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['Super Admin'] }
+      },
+      {
+        path: 'clients/AjouterClient',
+        component: AjouterClientComponent,
         canActivate: [RoleGuard],
         data: { roles: ['Super Admin'] }
       },
@@ -107,7 +122,7 @@ export const routes: Routes = [
       },
       {
         path: 'Societes/ajouterSociete',
-        component: AjouterSocieteComponent,
+        component: WorkflowCreationComponent,
         canActivate: [RoleGuard],
         data: { roles: ['Super Admin'] }
       },

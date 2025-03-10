@@ -1,0 +1,57 @@
+<div class="form-wrapper">
+  <div class="form-header">
+    <h2>Attacher un projet</h2>
+    <button class="close-button" (click)="onCancel()">&times;</button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label>Projet <span class="required">*</span></label>
+      <div class="custom-select">
+        <div class="select-box" #dropdownTrigger (click)="openDropdownOverlay(dropdownTrigger)">
+          <div class="selected-item">
+            <ng-container *ngIf="selectedProject; else defaultText">
+              {{ selectedProject.nom }} - {{ selectedProject.nomSociete }}
+            </ng-container>
+            <ng-template #defaultText>
+              Sélectionner un projet
+            </ng-template>
+          </div>
+          
+          <span class="arrow">▼</span>
+        </div>
+      </div>
+      <div *ngIf="form.get('projetId')?.invalid && form.get('projetId')?.touched" class="invalid-feedback">
+        Le projet est obligatoire
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
+      <button type="submit" class="btn-create" [disabled]="form.invalid">Attacher</button>
+    </div>
+  </form>
+</div>
+
+<!-- Template pour le dropdown (attaché dynamiquement via Overlay) -->
+<ng-template #dropdownTemplate>
+  <div class="dropdown-overlay">
+    <div class="search-box">
+      <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="searchQuery" (input)="filterProjects()" />
+    </div>
+    <div class="option-list">
+      <ng-container *ngIf="filteredProjects.length > 0; else noResults">
+        <div *ngFor="let p of filteredProjects" class="option-item" (click)="selectProject(p)">
+          {{ p.nom }} - {{ p.nomSociete || 'Nom non renseigné' }}
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #noResults>
+  <div class="no-results">
+    <span class="no-results-icon">🔍</span>
+    <p class="no-results-text">Aucun résultat trouvé</p>
+  </div>
+</ng-template>

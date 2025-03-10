@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { Projet } from '../_models/Projet';
 import { ProjetMember } from '../_models/projet-member';
 import { PaginatedResult } from '../_models/pagination';
@@ -73,9 +73,19 @@ export class ProjetService {
   }
 
   // Ajouter un utilisateur à un projet
-  ajouterUtilisateurAuProjet(projetId: number, userId: number, role: string): Observable<void> {
-    const body = { userId: userId, role: role };
-    return this.http.post<void>(`${this.baseUrl}/${projetId}/utilisateurs`, body);
+  ajouterUtilisateurAuProjet(projetId: number, userId: number): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}/api/projets/${projetId}/utilisateurs`,
+      { userId } // Corriger le payload si nécessaire
+    ).pipe(
+      catchError((error) => {
+        if (error.status === 409) {
+          // Gérer spécifiquement le conflit
+          throw new Error('Cet utilisateur est déjà associé au projet.');
+        }
+        throw error;
+      })
+    );
   }
 
   // Récupérer les membres d'un projet

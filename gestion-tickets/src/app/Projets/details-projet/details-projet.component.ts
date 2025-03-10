@@ -297,7 +297,7 @@ export class DetailsProjetComponent implements OnInit {
 
   addUserToProjet(user: User): void {
     if (this.projet && this.projet.id && user.id) {
-      this.projetService.ajouterUtilisateurAuProjet(this.projet.id, user.id, user.role)
+      this.projetService.ajouterUtilisateurAuProjet(this.projet.id, user.id)
         .subscribe({
           next: () => {
             alert('Utilisateur ajouté avec succès');

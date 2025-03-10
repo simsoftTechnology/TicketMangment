@@ -1,0 +1,60 @@
+<div class="wizard-container">
+  <mat-horizontal-stepper linear #stepper class="custom-stepper">
+    <!-- Étape 1 : Création de la Société -->
+    <mat-step>
+      <ng-template matStepLabel>Création de la Société</ng-template>
+      <app-ajouter-societe 
+        [isWizard]="true" 
+        (societeCreated)="onSocieteCreated($event)">
+      </app-ajouter-societe>
+      <div class="step-actions">
+        <div></div> <!-- Spacer for flex alignment -->
+        <button mat-button matStepperNext [disabled]="!societeData" class="primary-action">
+          <span>Suivant</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+
+    <!-- Étape 2 : Création/Sélection du Projet -->
+    <mat-step>
+      <ng-template matStepLabel>Création ou sélection du Projet</ng-template>
+      <app-ajouter-projet 
+        [isWizard]="true" 
+        [societeId]="societeData?.id"
+        (projetCreated)="onProjetCreated($event)">
+      </app-ajouter-projet>
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon>
+          <span>Précédent</span>
+        </button>
+        <button mat-button matStepperNext [disabled]="!projetData" class="primary-action">
+          <span>Suivant</span>
+          <mat-icon>arrow_forward</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+
+    <!-- Étape 3 : Création du Client -->
+    <mat-step>
+      <ng-template matStepLabel>Création du Client</ng-template>
+      <app-ajouter-client 
+        [isWizard]="true"
+        [societeId]="societeData?.id"
+        (clientCreated)="onClientCreated($event)">
+      </app-ajouter-client>
+      <div class="step-actions">
+        <button mat-button matStepperPrevious>
+          <mat-icon>arrow_back</mat-icon>
+          <span>Précédent</span>
+        </button>
+        <button mat-button (click)="finishWizard()" [disabled]="!clientData" class="primary-action">
+          <span>Terminer</span>
+          <mat-icon>check</mat-icon>
+        </button>
+      </div>
+    </mat-step>
+  </mat-horizontal-stepper>
+</div>
+

@@ -1,0 +1,140 @@
+/* Styles de base pour le stepper */
+.mat-stepper-horizontal, .mat-stepper-vertical {
+  background-color: #eceaea;
+}
+
+/* Conteneur du wizard */
+.wizard-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Style personnalisé pour le stepper */
+.custom-stepper {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* En-têtes d'étapes */
+::ng-deep .mat-step-header {
+  padding: 12px 24px;
+  height: 72px;
+}
+
+::ng-deep .mat-step-header .mat-step-icon {
+  background-color: #ff5722; /* Orange pour l'étape active comme le bouton Annuler dans l'image */
+  color: white;
+  font-weight: bold;
+}
+
+::ng-deep .mat-step-header .mat-step-icon-not-touched {
+  background-color: #cccccc;
+}
+
+::ng-deep .mat-step-header .mat-step-label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+::ng-deep .mat-step-header .mat-step-label.mat-step-label-active {
+  color: #333;
+  font-weight: 600;
+}
+
+/* Contenu des étapes */
+::ng-deep .mat-horizontal-content-container {
+  padding: 24px 32px;
+  background-color: white;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Boutons de navigation */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.step-actions button {
+  border-radius: 4px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.step-actions .primary-action {
+  background-color: #ff5722; /* Orange comme le bouton Annuler dans l'image */
+  color: white;
+  border: none;
+}
+
+.step-actions .primary-action:hover {
+  background-color: #e64a19;
+}
+
+.step-actions .primary-action:disabled {
+  background-color: #cccccc;
+  color: #666666;
+}
+
+.step-actions button:not(.primary-action) {
+  background-color: transparent;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.step-actions button:not(.primary-action):hover {
+  background-color: #f5f5f5;
+}
+
+/* Style des formulaires dans les étapes */
+::ng-deep app-ajouter-societe,
+::ng-deep app-ajouter-projet,
+::ng-deep app-ajouter-client {
+  display: block;
+  margin-bottom: 20px;
+}
+
+::ng-deep input.mat-input-element,
+::ng-deep select.mat-input-element {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 100%;
+  font-size: 16px;
+}
+
+::ng-deep .mat-form-field {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+::ng-deep .mat-form-field-label {
+  color: #555;
+}
+
+::ng-deep .mat-form-field-underline {
+  background-color: #ddd;
+}
+
+::ng-deep .mat-form-field-ripple {
+  background-color: #ff5722;
+}
+
+/* Séparateur d'étapes */
+::ng-deep .mat-stepper-horizontal-line {
+  border-top-width: 2px;
+}
+
+/* Style pour le toggle contrat (similaire à celui de l'image) */
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-thumb {
+  background-color: #ff5722;
+}
+
+::ng-deep .mat-slide-toggle.mat-checked .mat-slide-toggle-bar {
+  background-color: rgba(255, 87, 34, 0.5);
+}

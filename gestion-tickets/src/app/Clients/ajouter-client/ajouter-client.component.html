@@ -1,0 +1,147 @@
+<div class="form-container">
+  <h2>Ajouter Client</h2>
+
+  <form [formGroup]="registerForm" (ngSubmit)="register()">
+    <!-- Ligne 1 : Nom et Prénom -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="lastName">Nom <span class="required">*</span></label>
+        <input id="lastName" type="text" formControlName="lastName" class="form-control"
+          [class.is-invalid]="registerForm.get('lastName')?.touched && registerForm.get('lastName')?.invalid" />
+        <div *ngIf="registerForm.get('lastName')?.hasError('required')" class="invalid-feedback text-start">
+          Nom est obligatoire
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="firstName">Prénom <span class="required">*</span></label>
+        <input id="firstName" type="text" formControlName="firstName" class="form-control"
+          [class.is-invalid]="registerForm.get('firstName')?.touched && registerForm.get('firstName')?.invalid" />
+        <div *ngIf="registerForm.get('firstName')?.hasError('required')" class="invalid-feedback text-start">
+          Prénom est obligatoire
+        </div>
+      </div>
+    </div>
+
+    <!-- Ligne 2 : Email et Pays -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="email">Email <span class="required">*</span></label>
+        <input id="email" type="email" formControlName="email" class="form-control"
+          [class.is-invalid]="registerForm.get('email')?.touched && registerForm.get('email')?.invalid" />
+        <div *ngIf="registerForm.get('email')?.hasError('required')" class="invalid-feedback text-start">
+          Email est obligatoire
+        </div>
+        <div *ngIf="registerForm.get('email')?.hasError('email')" class="invalid-feedback text-start">
+          Email invalide
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="numTelephone">Numéro de Téléphone <span class="required">*</span></label>
+        <input id="numTelephone" type="tel" formControlName="numTelephone" class="form-control"
+          [class.is-invalid]="registerForm.get('numTelephone')?.touched && registerForm.get('numTelephone')?.invalid" />
+        <div *ngIf="registerForm.get('numTelephone')?.hasError('required')" class="invalid-feedback text-start">
+          Numéro de téléphone est obligatoire
+        </div>
+        <div *ngIf="registerForm.get('numTelephone')?.hasError('pattern')" class="invalid-feedback text-start">
+          Numéro de téléphone invalide (exemple : +216 54 567 589)
+        </div>
+      </div>
+    </div>
+
+    <!-- Ligne 3 : Mot de passe et Confirmation -->
+    <div class="form-row">
+      <div class="form-group">
+        <label for="password">Mot de passe <span class="required">*</span></label>
+        <div class="password-container">
+          <input id="password" [type]="passwordVisible ? 'text' : 'password'" formControlName="password"
+            class="form-control"
+            [class.is-invalid]="registerForm.get('password')?.touched && registerForm.get('password')?.invalid" />
+          <i class="fa" [ngClass]="passwordVisible ? 'fa-eye-slash' : 'fa-eye'"
+            (click)="togglePasswordVisibility()"></i>
+          <div *ngIf="registerForm.get('password')?.hasError('required')" class="invalid-feedback text-start">
+            Mot de passe est obligatoire
+          </div>
+          <div *ngIf="registerForm.get('password')?.hasError('minlength')" class="invalid-feedback text-start">
+            Mot de passe doit avoir au moins 6 caractères
+          </div>
+          <div *ngIf="registerForm.get('password')?.hasError('maxlength')" class="invalid-feedback text-start">
+            Mot de passe ne doit pas dépasser 8 caractères
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="isWizard">
+        <label for="confirmPassword">Confirmer le mot de passe <span class="required">*</span></label>
+        <div class="password-container">
+          <input id="confirmPassword" [type]="confirmPasswordVisible ? 'text' : 'password'" formControlName="confirmPassword"
+            class="form-control"
+            [class.is-invalid]="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid" />
+          <i class="fa" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"
+            (click)="toggleConfirmPasswordVisibility()"></i>
+          <div *ngIf="registerForm.get('confirmPassword')?.hasError('required')" class="invalid-feedback text-start">
+            Confirmation du mot de passe est obligatoire
+          </div>
+          <div *ngIf="registerForm.get('confirmPassword')?.hasError('isMatching')" class="invalid-feedback text-start">
+            Les mots de passe ne sont pas identiques
+          </div>
+        </div>
+      </div>
+      <div class="form-group" *ngIf="!isWizard">
+        <label for="societe">Société<span class="required">*</span></label>
+        <select id="societe" formControlName="societe" class="form-control"
+          [class.is-invalid]="registerForm.get('societe')?.touched && registerForm.get('societe')?.invalid">
+          <option value="">Sélectionnez une société</option>
+          <option *ngFor="let s of societesList" [value]="s.id">{{ s.nom }}</option>
+        </select>
+        <div *ngIf="registerForm.get('societe')?.hasError('required')" class="invalid-feedback text-start">
+          Société est obligatoire
+        </div>
+      </div>
+
+      
+    </div>
+
+    <div class="form-row" *ngIf="!isWizard">
+      <div class="form-group">
+        <label for="confirmPassword">Confirmer le mot de passe <span class="required">*</span></label>
+        <div class="password-container">
+          <input id="confirmPassword" [type]="confirmPasswordVisible ? 'text' : 'password'" formControlName="confirmPassword"
+            class="form-control"
+            [class.is-invalid]="registerForm.get('confirmPassword')?.touched && registerForm.get('confirmPassword')?.invalid" />
+          <i class="fa" [ngClass]="confirmPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"
+            (click)="toggleConfirmPasswordVisibility()"></i>
+          <div *ngIf="registerForm.get('confirmPassword')?.hasError('required')" class="invalid-feedback text-start">
+            Confirmation du mot de passe est obligatoire
+          </div>
+          <div *ngIf="registerForm.get('confirmPassword')?.hasError('isMatching')" class="invalid-feedback text-start">
+            Les mots de passe ne sont pas identiques
+          </div>
+        </div>
+      </div>
+      <div class="form-group"></div>
+    </div>
+    <!-- Ligne 5 : Options Actif et Contrat -->
+    <div class="form-row">
+      <div class="form-group toggle-container">
+        <div class="toggle-row">
+          <div class="toggle-group">
+            <label for="actif">Actif <span class="required">*</span></label>
+            <div class="toggle-switch">
+              <input type="checkbox" id="actif" formControlName="actif" />
+              <label for="actif" class="toggle-label"></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Boutons d'action -->
+    <div class="button-group">
+      <button type="submit" class="btn-create">Créer</button>
+      <button type="button" class="btn-add" (click)="createAndReset()">Créer & Ajouter un autre</button>
+      <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
+    </div>
+  </form>
+</div>
