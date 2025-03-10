@@ -6,6 +6,7 @@ export interface Societe {
   nom: string;
   adresse: string;
   telephone: string;
+  paysId: number;
   selected?: boolean;
   utilisateurs: User[];
   projets: Projet[]; 

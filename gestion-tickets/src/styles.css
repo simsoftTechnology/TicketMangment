@@ -1,38 +1,67 @@
-.cdk-overlay-container,
-.mat-dialog-container {
+.cdk-overlay-container, .mat-dialog-container {
   z-index: 10000 !important;
 }
 
-/* Styles globaux pour tous les toasts */
+/* Global styles for all toasts */
 .custom-toast {
-  background-color: #28a745 !important; /* Vert */
+  background-color: #28a745 !important;
   color: white !important;
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 8px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  margin: 8px;
+  max-width: 350px;
+  line-height: 1.4;
 }
 
-
-
-/* Style spécifique aux toasts de succès */
+/* Success toast style - more refined */
 .toast-success {
-  background-color: #198754 !important; /* Vert foncé */
-}
-
-/* Style spécifique aux toasts d'erreur */
-.toast-error {
-  background-color: #dc3545 !important; /* Rouge */
-}
-
-
-
-/* Style spécifique aux toasts d'information */
-.toast-info {
-  background-color: #0dcaf0 !important; /* Bleu */
-}
-
-/* Personnaliser la barre de progression */
-.toast-progress {
+  color: #0d6e3a !important;
   background-color: white !important;
+  border-left: 4px solid #198754;
+}
+
+/* Error toast style */
+.toast-error {
+  background-color: white !important;
+  color: #b02a37 !important;
+  border-left: 4px solid #dc3545;
+}
+
+/* Info toast style */
+.toast-info {
+  background-color: white !important;
+  color: #087990 !important;
+  border-left: 4px solid #0dcaf0;
+}
+
+/* Progress bar customization */
+.toast-progress {
+  background-color: rgba(25, 135, 84, 0.7) !important;
+  height: 3px;
+  bottom: 0;
+}
+
+/* Styles pour les icônes */
+.toast-success .toast-icon,
+.toast-error .toast-icon,
+.toast-info .toast-icon {
+  display: inline-block !important;
+  margin-right: 8px;
+  font-size: 18px;
+  vertical-align: middle;
+}
+
+.toast-success .toast-icon {
+  color: #198754 !important;
+}
+
+.toast-error .toast-icon {
+  color: #dc3545 !important;
+}
+
+.toast-info .toast-icon {
+  color: #0dcaf0 !important;
 }

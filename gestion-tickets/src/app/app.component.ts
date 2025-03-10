@@ -11,7 +11,7 @@ import { NgxEditorModule } from 'ngx-editor';
     selector: 'app-root',
     imports: [RouterOutlet, MatDialogModule, OverlayModule,
       AngularEditorModule,
-      NgxEditorModule],
+      NgxEditorModule,],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })

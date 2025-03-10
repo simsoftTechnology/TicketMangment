@@ -45,6 +45,7 @@ public class ProjetRepository : IProjetRepository
         .Include(p => p.Societe)
         .Include(p => p.Pays)
         .Include(p => p.ProjetUsers)
+        .AsNoTracking()
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { SocieteService } from '../../_services/societe.service';
 import { PaysService } from '../../_services/pays.service';
@@ -15,6 +15,9 @@ import { MatDialog } from '@angular/material/dialog';
     styleUrls: ['./ajouter-societe.component.css']
 })
 export class AjouterSocieteComponent implements OnInit {
+  @Input() isWizard: boolean = false;
+  @Output() societeCreated = new EventEmitter<any>();
+
   societeForm!: FormGroup;
   paysList: any[] = []; // Liste des pays
   societesList: any[] = []; // Liste des sociétés
@@ -113,15 +116,20 @@ export class AjouterSocieteComponent implements OnInit {
 
       console.log('Objet société envoyé à l\'API :', societeForAdd);
       this.societeService.addSociete(societeForAdd).subscribe({
-        next: () => {
+        next: (result) => {
           this.toastr.success("Ajouté avec succès");
-          this.router.navigate(['/home/Societes']);
+          if (this.isWizard) {
+            // Émission de l’événement pour informer le Wizard
+            this.societeCreated.emit(result);
+          } else {
+            this.router.navigate(['/home/Societes']);
+          }
         },
         error: (err) => {
           this.toastr.error("Erreur lors de l'ajout de la société");
-          console.error('Erreur lors de l\'ajout:', err);
+          console.error('Erreur lors de l’ajout:', err);
         }
-      });
+      });      
     }
   }
   

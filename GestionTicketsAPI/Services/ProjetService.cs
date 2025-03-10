@@ -115,7 +115,14 @@ public class ProjetService : IProjetService
     var projet = await _projetRepository.GetProjetByIdAsync(projetId);
     if (projet == null) return false;
 
-    // Création de l'association sans le rôle
+    // Vérifiez si l'association existe déjà
+    var existingAssociation = await _projetRepository.GetProjetUserAsync(projetId, projetUserDto.UserId);
+    if (existingAssociation != null)
+    {
+      // L'association existe déjà, on lance une exception pour signaler ce conflit
+      throw new InvalidOperationException("L'association existe déjà.");
+    }
+
     var projetUser = new ProjetUser
     {
       ProjetId = projetId,
@@ -124,6 +131,8 @@ public class ProjetService : IProjetService
     await _projetRepository.AddProjetUserAsync(projetUser);
     return await _projetRepository.SaveAllAsync();
   }
+
+
 
   // La méthode AssignerRoleAsync a été supprimée car le rôle n'est plus utilisé
 

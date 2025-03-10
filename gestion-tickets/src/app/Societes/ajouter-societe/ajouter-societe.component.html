@@ -58,7 +58,7 @@
           class="form-control"
           [class.is-invalid]="societeForm.get('paysId')?.touched && societeForm.get('paysId')?.invalid"
         >
-          <option value="" disabled selected>-- Sélectionnez un pays --</option>
+          <option value="" disabled selected> Sélectionnez un pays </option>
           <option *ngFor="let pays of paysList" [value]="pays.idPays">
             {{ pays.nom }}
           </option>

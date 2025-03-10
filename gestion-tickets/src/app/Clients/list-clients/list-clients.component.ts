@@ -5,19 +5,19 @@ import { User } from '../../_models/user';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
-
 @Component({
-  selector: 'app-list-utilisateurs',
-  imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
-  templateUrl: './list-utilisateurs.component.html',
-  styleUrls: ['./list-utilisateurs.component.css']
+  selector: 'app-list-clients',
+  imports: [ NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule],
+  templateUrl: './list-clients.component.html',
+  styleUrl: './list-clients.component.css'
 })
-export class ListUtilisateursComponent implements OnInit {
+export class ListClientsComponent {
+
   public accountService = inject(AccountService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-
-
+  
+  
   // Variables pour la pagination
   pageNumber: number = 1;
   pageSize: number = 9;
@@ -53,8 +53,8 @@ export class ListUtilisateursComponent implements OnInit {
     });
     this.setCurrentUser();
   }
-
-
+  
+  
 
   setCurrentUser(): void {
     const userString = localStorage.getItem('user');
@@ -64,46 +64,46 @@ export class ListUtilisateursComponent implements OnInit {
   }
 
   // Appel du service pour charger la page demandée en passant le terme de recherche
-
-  getUsers(): void {
-    this.accountService.getUsers(this.pageNumber, this.pageSize, this.usersSearchTerm).subscribe({
-      next: (response) => {
-        // Conversion et formatage des dates
-        const updatedItems = (response.items ?? [])
-          .map(user => {
-            if (user.contrat) {
-              user.contrat.dateDebut = new Date(user.contrat.dateDebut);
-              if (user.contrat.dateFin) {
-                user.contrat.dateFin = new Date(user.contrat.dateFin);
-              }
+  // Appel du service pour charger la page demandée en passant le terme de recherche
+getUsers(): void {
+  this.accountService.getUsers(this.pageNumber, this.pageSize, this.usersSearchTerm).subscribe({
+    next: (response) => {
+      // Conversion et formatage des dates
+      const updatedItems = (response.items ?? [])
+        .map(user => {
+          if (user.contrat) {
+            user.contrat.dateDebut = new Date(user.contrat.dateDebut);
+            if (user.contrat.dateFin) {
+              user.contrat.dateFin = new Date(user.contrat.dateFin);
             }
-            return { ...user, selected: false };
-          })
-          // Filtrer pour ne conserver que les utilisateurs avec le rôle "client"
-          .filter(user => user.role.toLowerCase().trim() !== 'client');
+          }
+          return { ...user, selected: false };
+        })
+        // Filtrer pour ne conserver que les utilisateurs avec le rôle "client"
+        .filter(user => user.role.toLowerCase().trim() === 'client');
 
-        const result: PaginatedResult<User[]> = {
-          items: updatedItems,
-          pagination: response.pagination
-        };
+      const result: PaginatedResult<User[]> = {
+        items: updatedItems,
+        pagination: response.pagination
+      };
 
-        this.accountService.paginatedResult.set(result);
-        this.paginatedResult = result;
-      },
-      error: (error) => {
-        console.error('Erreur lors du chargement des utilisateurs paginés', error);
-      }
-    });
-  }
+      this.accountService.paginatedResult.set(result);
+      this.paginatedResult = result;
+    },
+    error: (error) => {
+      console.error('Erreur lors du chargement des utilisateurs paginés', error);
+    }
+  });
+}
 
-
+  
 
   // Méthode déclenchée lors de la modification du terme de recherche
   onSearchChange(): void {
     this.pageNumber = 1;
     this.getUsers();
   }
-
+  
   // Méthode pour changer de page et relancer la requête
   onPageChange(newPage: number): void {
     const maxPage = this.accountService.paginatedResult()?.pagination?.totalPages || 1;
@@ -154,16 +154,7 @@ export class ListUtilisateursComponent implements OnInit {
     });
   }
 
-  // Retourne la classe CSS en fonction du rôle
-  getRoleClass(role: string): string {
-    switch (role.toLowerCase()) {
-      case 'super admin': return 'super-admin';
-      case 'chef de projet': return 'chef-de-projet';
-      case 'développeur': return 'developpeur';
-      case 'client': return 'client';
-      default: return '';
-    }
-  }
+  
 
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
@@ -186,5 +177,4 @@ export class ListUtilisateursComponent implements OnInit {
       });
     }
   }
-
 }
