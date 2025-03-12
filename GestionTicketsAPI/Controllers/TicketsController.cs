@@ -5,6 +5,7 @@ using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -17,16 +18,22 @@ namespace GestionTicketsAPI.Controllers
     private readonly ITicketService _ticketService;
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
+    private readonly EmailService _emailService; 
+        private readonly IUserService _userService;
+        private readonly ILogger<TicketsController> _logger;
 
-    public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService)
-    {
-      _ticketService = ticketService;
-      _mapper = mapper;
-      _photoService = photoService;
-    }
+        public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, EmailService emailService, IUserService userService, ILogger<TicketsController> logger)
+        {
+            _ticketService = ticketService;
+            _mapper = mapper;
+            _photoService = photoService;
+            _emailService = emailService;
+            _userService = userService;
+            _logger = logger;
+        }
 
-    // GET api/tickets?...
-    [HttpGet]
+        // GET api/tickets?...
+        [HttpGet]
     public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromQuery] UserParams ticketParams)
     {
       // Extraction des informations de l'utilisateur connecté via les claims
@@ -66,8 +73,13 @@ namespace GestionTicketsAPI.Controllers
       var ticket = _mapper.Map<Ticket>(ticketCreateDto);
       ticket.CreatedAt = DateTime.UtcNow;
       await _ticketService.AddTicketAsync(ticket);
-      var ticketDto = _mapper.Map<TicketDto>(ticket);
-      return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
+      var  ticketDto = _mapper.Map<TicketDto>(ticket);
+      var  owner = _userService.GetUserByIdAsync(ticketDto.OwnerId);
+            Console.WriteLine($"LOG: {owner}");
+            _logger.LogInformation("TestLog endpoint was called at {Time}", DateTime.UtcNow);
+            //var chef = _userService.GetUserByIdAsync(ticketDto.Projet.);
+            // bool emailSent = await _emailService.SendEmailAsync(owner, owner, "Welcome to Simsoft!", "Thank you for registering.");
+            return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
     }
 
     // POST api/tickets/withAttachment
