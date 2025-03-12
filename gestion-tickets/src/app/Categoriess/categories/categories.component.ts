@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { CategorieModalComponent } from '../categorie-modal/categorie-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-categories',
@@ -27,7 +28,8 @@ export class CategoriesComponent implements OnInit {
   showAddModal: boolean = false;
 
   constructor(private categorieService: CategorieProblemeService,
-    private overlayModalService: OverlayModalService
+    private overlayModalService: OverlayModalService,
+    private toastr: ToastrService,
   ) { }
 
   ngOnInit(): void {
@@ -126,9 +128,25 @@ export class CategoriesComponent implements OnInit {
           // Recharge la liste des catégories pour afficher la nouvelle
           this.loadCategories();
         },
-        error: (err) => {
-          console.error("Erreur lors de l'ajout de la catégorie :", err);
-          alert("Une erreur est survenue lors de l'ajout de la catégorie.");
+        error: (error) => {
+          console.error('Erreur ajout catégorie', error);
+          let errMsg = "Erreur lors de l'ajout de la catégorie.";
+          if (Array.isArray(error)) {
+            errMsg = error.join(' ');
+          } else if (typeof error === 'string') {
+            errMsg = error;
+          } else if (error.error) {
+            if (Array.isArray(error.error)) {
+              errMsg = error.error.join(' ');
+            } else if (typeof error.error === 'string') {
+              errMsg = error.error;
+            } else if (typeof error.error === 'object') {
+              errMsg = error.error.message || JSON.stringify(error.error);
+            }
+          } else if (error.message) {
+            errMsg = error.message;
+          }
+          this.toastr.error(errMsg);
         }
       });
     });

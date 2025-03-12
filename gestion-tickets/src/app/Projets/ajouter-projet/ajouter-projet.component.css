@@ -30,6 +30,12 @@
   border-color: rgb(232, 2, 2);
 }
 
+.is-invalid + .invalid-feedback {
+  display: block !important;
+}
+
+
+
 h2 {
   margin-bottom: 2rem;
   font-weight: 500;
@@ -312,24 +318,15 @@ select[multiple] {
   background-color: #e74a01;
   transform: translateY(-2px);
 } 
-
-/* État vide - aucun résultat */
-.no-results {
+.btn-create:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}
+.no-result {
   padding: 24px 16px;
   text-align: center;
   color: #6b7280;
-}
-
-.no-results-icon {
-  font-size: 32px;
-  color: #f57c00;
-  margin-bottom: 12px;
-  display: block;
-}
-
-.no-results-text {
-  font-size: 0.95rem;
-  margin: 0;
 }
 
 /* Responsive styles */

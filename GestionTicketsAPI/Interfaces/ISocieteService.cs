@@ -14,4 +14,8 @@ namespace GestionTicketsAPI.Interfaces;
         Task<bool> UpdateSocieteAsync(int id, SocieteDto societeDto);
         Task<bool> DeleteSocieteAsync(int id);
         Task<bool> DeleteSocietesAsync(List<int> ids);
+        Task<PagedList<UserDto>> GetSocieteUsersPagedAsync(int societeId, UserParams userParams);
+        Task<bool> AttachUserToSocieteAsync(int societeId, int userId);
+        Task<bool> DetachUserFromSocieteAsync(int societeId, int userId);
+        Task<bool> SocieteExists(string nom);
     }

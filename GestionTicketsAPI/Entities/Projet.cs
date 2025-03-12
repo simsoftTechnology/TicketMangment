@@ -12,18 +12,31 @@ namespace GestionTicketsAPI.Entities
     [StringLength(100)]
     public string Nom { get; set; } = string.Empty;
 
-    // Nouveau champ optionnel Description
     public string? Description { get; set; }
 
-    public int? ChefProjetId { get; set; } // Propriété ajoutée pour le chef de projet
+    public int? ChefProjetId { get; set; }
     public User? ChefProjet { get; set; } 
-    // Un projet peut appartenir soit à une société, soit à un client (mais pas aux deux)
-    public int? SocieteId { get; set; }
-    public Societe? Societe { get; set; }
 
+    public int? SocieteId { get; set; }
+    
+    // Utilisation d'un champ privé pour la société
+    private Societe? _societe;
+    public Societe? Societe
+    {
+      get => _societe;
+      set
+      {
+        _societe = value;
+        // Synchronisation de la propriété IdPays avec le pays de la société
+        IdPays = _societe?.PaysId;
+      }
+    }
+
+    // Maintenant mappée en base avec un setter
     [ForeignKey("Pays")]
     [Column("id_pays")]
-    public int IdPays { get; set; }
+    public int? IdPays { get; set; }
+    
     public Pays? Pays { get; set; }
 
     public DateTime? CreatedAt { get; set; }

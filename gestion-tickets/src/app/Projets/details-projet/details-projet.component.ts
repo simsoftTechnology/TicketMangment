@@ -17,6 +17,7 @@ import { PaysService } from '../../_services/pays.service';
 import { SocieteService } from '../../_services/societe.service';
 import { UserSelectorDialogComponent } from '../../user-selector-dialog/user-selector-dialog.component';
 import { PaginatedResult } from '../../_models/pagination';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
     selector: 'app-details-projet',
@@ -70,6 +71,7 @@ export class DetailsProjetComponent implements OnInit {
     public accountService: AccountService,
     private paysService: PaysService,
     private societeService: SocieteService,
+    private toastr: ToastrService,
     public router: Router,
     private dialog: MatDialog,
     private location: Location,
@@ -228,26 +230,32 @@ export class DetailsProjetComponent implements OnInit {
   
   // Méthode de sélection d'une société dans le dropdown
   selectSociete(societe: any): void {
-    // Affecte l'identifiant de la société au projet (adapter selon votre modèle)
+    // Affecte l'identifiant de la société
     this.projet.societeId = societe.id || societe.idSociete;
+    // Affecte automatiquement l'id du pays de la société au projet
+    this.projet.idPays = societe.paysId;
     // Ferme le dropdown
     this.isSocieteDropdownOpen = false;
     // Réinitialise le champ de recherche et recharge la liste complète
     this.searchSociete = '';
     this.loadSocietes();
   }
+  
 
   // --- Sauvegarde, annulation et suppression du projet ---
   saveProjet(): void {
-    this.projetService.updateProjet(this.projet).subscribe({
-      next: () => {
-        alert('Projet mis à jour avec succès');
-        this.editMode = false;
-        this.getProjetDetails();
-      },
-      error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
-    });
+    if (confirm("Confirmez-vous la modification du projet ?")) {
+      this.projetService.updateProjet(this.projet).subscribe({
+        next: () => {
+          alert('Projet mis à jour avec succès');
+          this.editMode = false;
+          this.getProjetDetails();
+        },
+        error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
+      });
+    }
   }
+  
 
   cancelEdit(): void {
     this.editMode = false;
@@ -300,15 +308,23 @@ export class DetailsProjetComponent implements OnInit {
       this.projetService.ajouterUtilisateurAuProjet(this.projet.id, user.id, user.role)
         .subscribe({
           next: () => {
-            alert('Utilisateur ajouté avec succès');
+            // Par exemple, afficher une notification de succès
+            this.toastr.success('Utilisateur ajouté avec succès');
             this.getMembres();
           },
-          error: (err) => { console.error('Erreur lors de l’ajout de l’utilisateur', err); }
+          error: (err) => {
+            if (err.status === 409) {
+              this.toastr.error(err.error.message, 'Erreur');
+            } else {
+              console.error('Erreur lors de l’ajout de l’utilisateur', err);
+            }
+          }
         });
     } else {
       alert("Veuillez sélectionner un utilisateur valide.");
     }
   }
+  
 
   removeUser(userId: number): void {
     if (this.projet && this.projet.id) {
@@ -316,7 +332,7 @@ export class DetailsProjetComponent implements OnInit {
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
             next: () => {
-              alert('Utilisateur retiré avec succès');
+              this.toastr.success('Utilisateur retiré avec succès');
               this.getMembres();
             },
             error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }

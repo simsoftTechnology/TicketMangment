@@ -99,6 +99,7 @@ export class ListTicketsComponent implements OnInit {
   getTickets(): void {
     this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, this.ticketsSearchTerm).subscribe({
       next: (response) => {
+        console.log('Réponse reçue:', response);
         const updatedItems = (response.items ?? []).map(ticket => {
           ticket.createdAt = new Date(ticket.createdAt);
           if (ticket.updatedAt) {
@@ -112,6 +113,7 @@ export class ListTicketsComponent implements OnInit {
         };
       },
       error: (error) => {
+        console.error('Erreur API:', error);
         console.error('Erreur lors du chargement des tickets paginés', error);
       }
     });
@@ -151,20 +153,6 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  deleteTicket(ticket: Ticket): void {
-    if (confirm(`Voulez-vous vraiment supprimer le ticket "${ticket.title}" ?`)) {
-      this.ticketService.deleteTicket(ticket.id).subscribe({
-        next: () => {
-          alert('Ticket supprimé avec succès.');
-          this.getTickets();
-        },
-        error: error => {
-          console.error('Erreur lors de la suppression du ticket', error);
-          alert('Une erreur est survenue lors de la suppression.');
-        }
-      });
-    }
-  }
 
   deleteSelectedTickets(): void {
     const items = this.paginatedResult?.items ?? [];

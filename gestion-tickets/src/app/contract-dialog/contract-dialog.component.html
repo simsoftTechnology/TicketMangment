@@ -23,17 +23,6 @@
           La date de fin est obligatoire.
         </div>
       </div>
-  
-      <!-- Type (fixé à "Standard" par défaut) -->
-      <div class="form-group">
-        <label for="type">
-          Type <span class="required">*</span>
-        </label>
-        <input id="type" type="text" formControlName="type" placeholder="Standard" required />
-        <div *ngIf="data.contractForm.get('type')?.invalid && (data.contractForm.get('type')?.touched || data.contractForm.get('type')?.dirty)" class="error-message">
-          Le type est obligatoire.
-        </div>
-      </div>
     </div>
   
     <!-- Boutons d'actions -->

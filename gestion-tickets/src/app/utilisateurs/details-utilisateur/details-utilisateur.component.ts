@@ -242,7 +242,6 @@ export class DetailsUtilisateurComponent implements OnInit {
             dateFin: user.contrat.dateFin
               ? new Date(user.contrat.dateFin + 'Z').toISOString().substring(0, 10)
               : '',
-            type: user.contrat.type
           });
         }
         this.loadProjects();
@@ -363,7 +362,6 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.contratForm.patchValue({
         dateDebut: this.user.contrat.dateDebut,
         dateFin: this.user.contrat.dateFin,
-        type: this.user.contrat.type
       });
     }
   }

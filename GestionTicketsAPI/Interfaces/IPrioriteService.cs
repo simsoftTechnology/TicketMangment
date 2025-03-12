@@ -9,5 +9,6 @@ namespace GestionTicketsAPI.Interfaces
         Task<Priorite> AddAsync(Priorite priorite);
         Task<bool> UpdateAsync(int id, Priorite priorite);
         Task<bool> DeleteAsync(int id);
+        Task<bool> PrioriteExists(string nom);
     }
 }

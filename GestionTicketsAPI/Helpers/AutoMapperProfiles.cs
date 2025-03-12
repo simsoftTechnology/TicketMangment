@@ -20,16 +20,23 @@ namespace GestionTicketsAPI.Helpers
                 .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null));
             CreateMap<PaysUpdateDto, Pays>();
             CreateMap<Projet, ProjetDto>()
-                .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Pays.Nom))
+                .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Societe.Pays.Nom))
                 .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe.Nom));
-            CreateMap<ProjetDto, Projet>();
-            CreateMap<Societe, SocieteDto>();
+            CreateMap<ProjetDto, Projet>()
+                .ForMember(dest => dest.IdPays, opt => opt.Ignore());
+            CreateMap<Societe, SocieteDto>()
+                .ForMember(dest => dest.Pays, opt => opt.MapFrom(src => src.Pays));
             CreateMap<SocieteDto, Societe>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
+            
+            // Mise à jour du mapping pour SocieteDetailsDto :
             CreateMap<Societe, SocieteDetailsDto>()
-                .ForMember(dest => dest.Utilisateurs, opt => opt.MapFrom(src => src.Utilisateurs))
+                .ForMember(dest => dest.Utilisateurs, opt => opt.MapFrom(src => src.SocieteUsers.Select(su => su.User)))
                 .ForMember(dest => dest.Projets, opt => opt.MapFrom(src => src.Projets))
-                .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.ContratsPartenaire.FirstOrDefault()));
+                .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.ContratsPartenaire.FirstOrDefault()))
+                .ForMember(dest => dest.PaysId, opt => opt.MapFrom(src => src.PaysId))
+                .ForMember(dest => dest.Pays, opt => opt.MapFrom(src => src.Pays));
+
             CreateMap<Contrat, ContratDto>().ReverseMap();
 
             // Mise à jour pour l'entité Ticket et ses DTOs :

@@ -13,6 +13,12 @@ namespace GestionTicketsAPI.Interfaces
         void UpdateSociete(Societe societe);
         void RemoveSociete(Societe societe);
         Task<bool> DeleteSocieteWithAssociationsAsync(int id);
+        Task<PagedList<User>> GetSocieteUsersPagedAsync(int societeId, UserParams userParams);
+        Task<bool> AttachUserToSocieteAsync(int societeId, int userId);
+        Task<bool> DetachUserFromSocieteAsync(int societeId, int userId);
+        Task UpdateRelatedEntitiesForSocietePaysChangeAsync(int societeId, int newPaysId);
+
+        Task<bool> SocieteExists(string nom);
         Task<bool> SaveAllAsync();
     }
 }

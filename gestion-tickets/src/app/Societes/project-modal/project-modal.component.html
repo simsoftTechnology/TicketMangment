@@ -1,0 +1,74 @@
+<div class="modal-container">
+  <div class="modal-header">
+    <h2>Ajouter un Projet</h2>
+    <button type="button" class="close-button" (click)="closeModal()">&times;</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-container">
+      <form [formGroup]="projetForm" (ngSubmit)="ajouterProjet()">
+        <!-- Ligne 1 : Nom du projet -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nom">Nom du projet <span class="required">*</span></label>
+            <input id="nom" type="text" formControlName="nom" class="form-control"
+                   [class.is-invalid]="projetForm.get('nom')?.touched && projetForm.get('nom')?.invalid" />
+            <div *ngIf="projetForm.get('nom')?.hasError('required')" class="invalid-feedback text-start">
+              Le nom du projet est obligatoire
+            </div>
+          </div>
+        
+
+        <!-- Ligne 2 : Chef de projet -->
+          <div class="form-group">
+            <label for="chef-select">Chef de projet <span class="required">*</span></label>
+            <div id="chef-select"
+                 class="custom-select"
+                 role="combobox"
+                 aria-haspopup="listbox"
+                 [attr.aria-expanded]="isChefDropdownOpen"
+                 tabindex="0"
+                 (click)="toggleDropdown('chef')">
+              <div class="select-box">
+                <div class="selected-item">
+                  {{ getChefName(projetForm.get('chefProjetId')?.value) || 'Sélectionner un chef de projet' }}
+                </div>
+                <span class="arrow">▼</span>
+              </div>
+              <div class="dropdown-content" [class.show]="isChefDropdownOpen">
+                <div class="search-box">
+                  <input type="text"
+                         placeholder="Rechercher un chef..."
+                         [(ngModel)]="searchChef"
+                         [ngModelOptions]="{standalone: true}"
+                         (input)="filterItems('chef')"
+                         (click)="$event.stopPropagation()" />
+                </div>
+                <div class="option-list">
+                  <div *ngFor="let chef of filteredChefs" class="option-item"
+                       role="option"
+                       (click)="selectItem(chef, 'chef'); $event.stopPropagation()">
+                    {{ chef.firstName }} {{ chef.lastName }}
+                  </div>
+                  <div class="no-result" *ngIf="filteredChefs.length === 0">
+                    <span class="no-results-icon">🔍</span>
+                    Aucun utilisateur trouvé.
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="projetForm.get('chefProjetId')?.touched && projetForm.get('chefProjetId')?.invalid"
+                 class="invalid-feedback text-start">
+              Le chef de projet est obligatoire
+            </div>
+          </div>
+          <div class="form-group"></div>
+        </div>
+        <!-- Boutons -->
+        <div class="button-group">
+          <button type="submit" class="btn-create" [disabled]="projetForm.invalid">Ajouter</button>
+          <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

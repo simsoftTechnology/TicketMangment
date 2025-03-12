@@ -14,5 +14,6 @@ public interface ITicketRepository
         void DeleteTicket(Ticket ticket);
         Task<bool> SaveAllAsync();
         Task<bool> DeleteMultipleTicketsAsync(IEnumerable<int> ticketIds);
+        Task<bool> TicketExists(string title);
 
     }

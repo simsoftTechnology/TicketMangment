@@ -1,3 +1,4 @@
+import { Pays } from "./pays";
 import { Projet } from "./Projet";
 import { User } from "./user";
 
@@ -11,4 +12,5 @@ export interface Societe {
   utilisateurs: User[];
   projets: Projet[]; 
   contrat?: any
+  pays?: Pays; 
 }

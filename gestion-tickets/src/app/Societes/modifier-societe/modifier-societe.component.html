@@ -19,6 +19,43 @@
       <label for="telephone">Téléphone</label>
       <input id="telephone" formControlName="telephone" class="form-control" />
     </div>
+    <div class="form-group" *ngIf="societeDetails">
+      <label for="paysId">Pays</label>
+      <div id="paysId" class="custom-select">
+        <div class="select-box" (click)="toggleDropdown('pays')">
+          <div class="selected-item">
+            {{ getPaysName(societeForm.get('paysId')?.value) || 'Sélectionner un pays' }}
+          </div>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
+          <div class="search-box">
+            <input
+              type="text"
+              placeholder="Rechercher un pays..."
+              [(ngModel)]="paysSearchTerm"
+              [ngModelOptions]="{ standalone: true }"
+              (ngModelChange)="onPaysSearch()" />
+          </div>
+          <div class="option-list">
+            <ng-container *ngIf="filteredPays.length > 0; else noPaysResults">
+              <div *ngFor="let pays of filteredPays" class="option-item"
+                (click)="updatePays(pays.idPays)">
+                {{ pays.nom || 'Aucun nom'}}
+              </div>
+
+            </ng-container>
+            <ng-template #noPaysResults>
+              <div class="no-results">
+                <span class="no-results-icon">🔍</span>
+                <p class="no-results-text">Aucun pays trouvé</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <button type="submit" class="btn btn-primary">Sauvegarder</button>
     <!-- Bouton annuler qui appelle la méthode onCancel() -->
     <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
@@ -28,7 +65,7 @@
   <nav class="tabs-nav">
     <ul>
       <li [class.active]="activeTab === 'utilisateurs'">
-        <a (click)="switchTab('utilisateurs')">Membres</a>
+        <a (click)="switchTab('utilisateurs')">Utilisateurs</a>
       </li>
       <li [class.active]="activeTab === 'projets'">
         <a (click)="switchTab('projets')">Projets</a>
@@ -45,8 +82,7 @@
       <colgroup>
         <col style="width: 33%;">
         <col style="width: 33%;">
-        <col style="width: 33%;">
-        <col style="width: 1%;">
+        <col style="width: 34%;">
       </colgroup>
       <thead>
         <!-- Ligne de recherche et titre -->
@@ -55,11 +91,11 @@
             <h3>Projets</h3>
           </td>
           <td colspan="3">
-            <div class="search-wrapper">
-              <input type="text" class="search-input" placeholder="Rechercher un projet..."
-                [(ngModel)]="projectSearchTerm" (ngModelChange)="onProjectSearch()" />
-              <span class="material-icons search-icon">search</span>
-            </div>
+            <div class="project-actions">
+              <button (click)="openProjectModal()" class="btn btn-primary">
+                <span class="material-icons">add</span> Créer
+              </button>
+            </div>                        
           </td>
         </tr>
         <!-- Ligne d'en-tête -->
@@ -67,7 +103,6 @@
           <th>Nom du projet</th>
           <th>Nom du pays</th>
           <th>Description</th>
-          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -135,17 +170,21 @@
   <div *ngIf="activeTab === 'utilisateurs'" class="tab-pane">
     <table>
 
+      <colgroup>
+        <col style="width: 31%;">
+        <col style="width: 31%;">
+        <col style="width: 31%;">
+        <col style="width: 7%;">
+      </colgroup>
       <thead>
         <!-- Barre de recherche pour les utilisateurs -->
         <tr class="filter-row">
           <td colspan="1">
-            <h3>Membres</h3>
+            <h3>Utilisateurs</h3>
           </td>
-          <td colspan="2">
+          <td colspan="3">
             <div class="search-wrapper">
-              <input type="text" class="search-input" placeholder="Rechercher un utilisateur..."
-                [(ngModel)]="userSearchTerm" (ngModelChange)="onUserSearch()" />
-              <span class="material-icons search-icon">search</span>
+              <button class="btn btn-primary" (click)="openAttachUserDialog()">Attacher</button>
             </div>
           </td>
         </tr>
@@ -154,7 +193,8 @@
           <th>Nom</th>
           <th>Email</th>
           <th>Rôle</th>
-          <th></th>
+          <th class="actions">
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -163,7 +203,14 @@
           <tr *ngFor="let utilisateur of displayedUsers">
             <td>{{ utilisateur.firstName }} {{ utilisateur.lastName }}</td>
             <td>{{ utilisateur.email }}</td>
-            <td>{{ utilisateur.role }}</td>
+            <td><span class="role">{{ utilisateur.role }}</span></td>
+            <td>
+              <button class="delet-btn"
+                *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
+                (click)="detachUser(utilisateur)">
+                <span class="material-icons">delete</span>
+              </button>
+            </td>
           </tr>
         </ng-container>
 
@@ -228,10 +275,6 @@
           <div class="form-group">
             <label for="dateFin">Date de fin</label>
             <input id="dateFin" type="date" formControlName="dateFin" />
-          </div>
-          <div class="form-group">
-            <label for="type">Type</label>
-            <input id="type" type="text" formControlName="type" placeholder="Standard" />
           </div>
         </div>
         <div class="form-actions">

@@ -8,7 +8,7 @@ export interface User {
   numTelephone: string;
   pays: string;
   email: string;
-  role: 'Super Admin' | 'Chef de Projet' | 'Développeur' | 'Client';
+  role: string;
   actif: boolean;
   contrat?: Contrat;
   dateDebut?: Date;

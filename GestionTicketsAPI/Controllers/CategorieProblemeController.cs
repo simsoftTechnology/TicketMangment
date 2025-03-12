@@ -60,11 +60,16 @@ namespace GestionTicketsAPI.Controllers
       if (categorie == null)
         return BadRequest("La catégorie est nulle");
 
+      // Vérifier si la catégorie existe déjà (exemple : sur la base du nom)
+      if (await _categorieService.CategorieExists(categorie.Nom))
+        return BadRequest("La catégorie existe déjà");
+
       bool result = await _categorieService.AddCategorieAsync(categorie);
       if (result)
         return Ok(categorie);
       return BadRequest("Erreur lors de l'ajout de la catégorie");
     }
+
 
     // PUT : api/CategorieProbleme/5
     [HttpPut("{id}")]

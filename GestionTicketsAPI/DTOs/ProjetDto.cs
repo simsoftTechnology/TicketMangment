@@ -10,7 +10,7 @@ namespace GestionTicketsAPI.DTOs
         public int? SocieteId { get; set; }
         public string? NomSociete { get; set; }
 
-        public int IdPays { get; set; }
+        public int? IdPays { get; set; }
         public string? NomPays { get; set; }
     }
 }

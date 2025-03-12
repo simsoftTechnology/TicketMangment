@@ -1,27 +1,29 @@
-import { Component, HostListener, OnInit } from '@angular/core';
-import { Pays } from '../../_models/pays';
+import { Component, HostListener, Input } from '@angular/core';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Projet } from '../../_models/Projet';
 import { Societe } from '../../_models/societe';
+import { Pays } from '../../_models/pays';
+import { User } from '../../_models/user';
 import { ProjetService } from '../../_services/projet.service';
 import { SocieteService } from '../../_services/societe.service';
-import { PaysService } from '../../_services/pays.service';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { Projet } from '../../_models/Projet';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule, NgIf } from '@angular/common';
 import { AccountService } from '../../_services/account.service';
-import { User } from '../../_models/user';
-import { forkJoin } from 'rxjs';
-import { OverlayModalService } from '../../_services/overlay-modal.service';
-import { DropdownService } from './../../_services/dropdown.service';
+import { PaysService } from '../../_services/pays.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DropdownService } from '../../_services/dropdown.service';
 import { ToastrService } from 'ngx-toastr';
+import { forkJoin } from 'rxjs';
+import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-ajouter-projet',
-  imports: [CommonModule, FormsModule, NgIf, RouterLink, ReactiveFormsModule],
-  templateUrl: './ajouter-projet.component.html',
-  styleUrls: ['./ajouter-projet.component.css']
+  selector: 'app-project-modal',
+  imports: [ ReactiveFormsModule, FormsModule, CommonModule],
+  templateUrl: './project-modal.component.html',
+  styleUrl: './project-modal.component.css'
 })
-export class AjouterProjetComponent implements OnInit {
+export class ProjectModalComponent {
+  @Input() societeId!: number; // Reçu depuis le parent
   projetForm!: FormGroup;
 
   projet: Projet = {
@@ -81,7 +83,7 @@ export class AjouterProjetComponent implements OnInit {
     this.projetForm = this.fb.group({
       nom: ['', Validators.required],
       description: [''],
-      societeId: [null, this.isSocieteProjet ? Validators.required : []],
+      societeId: [this.societeId, Validators.required],
       chefProjetId: [null, Validators.required],
       idPays: [0]
     });
@@ -164,61 +166,15 @@ export class AjouterProjetComponent implements OnInit {
     });
   }
 
-  ajouterUtilisateursAuProjet(projetId: number): void {
-    const requests = [];
-
-    // Ajout du chef de projet
-    const chefId = this.projetForm.get('chefProjetId')?.value;
-    if (chefId) {
-      requests.push(
-        this.projetService.ajouterUtilisateurAuProjet(projetId, chefId, 'Chef de Projet')
-      );
-    }
-
-    // Si d'autres utilisateurs (développeurs, par exemple) sont à ajouter, on peut les parcourir ici
-
-    if (requests.length === 0) {
-      this.router.navigate(['/home/Projets']);
-      return;
-    }
-
-    forkJoin(requests).subscribe({
-      next: () => {
-        this.toastr.success('Utilisateurs ajoutés au projet avec succès');
-        this.router.navigate(['/home/Projets']);
-      },
-      error: (err) => {
-        console.error('Erreur lors de l\'ajout des utilisateurs', err.error || err);
-        this.toastr.error('Erreur lors de l\'ajout des utilisateurs');
-      }
-    });
-  }
+  
 
   toggleDropdown(type?: string): void {
     if (type) {
       switch (type) {
-        case 'pays':
-          this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
-          if (this.isPaysDropdownOpen) {
-            this.filteredPays = [...this.pays];
-          }
-          break;
-        case 'societe':
-          this.isSocieteDropdownOpen = !this.isSocieteDropdownOpen;
-          if (this.isSocieteDropdownOpen) {
-            this.filteredSocietes = [...this.societes];
-          }
-          break;
         case 'chef':
           this.isChefDropdownOpen = !this.isChefDropdownOpen;
           if (this.isChefDropdownOpen) {
             this.filteredChefs = [...this.chefsProjet];
-          }
-          break;
-        case 'client':
-          this.isClientDropdownOpen = !this.isClientDropdownOpen;
-          if (this.isClientDropdownOpen) {
-            this.filteredClients = [...this.clients];
           }
           break;
       }
@@ -227,19 +183,9 @@ export class AjouterProjetComponent implements OnInit {
 
   filterItems(type: string): void {
     switch (type) {
-      case 'societe':
-        this.filteredSocietes = this.societes.filter(s =>
-          s.nom.toLowerCase().includes(this.searchSociete.toLowerCase())
-        );
-        break;
       case 'chef':
         this.filteredChefs = this.chefsProjet.filter(c =>
           `${c.firstName} ${c.lastName}`.toLowerCase().includes(this.searchChef.toLowerCase())
-        );
-        break;
-      case 'client':
-        this.filteredClients = this.clients.filter(c =>
-          `${c.firstName} ${c.lastName}`.toLowerCase().includes(this.searchClient.toLowerCase())
         );
         break;
     }
@@ -307,5 +253,8 @@ export class AjouterProjetComponent implements OnInit {
     this.isChefDropdownOpen = false;
     this.isPaysDropdownOpen = false;
     this.isClientDropdownOpen = false;
+  }
+  closeModal(): void {
+    this.overlayModalService.close();
   }
 }

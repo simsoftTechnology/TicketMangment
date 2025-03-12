@@ -65,7 +65,6 @@ namespace GestionTicketsAPI.Services
         {
           DateDebut = societeDto.Contract.DateDebut,
           DateFin = societeDto.Contract.DateFin,
-          Type = societeDto.Contract.Type,
           // Vous pouvez définir le TypeContrat selon votre logique,
           // par exemple "Societe-Societe" pour un contrat avec une société partenaire
           TypeContrat = "Societe-Societe",
@@ -87,10 +86,22 @@ namespace GestionTicketsAPI.Services
       if (existingSociete == null)
         return false;
 
+      // Conserver l'ancien pays pour comparaison
+      var originalPaysId = existingSociete.PaysId;
+
+      // Appliquer les modifications depuis le DTO
       _mapper.Map(societeDto, existingSociete);
+
+      // Si le pays a changé, mettre à jour les projets et utilisateurs associés
+      if (existingSociete.PaysId != originalPaysId)
+      {
+        await _societeRepository.UpdateRelatedEntitiesForSocietePaysChangeAsync(id, existingSociete.PaysId);
+      }
+
       _societeRepository.UpdateSociete(existingSociete);
       return await _societeRepository.SaveAllAsync();
     }
+
 
     public async Task<bool> DeleteSocieteAsync(int id)
     {
@@ -106,6 +117,33 @@ namespace GestionTicketsAPI.Services
           return false;
       }
       return true;
+    }
+
+
+    public async Task<PagedList<UserDto>> GetSocieteUsersPagedAsync(int societeId, UserParams userParams)
+    {
+      var usersPaged = await _societeRepository.GetSocieteUsersPagedAsync(societeId, userParams);
+      var usersDto = _mapper.Map<IEnumerable<UserDto>>(usersPaged);
+      return new PagedList<UserDto>(
+          usersDto.ToList(),
+          usersPaged.TotalCount,
+          usersPaged.CurrentPage,
+          usersPaged.PageSize
+      );
+    }
+    public async Task<bool> AttachUserToSocieteAsync(int societeId, int userId)
+    {
+      return await _societeRepository.AttachUserToSocieteAsync(societeId, userId);
+    }
+
+    public async Task<bool> DetachUserFromSocieteAsync(int societeId, int userId)
+    {
+      return await _societeRepository.DetachUserFromSocieteAsync(societeId, userId);
+    }
+
+    public async Task<bool> SocieteExists(string nom)
+    {
+      return await _societeRepository.SocieteExists(nom);
     }
   }
 }

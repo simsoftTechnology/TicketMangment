@@ -9,120 +9,129 @@ using GestionTicketsAPI.Interfaces;
 
 namespace GestionTicketsAPI.Services
 {
-    public class AccountService : IAccountService
+  public class AccountService : IAccountService
+  {
+    private readonly IAccountRepository _accountRepository;
+    private readonly ISocieteRepository _societeRepository;
+    private readonly ITokenService _tokenService;
+    private readonly IMapper _mapper;
+
+    public AccountService(
+        IAccountRepository accountRepository,
+        ISocieteRepository societeRepository,
+        ITokenService tokenService,
+        IMapper mapper)
     {
-        private readonly IAccountRepository _accountRepository;
-        private readonly ISocieteRepository _societeRepository;
-        private readonly ITokenService _tokenService;
-        private readonly IMapper _mapper;
-
-        public AccountService(
-            IAccountRepository accountRepository,
-            ISocieteRepository societeRepository,
-            ITokenService tokenService,
-            IMapper mapper)
-        {
-            _accountRepository = accountRepository;
-            _societeRepository = societeRepository;
-            _tokenService = tokenService;
-            _mapper = mapper;
-        }
-
-        public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
-        {
-            // Vérifier si l'utilisateur existe déjà
-            if (await _accountRepository.UserExistsAsync(registerDto.Firstname, registerDto.Lastname, registerDto.Email))
-                throw new Exception("User already exists");
-
-            // Récupération du pays
-            var pays = await _accountRepository.GetPaysByIdAsync(registerDto.Pays);
-            if (pays == null)
-                throw new Exception("Le pays spécifié est introuvable.");
-
-            // Si une société est spécifiée pour l'utilisateur, vérifier son existence
-            if (registerDto.SocieteId.HasValue)
-            {
-                var societe = await _societeRepository.GetSocieteByIdAsync(registerDto.SocieteId.Value);
-                if (societe == null)
-                    throw new Exception("La société spécifiée est introuvable.");
-            }
-
-            // Création de l'utilisateur avec hachage du mot de passe
-            using var hmac = new HMACSHA512();
-            var user = new User
-            {
-                FirstName = registerDto.Firstname,
-                LastName = registerDto.Lastname,
-                // Rechercher le Role par nom et affecter son Id
-                RoleId = await _accountRepository.GetRoleIdByNameAsync(registerDto.Role),
-                Email = registerDto.Email,
-                NumTelephone = registerDto.Numtelephone,
-                Pays = registerDto.Pays,
-                PaysNavigation = pays,
-                Actif = registerDto.Actif,
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key,
-                SocieteId = registerDto.SocieteId
-            };
-
-            // Ajout de l'utilisateur en base
-            await _accountRepository.AddUserAsync(user);
-
-            // Sauvegarder pour générer l'ID utilisateur
-            if (!await _accountRepository.SaveAllAsync())
-                throw new Exception("Erreur lors de l'enregistrement de l'utilisateur.");
-
-            // Gestion du contrat (optionnel) pour un client simple
-            if (registerDto.Contract != null)
-            {
-                // Si l'utilisateur appartient déjà à une société, on interdit la création de contrat client
-                if (user.SocieteId.HasValue)
-                {
-                    throw new Exception("Un utilisateur lié à une société ne peut pas créer de contrat.");
-                }
-                else
-                {
-                    // Création du contrat pour un client (Client-Societe)
-                    var contrat = new Contrat
-                    {
-                        DateDebut = registerDto.Contract.DateDebut,
-                        DateFin = registerDto.Contract.DateFin,
-                        Type = registerDto.Contract.Type,
-                        TypeContrat = "Client-Societe",
-                        // Affectation automatique de l'ID du client créé
-                        ClientId = user.Id
-                    };
-
-                    await _accountRepository.AddContractAsync(contrat);
-                    await _accountRepository.SaveAllAsync();
-                }
-            }
-
-            var userDto = _mapper.Map<UserDto>(user);
-            userDto.Token = _tokenService.CreateToken(user);
-
-            return userDto;
-        }
-
-        public async Task<UserDto> LoginAsync(LoginDto loginDto)
-        {
-            var user = await _accountRepository.GetUserByEmailAsync(loginDto.Email);
-            if (user == null)
-                throw new Exception("L'adresse e-mail est incorrecte");
-
-            using var hmac = new HMACSHA512(user.PasswordSalt);
-            var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
-
-            for (int i = 0; i < computedHash.Length; i++)
-            {
-                if (computedHash[i] != user.PasswordHash[i])
-                    throw new Exception("Le mot de passe est incorrect");
-            }
-
-            var userDto = _mapper.Map<UserDto>(user);
-            userDto.Token = _tokenService.CreateToken(user);
-
-            return userDto;
-        }
+      _accountRepository = accountRepository;
+      _societeRepository = societeRepository;
+      _tokenService = tokenService;
+      _mapper = mapper;
     }
+
+    public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
+    {
+      // Vérifier si l'utilisateur existe déjà
+      if (await _accountRepository.UserExistsAsync(registerDto.Firstname, registerDto.Lastname, registerDto.Email))
+        throw new Exception("User already exists");
+
+      // Récupération du pays
+      var pays = await _accountRepository.GetPaysByIdAsync(registerDto.Pays);
+      if (pays == null)
+        throw new Exception("Le pays spécifié est introuvable.");
+
+      // Si une société est spécifiée pour l'utilisateur, vérifier son existence
+      if (registerDto.SocieteId.HasValue)
+      {
+        var societe = await _societeRepository.GetSocieteByIdAsync(registerDto.SocieteId.Value);
+        if (societe == null)
+          throw new Exception("La société spécifiée est introuvable.");
+      }
+
+      // Création de l'utilisateur avec hachage du mot de passe
+      using var hmac = new HMACSHA512();
+      var user = new User
+      {
+        FirstName = registerDto.Firstname,
+        LastName = registerDto.Lastname,
+        RoleId = await _accountRepository.GetRoleIdByNameAsync(registerDto.Role),
+        Email = registerDto.Email,
+        NumTelephone = registerDto.Numtelephone,
+        Pays = registerDto.Pays,
+        PaysNavigation = pays,
+        Actif = registerDto.Actif,
+        PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
+        PasswordSalt = hmac.Key,
+        // Note : la propriété SocieteId n'existe plus dans User
+      };
+
+      // Si une société est spécifiée, créer l'association via SocieteUser
+      if (registerDto.SocieteId.HasValue)
+      {
+        user.SocieteUsers.Add(new SocieteUser
+        {
+          SocieteId = registerDto.SocieteId.Value
+          // La propriété User sera automatiquement liée lors de l'ajout en base
+        });
+      }
+
+      // Ajout de l'utilisateur en base
+      await _accountRepository.AddUserAsync(user);
+
+      // Sauvegarder pour générer l'ID utilisateur
+      if (!await _accountRepository.SaveAllAsync())
+        throw new Exception("Erreur lors de l'enregistrement de l'utilisateur.");
+
+      // Gestion du contrat (optionnel) pour un client simple
+      if (registerDto.Contract != null)
+      {
+        // Si l'utilisateur est associé à une ou plusieurs sociétés, on interdit la création de contrat client
+        if (user.SocieteUsers != null && user.SocieteUsers.Any())
+        {
+          throw new Exception("Un utilisateur lié à une société ne peut pas créer de contrat.");
+        }
+        else
+        {
+          // Création du contrat pour un client (Client-Societe)
+          var contrat = new Contrat
+          {
+            DateDebut = registerDto.Contract.DateDebut,
+            DateFin = registerDto.Contract.DateFin,
+            TypeContrat = "Client-Societe",
+            // Affectation automatique de l'ID du client créé
+            ClientId = user.Id
+          };
+
+          await _accountRepository.AddContractAsync(contrat);
+          await _accountRepository.SaveAllAsync();
+        }
+      }
+
+      var userDto = _mapper.Map<UserDto>(user);
+      userDto.Token = _tokenService.CreateToken(user);
+
+      return userDto;
+    }
+
+
+    public async Task<UserDto> LoginAsync(LoginDto loginDto)
+    {
+      var user = await _accountRepository.GetUserByEmailAsync(loginDto.Email);
+      if (user == null)
+        throw new Exception("L'adresse e-mail est incorrecte");
+
+      using var hmac = new HMACSHA512(user.PasswordSalt);
+      var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
+
+      for (int i = 0; i < computedHash.Length; i++)
+      {
+        if (computedHash[i] != user.PasswordHash[i])
+          throw new Exception("Le mot de passe est incorrect");
+      }
+
+      var userDto = _mapper.Map<UserDto>(user);
+      userDto.Token = _tokenService.CreateToken(user);
+
+      return userDto;
+    }
+  }
 }

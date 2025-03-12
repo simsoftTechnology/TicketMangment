@@ -11,5 +11,6 @@ namespace GestionTicketsAPI.Services.Interfaces
         Task<StatutDesTicket> CreateStatutAsync(StatutDesTicket statut);
         Task UpdateStatutAsync(StatutDesTicket statut);
         Task DeleteStatutAsync(int id);
+        Task<bool> StatutExists(string nom);
     }
 }

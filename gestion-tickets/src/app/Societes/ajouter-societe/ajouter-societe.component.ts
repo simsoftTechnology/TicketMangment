@@ -110,16 +110,30 @@ export class AjouterSocieteComponent implements OnInit {
       } else {
         societeForAdd.contract = null;
       }
-
-      console.log('Objet société envoyé à l\'API :', societeForAdd);
       this.societeService.addSociete(societeForAdd).subscribe({
         next: () => {
           this.toastr.success("Ajouté avec succès");
           this.router.navigate(['/home/Societes']);
         },
-        error: (err) => {
-          this.toastr.error("Erreur lors de l'ajout de la société");
-          console.error('Erreur lors de l\'ajout:', err);
+        error: (error) => {
+          console.error('Erreur ajout projet', error);
+          let errMsg = "Erreur lors de l'ajout de la société.";
+          if (Array.isArray(error)) {
+            errMsg = error.join(' ');
+          } else if (typeof error === 'string') {
+            errMsg = error;
+          } else if (error.error) {
+            if (Array.isArray(error.error)) {
+              errMsg = error.error.join(' ');
+            } else if (typeof error.error === 'string') {
+              errMsg = error.error;
+            } else if (typeof error.error === 'object') {
+              errMsg = error.error.message || JSON.stringify(error.error);
+            }
+          } else if (error.message) {
+            errMsg = error.message;
+          }
+          this.toastr.error(errMsg);
         }
       });
     }

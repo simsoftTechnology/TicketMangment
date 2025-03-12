@@ -10,5 +10,6 @@ public interface IPaysRepository
         Task<Pays?> GetPaysByIdAsync(int idPays);
         Task AddPaysAsync(Pays pays);
         void RemovePays(Pays pays);
+        Task<bool> PaysExists(string nom);
         Task<bool> SaveAllAsync();
     }

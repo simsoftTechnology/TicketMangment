@@ -12,9 +12,6 @@ public class Contrat
     
     public DateTime? DateFin { get; set; }
     
-    [Required]
-    [StringLength(100)]
-    public string Type { get; set; } = "Standard";
     
     // "Client-Societe" ou "Societe-Societe"
     [Required]

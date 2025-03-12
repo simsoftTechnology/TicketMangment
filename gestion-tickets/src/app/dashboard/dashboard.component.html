@@ -99,6 +99,10 @@
     </mat-nav-list>
   </mat-sidenav>
   <mat-sidenav-content>
+    <div class="sidenav-backdrop" 
+       *ngIf="sidenavMode === 'over' && isSidenavOpen"
+       (click)="isSidenavOpen = false">
+  </div>
     <router-outlet></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

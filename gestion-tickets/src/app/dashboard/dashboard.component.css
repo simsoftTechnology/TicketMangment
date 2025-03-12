@@ -24,7 +24,7 @@ mat-sidenav {
   background: white;
   border-right: 1px solid #f0f0f0;
   display: flex;
-  z-index: 1;
+  z-index: 1000;
 }
 
 /* Menu de navigation */
@@ -174,9 +174,7 @@ mat-nav-list a:hover:not(.active-nav-item) {
     width: 290px;
   }
 
-  .mat-sidenav[opened] {
-    display: none;  /* Cache le sidenav sur les petits écrans */
-  }
+  
 
   mat-nav-list {
     padding-top: 20px;

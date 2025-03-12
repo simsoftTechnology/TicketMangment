@@ -44,7 +44,7 @@
         <th>Catégorie</th>
         <th>Priorité</th>
         <th>Statut</th>
-        <th>Actions</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -76,9 +76,6 @@
         <td class="actions">
           <button class="view-btn" [routerLink]="['/home/Tickets/details', ticket.id]">
             <span class="material-icons">visibility</span>
-          </button>
-          <button class="delete-btn" (click)="deleteTicket(ticket)">
-            <span class="material-icons">delete</span>
           </button>
         </td>
       </tr>

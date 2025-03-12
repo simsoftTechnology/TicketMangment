@@ -69,6 +69,10 @@ namespace GestionTicketsAPI.Repositories
             _context.CategorieProblemes.RemoveRange(categories);
         }
 
+        public async Task<bool> CategorieExists(string nom)
+    {
+        return await _context.CategorieProblemes.AnyAsync(c => c.Nom == nom);
+    }
         public async Task<bool> SaveAllAsync()
         {
             return await _context.SaveChangesAsync() > 0;

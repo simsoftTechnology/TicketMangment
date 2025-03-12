@@ -11,5 +11,6 @@ namespace GestionTicketsAPI.Repositories.Interfaces
         Task<Validation> CreateAsync(Validation validation);
         Task UpdateAsync(Validation validation);
         Task DeleteAsync(int id);
+        Task<bool> ValidationExists(string uniqueField);
     }
 }

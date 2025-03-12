@@ -18,7 +18,7 @@ h1 {
 }
 
 h1::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0;
   left: 0;
@@ -71,7 +71,6 @@ h1::after {
   background-color: #ff7c2a;
 }
 
-
 .btn-secondary {
   background-color: #fc5203;
 }
@@ -114,7 +113,6 @@ h1::after {
   font-size: 0.9rem;
   cursor: pointer;
   width: 100%; /* Prend toute la largeur du li parent */
-  
 }
 
 .tabs-nav li.active {
@@ -129,10 +127,10 @@ h1::after {
   padding: 0.5rem 0;
 }
 
-/* Styles pour le tableau dans l’onglet projets */
+/* Styles pour le tableau dans l'onglet projets */
 .tab-pane table {
   width: 100%;
-  
+
   border-collapse: collapse;
   background: white;
   border-radius: 10px;
@@ -147,7 +145,9 @@ h1::after {
 .tab-pane th {
   padding: 12px 10px;
   border-bottom: 1px solid #eee;
-  color: #333;
+  font-weight: 500;
+  color: #666;
+  padding: 10px 0px 10px 20px;
 }
 
 .tab-pane td {
@@ -156,12 +156,7 @@ h1::after {
   color: #333;
   vertical-align: middle; /* Ensures vertical centering */
   line-height: 1.4; /* Improves text readability */
-}
-
-.tab-pane th {
-  text-align: left;
-  font-weight: 500;
-  color: #666;
+  padding: 10px 0px 10px 20px;
 }
 
 .tab-pane td.actions {
@@ -171,7 +166,7 @@ h1::after {
   padding-right: 20px;
 }
 
-/* Boutons d’action */
+/* Boutons d'action */
 .view-btn,
 .delete-btn {
   background: none;
@@ -182,7 +177,6 @@ h1::after {
   font-size: 1.2rem;
   transition: transform 0.2s, color 0.2s;
 }
-
 
 .view-btn:hover {
   color: rgb(6, 6, 6);
@@ -263,8 +257,7 @@ h1::after {
   padding: 0 0.5rem;
 }
 
-
-/* Style pour l’état “aucun projet trouvé” */
+/* Style pour l'état "aucun projet trouvé" */
 .no-content {
   text-align: center;
   padding: 0.5rem 0.5rem;
@@ -279,13 +272,11 @@ h1::after {
   color: #f97316;
 }
 
-
 .no-content p {
   color: #696f7a;
   font-size: 1.8rem;
   margin: 0;
 }
-
 
 .filter-row {
   justify-content: space-between;
@@ -416,7 +407,6 @@ h3 {
   box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
 }
 
-
 /* Actions du formulaire */
 .form-actions {
   display: flex;
@@ -424,7 +414,6 @@ h3 {
   gap: 1rem;
   margin-top: 0.2rem;
   padding-top: 0.2rem;
-  
 }
 
 .form-actions button {
@@ -444,6 +433,136 @@ h3 {
   transform: translateY(-1px);
 }
 
+.delet-btn {
+  background-color: white;
+  color: #dc3545;
+  border: 1px solid white;
+  pad: 10px;
+}
+
+.delet-btn:hover {
+  border-radius: 10px;
+  background-color: #fff5f5;
+}
+
+/* Style pour le rôle d’un membre */
+.role {
+  padding: 4px 8px;
+  font-weight: 500;
+  font-size: 0.9em;
+  background-color: #fce0c4;
+  color: #704b30;
+  border-radius: 14px;
+}
+
+
+.custom-select {
+  position: relative;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.select-box {
+  border: 2px solid #e5e7eb;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.select-box:hover {
+  border-color: #d1d5db;
+}
+
+.selected-item {
+  color: #374151;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow {
+  color: #9ca3af;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background: white;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.dropdown-content.show {
+  display: block;
+}
+
+/* Barre de recherche dans le dropdown */
+.search-box {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 1;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
+/* Liste des options */
+.option-list {
+  padding: 6px 0;
+}
+
+.option-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  color: #374151;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.option-item:hover {
+  background: #f3f4f6;
+}
+
+/* État vide - aucun résultat */
+.no-results {
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+}
 /* Responsive design */
 @media (max-width: 768px) {
   .list-group-item {
@@ -451,7 +570,7 @@ h3 {
     gap: 0.5rem;
     padding: 10px;
   }
-  
+
   .tab-pane {
     margin-top: 15px;
   }
@@ -476,3 +595,4 @@ h3 {
     width: 100%;
   }
 }
+

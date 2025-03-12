@@ -16,5 +16,6 @@ namespace GestionTicketsAPI.Interfaces
     // La méthode AssignerRoleAsync a été supprimée
     Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId);
     Task<bool> SupprimerUtilisateurDuProjetAsync(int projetId, int userId);
+    Task<bool> ProjetExists(string nom);
   }
 }

@@ -63,6 +63,10 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost]
     public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
     {
+      // Vérifier l'existence d'un ticket similaire (par exemple, sur le titre)
+      if (await _ticketService.TicketExists(ticketCreateDto.Title))
+        return BadRequest("Un ticket avec ce titre existe déjà");
+
       var ticket = _mapper.Map<Ticket>(ticketCreateDto);
       ticket.CreatedAt = DateTime.UtcNow;
       await _ticketService.AddTicketAsync(ticket);
@@ -70,10 +74,15 @@ namespace GestionTicketsAPI.Controllers
       return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
     }
 
+
     // POST api/tickets/withAttachment
     [HttpPost("withAttachment")]
     public async Task<ActionResult<TicketDto>> CreateTicketWithAttachment([FromForm] TicketCreateDto ticketDto)
     {
+      // Vérifier l'existence d'un ticket similaire
+      if (await _ticketService.TicketExists(ticketDto.Title))
+        return BadRequest("Un ticket avec ce titre existe déjà");
+
       UploadResult uploadResult = null;
       if (ticketDto.Attachment != null)
       {
@@ -91,6 +100,7 @@ namespace GestionTicketsAPI.Controllers
       var resultDto = _mapper.Map<TicketDto>(ticket);
       return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
     }
+
 
     // PUT api/tickets/{id}
     [HttpPut("{id}")]

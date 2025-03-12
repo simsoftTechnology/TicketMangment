@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using GestionTicketsAPI.Entities;
 
 namespace GestionTicketsAPI.DTOs
 {
@@ -16,6 +17,7 @@ namespace GestionTicketsAPI.DTOs
         public string Telephone { get; set; } = string.Empty;
         
         public int PaysId { get; set; }
+        public PaysDto? Pays { get; set; }
         public ContractRegistrationDto? Contract { get; set; }
     }
 }

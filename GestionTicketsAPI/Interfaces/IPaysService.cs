@@ -12,4 +12,5 @@ public interface IPaysService
         Task<PaysDto> AddPaysAsync(string nom, IFormFile file);
         Task<bool> DeletePaysAsync(int idPays);
         Task<PhotoDto> AddPhotoAsync(int idPays, IFormFile file);
+        Task<bool> PaysExists(string nom);
     }

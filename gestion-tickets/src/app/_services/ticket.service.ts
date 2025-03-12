@@ -22,20 +22,24 @@ export class TicketService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-
+  
     return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
       .pipe(
-        map((response: HttpResponse<Ticket[]>) => {
+        map((response: HttpResponse<any>) => {
+          const body = response.body;
+          const items = Array.isArray(body) ? body : body?.items ?? [];
+          const pagination = response.headers.get('Pagination')
+            ? JSON.parse(response.headers.get('Pagination')!)
+            : { currentPage: 1, pageSize: items.length, totalCount: items.length, totalPages: 1 };
           const paginatedResult: PaginatedResult<Ticket[]> = {
-            items: response.body || [],
-            pagination: response.headers.get('Pagination')
-              ? JSON.parse(response.headers.get('Pagination')!)
-              : { currentPage: 1, pageSize: 5, totalCount: 0, totalPages: 0 }
+            items: items,
+            pagination: pagination
           };
           return paginatedResult;
         })
       );
   }
+  
 
   getTicket(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);

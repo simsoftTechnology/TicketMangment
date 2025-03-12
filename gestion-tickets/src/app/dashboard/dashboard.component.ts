@@ -20,25 +20,25 @@ import { NgIf } from '@angular/common';
 import { User } from '../_models/user';
 
 @Component({
-    selector: 'app-dashboard',
-    imports: [
-        MatToolbarModule,
-        MatSidenavModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatCardModule,
-        MatSelectModule,
-        MatSlideToggleModule,
-        MatIconModule,
-        MatListModule,
-        FormsModule,
-        MatExpansionModule,
-        NgIf,
-        RouterModule
-    ],
-    templateUrl: './dashboard.component.html',
-    styleUrls: ['./dashboard.component.css']
+  selector: 'app-dashboard',
+  imports: [
+    MatToolbarModule,
+    MatSidenavModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatCardModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    MatIconModule,
+    MatListModule,
+    FormsModule,
+    MatExpansionModule,
+    NgIf,
+    RouterModule
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit, OnDestroy {
 
@@ -52,35 +52,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   isModalOpen = false;
 
-  
+
   userInitials = "";
   constructor(
     private sidenavService: SidenavService,
-    private breakpointObserver: BreakpointObserver, 
+    private breakpointObserver: BreakpointObserver,
     public route: ActivatedRoute,
     private accountService: AccountService
-  ) {}
+  ) { }
 
   ngOnInit() {
     if (this.currentUser) {
       this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
     }
-    // Gestion de la réactivité selon la taille de l'écran
-    this.breakpointObserver.observe([Breakpoints.Small, Breakpoints.XSmall]).subscribe(result => {
-      if (result.matches) {
-        this.sidenavMode = 'over';
-        this.isSidenavOpen = false;
-      } else {
-        this.sidenavMode = 'side';
-        this.isSidenavOpen = true;
-      }
-    });
-
-    // Abonnement à l'état du sidenav
+    // 1) Subscribe to the BehaviorSubject so the component knows what the current state is
     this.sidenavSubscription = this.sidenavService.sidenavState$.subscribe(state => {
       this.isSidenavOpen = state;
     });
-    }
+
+    // 2) Use breakpointObserver only to decide side vs. over mode, and also update the service’s state if needed
+    this.breakpointObserver.observe([Breakpoints.Small, Breakpoints.XSmall])
+      .subscribe(result => {
+        if (result.matches) {
+          this.sidenavMode = 'over';
+          // tell the service to close the sidenav for small screens
+          this.sidenavService.setSidenavState(false);
+        } else {
+          this.sidenavMode = 'side';
+          this.sidenavService.setSidenavState(true);
+        }
+      });
+  }
 
   ngOnDestroy() {
     if (this.sidenavSubscription) {
@@ -100,25 +102,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
   get currentUser(): User | null {
     return this.accountService.currentUser();
   }
-  
-  
+
+
 
   isSuperAdmin(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'super admin';
   }
-  
+
   isChefDeProjet(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'chef de projet';
   }
-  
+
   isCollaborateur(): boolean {
     // Ici, le rôle est "collaborateur" d'après l'API
     return this.currentUser?.role?.toLowerCase() === 'collaborateur';
   }
-  
+
   isClient(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'client';
   }
-  
+
 }
 
