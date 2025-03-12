@@ -226,7 +226,7 @@ export class DetailsUtilisateurComponent implements OnInit {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          role: user.role?.toLowerCase(),
+          role: user.role,
           pays: user.pays,              // Ajout du pays
           societe: user.societeId,       // Ajout de la société (vérifiez le nom du champ)
           numTelephone: user.numTelephone, // Ajout du numéro de téléphone

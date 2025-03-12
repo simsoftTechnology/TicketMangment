@@ -1,4 +1,4 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -24,6 +24,7 @@ import { CommonModule } from '@angular/common';
 })
 export class ProjectModalComponent {
   @Input() societeId!: number; // Reçu depuis le parent
+  @Output() closed = new EventEmitter<any>();
   projetForm!: FormGroup;
 
   projet: Projet = {
@@ -125,12 +126,11 @@ export class ProjectModalComponent {
 
   ajouterProjet(): void {
     if (this.projetForm.invalid) {
-      // Forcer la mise à jour de la validation pour tous les contrôles
       this.projetForm.updateValueAndValidity();
       this.toastr.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-
+    
     const formValue = this.projetForm.value;
     this.projet.nom = formValue.nom;
     this.projet.description = formValue.description;
@@ -141,7 +141,10 @@ export class ProjectModalComponent {
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
         this.toastr.success('Projet créé avec succès');
-        this.router.navigate(['/home/Projets']);
+        // Émettre un événement pour notifier que le projet a été créé
+        this.closed.emit({ projectCreated: true });
+        // Fermer le modal
+        this.overlayModalService.close();
       },
       error: (error) => {
         console.error('Erreur ajout projet', error);
@@ -165,6 +168,7 @@ export class ProjectModalComponent {
       }
     });
   }
+
 
   
 

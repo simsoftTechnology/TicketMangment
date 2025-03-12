@@ -44,7 +44,7 @@ export class AjouterUtilisateurComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       pays: ['', Validators.required],
       role: ['', Validators.required],
-      societe: [''],
+      societe: [{ value: '', disabled: true }],
       password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(8)]],
       numTelephone: ['', [Validators.required, Validators.pattern(/^[+]\d{3}\s?\d{2}\s?\d{3}\s?\d{3}$/)]],
       confirmPassword: ['', Validators.required],
@@ -68,6 +68,19 @@ export class AjouterUtilisateurComponent implements OnInit {
     const contratControl = this.registerForm.get('contrat');
     const contractGroup = this.registerForm.get('contract');
 
+    this.registerForm.get('role')?.valueChanges.subscribe(role => {
+      const societeControl = this.registerForm.get('societe');
+      if (role && role.toLowerCase() === 'client') {
+        societeControl?.enable(); // Active le champ pour le rôle "client"
+        societeControl?.setValidators(Validators.required);
+      } else {
+        societeControl?.disable(); // Désactive le champ pour les autres rôles
+        societeControl?.clearValidators();
+        societeControl?.setValue(''); // Optionnel : réinitialise la valeur
+      }
+      societeControl?.updateValueAndValidity();
+    });
+    
     // Au démarrage, si la case 'contrat' est false, désactivez le groupe 'contract'
     if (!contratControl?.value) {
       contractGroup?.disable();
@@ -216,9 +229,11 @@ export class AjouterUtilisateurComponent implements OnInit {
         },
         error: err => {
           console.error('Erreur lors de l\'enregistrement', err);
-          this.toastr.error("Erreur lors de l'enregistrement de l'utilisateur.");
+          // Extraire le message d'erreur exact, en tenant compte d'une potentielle présence de err.error.message
+          const errorMessage = err.error?.message || err.message || "Erreur lors de l'enregistrement de l'utilisateur.";
+          this.toastr.error(errorMessage);
         }
-      });
+      });      
     } else {
       this.toastr.warning("Veuillez remplir correctement le formulaire.");
     }

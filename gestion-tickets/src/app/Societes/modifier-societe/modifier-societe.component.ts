@@ -273,17 +273,29 @@ export class ModifierSocieteComponent implements OnInit {
 
   // Fonctions de pagination pour les projets et utilisateurs
   loadProjects(): void {
-    this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, this.projectSearchTerm)
+    this.projetsService.getPaginatedProjets(
+        this.pageNumber,
+        this.pageSize,
+        this.projectSearchTerm,
+        this.societeDetails.id
+      )
       .subscribe((result: PaginatedResult<Projet[]>) => {
-        // Filtrer uniquement les projets qui appartiennent à la société en cours
-        this.displayedProjects = (result.items ?? []).filter(projet => projet.societeId === this.societeDetails.id);
-        // Pour la pagination, il faudra ajuster le total si besoin
-        this.totalProjects = this.displayedProjects.length;
-        this.totalPages = Math.ceil(this.totalProjects / this.pageSize);
+        // Utiliser un tableau vide par défaut si result.items est undefined
+        this.displayedProjects = result.items || [];
+        
+        // Gérer le cas où la pagination pourrait être undefined
+        if (result.pagination) {
+          this.totalProjects = result.pagination.totalItems;
+          this.totalPages = result.pagination.totalPages;
+        } else {
+          this.totalProjects = this.displayedProjects.length;
+          this.totalPages = Math.ceil(this.totalProjects / this.pageSize);
+        }
       }, error => {
         console.error('Erreur lors du chargement des projets paginés', error);
       });
-  }
+  }  
+  
   
 
 
@@ -481,6 +493,17 @@ export class ModifierSocieteComponent implements OnInit {
   openProjectModal(): void {
     const modalInstance = this.overlayModalService.open(ProjectModalComponent);
     modalInstance.societeId = this.societeDetails.id;
+    
+    // S'abonner à l'événement de fermeture du modal
+    if (modalInstance.closed) {
+      modalInstance.closed.subscribe((result: any) => {
+        if (result && result.projectCreated) {
+          this.loadProjects();
+        }
+      });
+    }
   }
+  
+  
   
 }

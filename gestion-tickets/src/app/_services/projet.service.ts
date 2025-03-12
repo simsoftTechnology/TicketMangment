@@ -20,7 +20,12 @@ export class ProjetService {
   }
 
    // Méthode pour récupérer les projets paginés
-   getPaginatedProjets(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Projet[]>> {
+   getPaginatedProjets(
+    pageNumber?: number,
+    pageSize?: number,
+    searchTerm?: string,
+    societeId?: number
+  ): Observable<PaginatedResult<Projet[]>> {
     let params = new HttpParams();
     if (pageNumber != null && pageSize != null) {
       params = params.append('pageNumber', pageNumber.toString());
@@ -29,21 +34,24 @@ export class ProjetService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
+    if (societeId) {
+      params = params.append('societeId', societeId.toString());
+    }
   
-    return this.http.get<Projet[]>(this.baseUrl + '/paged', { observe: 'response', params })
+    return this.http.get<Projet[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<Projet[]>) => {
           const paginatedResult: PaginatedResult<Projet[]> = {
             items: response.body || [],
-            pagination: response.headers.get('Pagination') 
-              ? JSON.parse(response.headers.get('Pagination')!) 
+            pagination: response.headers.get('Pagination')
+              ? JSON.parse(response.headers.get('Pagination')!)
               : null!
           };
-          this.paginatedResult = paginatedResult;
           return paginatedResult;
         })
       );
   }
+  
   
 
   // Récupérer un projet par ID

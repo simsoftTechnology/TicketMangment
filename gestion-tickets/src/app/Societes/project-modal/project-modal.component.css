@@ -1,7 +1,5 @@
 /* Styles de base pour le modal */
-.custom-backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
-}
+
 
 .modal-container {
   background-color: white;
@@ -10,7 +8,7 @@
   max-width: 800px;
   width: 700px;
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
   animation: modal-appear 0.3s ease-out;
 }
 
@@ -27,6 +25,10 @@
   padding: 1.5rem 2rem;
   border-bottom: 1px solid #eaeaea;
   background-color: #f9f9f9;
+}
+.modal-header {
+  border-top-left-radius: 8px !important;
+  border-top-right-radius: 8px !important;
 }
 
 .modal-header h2 {
@@ -295,6 +297,7 @@ label {
 .btn-create:active, .btn-cancel:active {
   transform: translateY(1px);
 }
+
 
 /* Styles pour le panel modal CDK */
 .modal-panel {

@@ -8,7 +8,7 @@
           Date de début <span class="required">*</span>
         </label>
         <input id="dateDebut" type="date" formControlName="dateDebut" required />
-        <div *ngIf="data.contractForm.get('dateDebut')?.invalid && (data.contractForm.get('dateDebut')?.touched || data.contractForm.get('dateDebut')?.dirty)" class="error-message">
+        <div *ngIf="data.contractForm.get('dateDebut')?.invalid && (data.contractForm.get('dateDebut')?.touched || data.contractForm.get('dateDebut')?.dirty)" class="invalid-feedback text-start">
           La date de début est obligatoire.
         </div>
       </div>
@@ -19,7 +19,7 @@
           Date de fin <span class="required">*</span>
         </label>
         <input id="dateFin" type="date" formControlName="dateFin" required />
-        <div *ngIf="data.contractForm.get('dateFin')?.invalid && (data.contractForm.get('dateFin')?.touched || data.contractForm.get('dateFin')?.dirty)" class="error-message">
+        <div *ngIf="data.contractForm.get('dateFin')?.invalid && (data.contractForm.get('dateFin')?.touched || data.contractForm.get('dateFin')?.dirty)" class="invalid-feedback text-start">
           La date de fin est obligatoire.
         </div>
       </div>

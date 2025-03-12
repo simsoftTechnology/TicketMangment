@@ -101,9 +101,11 @@ export class ListeProjetsComponent implements OnInit {
   }
 
   deleteProjet(id: number): void {
-    this.projetsService.deleteProjet(id).subscribe(() => {
-      this.loadProjets();
-    });
+    if (confirm("Êtes-vous sûr de vouloir ce projet ?")) {
+        this.projetsService.deleteProjet(id).subscribe(() => {
+          this.loadProjets();
+        });
+      }
   }
 
   selectAll(event: Event): void {

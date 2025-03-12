@@ -37,8 +37,14 @@ public class ProjetRepository : IProjetRepository
       query = query.Where(p => p.Nom.ToLower().Contains(lowerSearchTerm));
     }
 
+    if (projetParams.SocieteId.HasValue)
+    {
+      query = query.Where(p => p.SocieteId == projetParams.SocieteId.Value);
+    }
+
     return await PagedList<Projet>.CreateAsync(query, projetParams.PageNumber, projetParams.PageSize);
   }
+
 
   public async Task<Projet?> GetProjetByIdAsync(int id)
   {
@@ -46,7 +52,7 @@ public class ProjetRepository : IProjetRepository
         .Include(p => p.Societe)
             .ThenInclude(s => s.Pays)
         .Include(p => p.ProjetUsers)
-        .AsNoTracking() 
+        .AsNoTracking()
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 
@@ -97,17 +103,17 @@ public class ProjetRepository : IProjetRepository
     .Where(pu => pu.ProjetId == projetId)
     .Select(pu => new
     {
-        pu.UserId,
-        pu.User.FirstName,
-        pu.User.LastName,
-        Role = pu.User.Role.Name  // Assurez-vous que "Role" existe dans User
+      pu.UserId,
+      pu.User.FirstName,
+      pu.User.LastName,
+      Role = pu.User.Role.Name  // Assurez-vous que "Role" existe dans User
     })
     .ToListAsync();
 
   }
 
   public async Task<bool> ProjetExists(string nom)
-    {
-        return await _context.Projets.AnyAsync(p => p.Nom == nom);
-    }
+  {
+    return await _context.Projets.AnyAsync(p => p.Nom == nom);
+  }
 }

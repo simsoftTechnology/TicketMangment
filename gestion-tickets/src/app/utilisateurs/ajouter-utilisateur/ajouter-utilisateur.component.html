@@ -58,8 +58,9 @@
         <div *ngIf="registerForm.controls['role'].hasError('required')" class="invalid-feedback text-start">
           Le rôle est obligatoire.
         </div>
-      </div>      
+      </div>
 
+      <!-- Champ Société : affiché uniquement si le rôle est 'client' -->
       <div class="form-group">
         <label for="societe">Société</label>
         <select id="societe" formControlName="societe" class="form-control"
@@ -67,7 +68,12 @@
           <option value="">Sélectionnez une société</option>
           <option *ngFor="let s of societesList" [value]="s.id">{{ s.nom }}</option>
         </select>
+        <div *ngIf="registerForm.get('societe')?.hasError('required')" class="invalid-feedback text-start">
+          Société est obligatoire
+        </div>
       </div>
+      
+      
     </div>
 
     <div class="form-row">
@@ -153,6 +159,6 @@
       <button type="button" class="btn-add" (click)="createAndReset()">Créer & Ajouter un autre</button>
       <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
     </div>
-    
+
   </form>
 </div>

@@ -3,6 +3,9 @@
   z-index: 10000 !important;
 }
 
+.custom-backdrop {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
 /* Styles globaux pour tous les toasts */
 .custom-toast {
   background-color: #28a745 !important; /* Vert */

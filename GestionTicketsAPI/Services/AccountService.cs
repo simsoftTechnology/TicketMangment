@@ -32,8 +32,7 @@ namespace GestionTicketsAPI.Services
     {
       // Vérifier si l'utilisateur existe déjà
       if (await _accountRepository.UserExistsAsync(registerDto.Firstname, registerDto.Lastname, registerDto.Email))
-        throw new Exception("User already exists");
-
+        throw new Exception("L'utilisateur existe déjà.");
       // Récupération du pays
       var pays = await _accountRepository.GetPaysByIdAsync(registerDto.Pays);
       if (pays == null)

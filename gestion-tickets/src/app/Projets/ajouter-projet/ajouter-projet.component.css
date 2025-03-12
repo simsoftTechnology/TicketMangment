@@ -1,8 +1,9 @@
 .form-container {
-  padding: 2rem;
-  max-width: 1800px;
-  margin: 0 auto;
+  padding: 5rem;
+  width: 1200px;
+  margin: 50px;
   font-weight: 500;
+  background-color: white;
 }
 
 /* Style global pour harmoniser les champs de formulaire */
