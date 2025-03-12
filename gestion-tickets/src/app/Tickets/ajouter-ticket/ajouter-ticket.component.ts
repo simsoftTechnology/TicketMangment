@@ -13,6 +13,8 @@ import { ProjetService } from '../../_services/projet.service';
 import { AccountService } from '../../_services/account.service';
 import { PrioriteService } from '../../_services/priorite.service';
 import { QualificationService } from '../../_services/qualification.service';
+import { Qualification } from '../../_models/qualification.model';
+import { Priorite } from '../../_models/priorite.model';
 
 @Component({
   selector: 'app-ajouter-ticket',
@@ -28,11 +30,11 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Listes chargées depuis la base
   categories: any[] = [];
   projets: any[] = [];
-  usersOptions: any[] = []; // Liste des utilisateurs (responsables)
+  // usersOptions: any[] = []; // Liste des utilisateurs (responsables)
 
   // Options pour les selects standards
-  qualificationOptions: string[] = [];
-  prioriteOptions: string[] = [];
+  qualificationOptions: Qualification[] = [];
+  prioriteOptions: Priorite[] = [];
 
   selectedFile: File | null = null;
   formSubmitted = false;
@@ -83,7 +85,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     this.loadProjets();
     this.loadPriorites();
     this.loadQualifications();
-    this.loadUsers(); // Charger la liste des utilisateurs
+    // this.loadUsers(); // Charger la liste des utilisateurs
 
     // Initialisation de ngx-editor
     this.editor = new Editor();
@@ -136,7 +138,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   loadPriorites(): void {
     this.prioriteService.getPriorites().subscribe({
       next: (priorites) => {
-        this.prioriteOptions = priorites.map(p => p.name);
+        this.prioriteOptions = priorites.map(p => p);
       },
       error: (err) => {
         console.error("Erreur lors du chargement des priorités", err);
@@ -146,31 +148,31 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   // Méthode pour charger les qualifications depuis la base
-  loadQualifications(): void {
-    this.qualificationService.getQualifications().subscribe({
+  loadQualifications() {
+     this.qualificationService.getQualifications().subscribe({
       next: (qualifications) => {
-        this.qualificationOptions = qualifications.map(q => q.name);
-      },
+        this.qualificationOptions = qualifications.map(q =>q); },
       error: (err) => {
         console.error("Erreur lors du chargement des qualifications", err);
         this.toastr.error("Erreur lors du chargement des qualifications.");
       }
     });
+     
   }
 
   // Méthode pour charger la liste des utilisateurs (responsables)
-  loadUsers(): void {
-    // On passe par exemple pageNumber = 1 et pageSize = 1000 pour récupérer un grand nombre d'utilisateurs
-    this.accountService.getUsers(1, 1000).subscribe({
-      next: (result) => { 
-        // On affecte result.items s'il existe, sinon un tableau vide
-        this.usersOptions = result.items ?? []; 
-      },
-      error: (err) => { 
-        console.error("Erreur lors du chargement des utilisateurs", err); 
-      }
-    });
-  }
+  // loadUsers(): void {
+  //   // On passe par exemple pageNumber = 1 et pageSize = 1000 pour récupérer un grand nombre d'utilisateurs
+  //   this.accountService.getUsers(1, 1000).subscribe({
+  //     next: (result) => { 
+  //       // On affecte result.items s'il existe, sinon un tableau vide
+  //       this.usersOptions = result.items ?? []; 
+  //     },
+  //     error: (err) => { 
+  //       console.error("Erreur lors du chargement des utilisateurs", err); 
+  //     }
+  //   });
+  // }
   
 
 

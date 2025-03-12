@@ -19,17 +19,15 @@ namespace GestionTicketsAPI.Controllers
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
     private readonly EmailService _emailService; 
-        private readonly IUserService _userService;
-        private readonly ILogger<TicketsController> _logger;
+        private readonly IUserService _userService; 
 
-        public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, EmailService emailService, IUserService userService, ILogger<TicketsController> logger)
+        public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, EmailService emailService, IUserService userService )
         {
             _ticketService = ticketService;
             _mapper = mapper;
             _photoService = photoService;
             _emailService = emailService;
-            _userService = userService;
-            _logger = logger;
+            _userService = userService; 
         }
 
         // GET api/tickets?...
@@ -75,11 +73,11 @@ namespace GestionTicketsAPI.Controllers
       await _ticketService.AddTicketAsync(ticket);
       var  ticketDto = _mapper.Map<TicketDto>(ticket);
       var  owner = _userService.GetUserByIdAsync(ticketDto.OwnerId);
-            Console.WriteLine($"LOG: {owner}");
-            _logger.LogInformation("TestLog endpoint was called at {Time}", DateTime.UtcNow);
-            //var chef = _userService.GetUserByIdAsync(ticketDto.Projet.);
-            // bool emailSent = await _emailService.SendEmailAsync(owner, owner, "Welcome to Simsoft!", "Thank you for registering.");
-            return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
+
+      Console.WriteLine($"LOG: {owner}"); 
+      //var chef = _userService.GetUserByIdAsync(ticketDto.Projet.);
+      // bool emailSent = await _emailService.SendEmailAsync(owner, owner, "Welcome to Simsoft!", "Thank you for registering.");
+      return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
     }
 
     // POST api/tickets/withAttachment

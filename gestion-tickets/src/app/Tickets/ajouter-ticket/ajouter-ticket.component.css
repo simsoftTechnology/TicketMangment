@@ -9,12 +9,19 @@ h2 {
 }
 
 .form-container {
-  max-width: 100%;
+  max-width: 94%;
   margin: 0 auto;
   border-radius: 8px;
-  padding: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  
 }
+.container2{
+  background-color: white;
+    border-radius: 10px;
+    width: 90%;
 
+}
 
 .form-container input:focus,
 .form-container select:focus,
@@ -67,8 +74,7 @@ h2 {
 /* Groupe de champs alignés sur une ligne */
 .form-group-inline {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 4rem;
 }
 
 .form-group-inline .form-group {
