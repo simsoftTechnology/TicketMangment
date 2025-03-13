@@ -1,37 +1,36 @@
-.form-container {
+/* Card styles */
+.card-container {
   padding: 2rem;
-  max-width: 1800px;
+  max-width: 1000px;
   margin: 0 auto;
+}
+
+.card {
+  margin-top: 80px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #333;
   font-weight: 500;
 }
 
-.form-container input,
-.form-container select {
-  border: 1px solid rgb(184, 183, 183);
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.form-container input:focus,
-.form-container select:focus {
-  outline: none;
-  border-color: #fa9745;
-  box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
-}
-
-.form-container input.is-invalid,
-.form-container select.is-invalid {
-  border-color: rgb(232, 2, 2);
-}
-
-h2 {
-  margin-bottom: 2rem;
+.card-body {
+  padding: 2rem;
   font-weight: 500;
 }
 
+/* Form elements */
 .form-row {
   display: flex;
   gap: 2rem;
@@ -59,12 +58,34 @@ input, select {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
+  border: 1px solid rgb(184, 183, 183);
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #fa9745;
+  box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
+}
+
+input.is-invalid,
+select.is-invalid {
+  border-color: rgb(232, 2, 2);
 }
 
 select {
   background-color: white;
 }
 
+.invalid-feedback {
+  color: rgb(232, 2, 2);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+/* Toggle switch */
 .toggle-row {
   display: flex;
   gap: 12.6rem;
@@ -123,9 +144,11 @@ input:checked + .toggle-label:before {
   transform: translateX(26px);
 }
 
+/* Buttons */
 .button-group {
   display: flex;
   gap: 1rem;
+  margin-top: 2rem;
 }
 
 .btn-create {
@@ -142,8 +165,6 @@ input:checked + .toggle-label:before {
   background-color: #ccc;
   cursor: not-allowed;
 }
-
-
 
 .btn-cancel {
   background-color: #fc5203;
@@ -162,10 +183,15 @@ input:checked + .toggle-label:before {
   background-color: #e74a01;
 }
 
+/* Responsive adjustments */
 @media (max-width: 1199px) {
-  .form-container {
+  .card-container {
     padding: 1.5rem;
     max-width: 90%;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
   }
 
   .form-row {
@@ -181,15 +207,19 @@ input:checked + .toggle-label:before {
     gap: 0.75rem;
   }
 
-  .btn-create, .btn-add, .btn-cancel {
+  .btn-create, .btn-cancel {
     padding: 0.6rem 1.5rem;
   }
 }
 
 @media (max-width: 767px) {
-  .form-container {
+  .card-container {
     padding: 1rem;
     max-width: 95%;
+  }
+  
+  .card-body {
+    padding: 1rem;
   }
 
   .form-row {
@@ -208,18 +238,26 @@ input:checked + .toggle-label:before {
     gap: 0.5rem;
   }
 
-  .btn-create, .btn-add, .btn-cancel {
+  .btn-create, .btn-cancel {
     width: 100%;
   }
 }
 
 @media (max-width: 480px) {
-  .form-container {
+  .card-container {
     padding: 0.5rem;
     max-width: 100%;
   }
+  
+  .card-body {
+    padding: 0.75rem;
+  }
 
-  h2 {
+  .card-header {
+    padding: 1rem;
+  }
+
+  .card-header h2 {
     font-size: 1.5rem;
   }
 
@@ -229,10 +267,10 @@ input:checked + .toggle-label:before {
 
   input, select {
     font-size: 0.9rem;
-    padding: 0.1rem;
+    padding: 0.6rem;
   }
 
-  .btn-create, .btn-add, .btn-cancel {
+  .btn-create, .btn-cancel {
     padding: 0.4rem 0.8rem;
     font-size: 0.9rem;
   }

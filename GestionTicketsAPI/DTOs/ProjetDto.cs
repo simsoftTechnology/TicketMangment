@@ -12,5 +12,8 @@ namespace GestionTicketsAPI.DTOs
 
         public int? IdPays { get; set; }
         public string? NomPays { get; set; }
+
+         public int? ChefProjetId { get; set; }
+        public UserDto? ChefProjet { get; set; }
     }
 }

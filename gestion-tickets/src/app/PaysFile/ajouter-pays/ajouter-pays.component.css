@@ -1,12 +1,20 @@
+.outer-wrapper {
+  padding-top: 50px; /* Espace en haut qui ne provoque pas de collapse */
+  background-color: #ebeaea; /* Fond identique à celui du parent, si besoin */
+  margin-left: -50px !important; 
+}
+
 .container {
   max-width: 800px;
   height: 600px;
-  margin: 70px auto;
+  margin: 5px;  /* Centrer horizontalement */
   padding: 80px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
+
+
 
 h2 {
   color: #333;

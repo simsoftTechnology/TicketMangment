@@ -16,7 +16,7 @@ export interface Ticket {
   problemCategoryId: number;
   problemCategory?: CategorieProbleme;
   qualificationId: number;
-  attachments?: string;
+  attachment?: string;
   projetId: number;
   projet?: Projet;
   selected?: boolean;

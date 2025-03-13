@@ -1,8 +1,39 @@
-/*ajouter-utilisateur*/
-/* user-form.component.css */
+/* Styles pour la card */
+.card-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 1100px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* Form styles (repris et légèrement modifiés) */
 .form-container {
   padding: 2rem;
-  max-width: 1800px;
+  max-width: 100%;
   margin: 0 auto;
   font-weight: 500;
 }
@@ -11,15 +42,15 @@
 .form-container input,
 .form-container select,
 .form-container textarea {
-  border: 1px solid rgb(184, 183, 183); /* Bordure noire par défaut */
+  border: 1px solid rgb(184, 183, 183);
   padding: 8px;
   border-radius: 4px;
   font-size: 14px;
-  outline: none; /* Supprime la bordure bleue au focus */
+  outline: none;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Style au focus (tous les champs auront une bordure noire ou une bordure personnalisée au focus) */
+/* Style au focus */
 .form-container input:focus,
 .form-container select:focus,
 .form-container textarea:focus {
@@ -28,15 +59,16 @@
   box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
 }
 
-/* Optionnel : ajouter un style spécifique pour les champs invalides */
+/* Style pour les champs invalides */
 .form-container input.is-invalid,
 .form-container select.is-invalid {
-  border-color: rgb(232, 2, 2);;
+  border-color: rgb(232, 2, 2);
 }
 
-h2 {
-  margin-bottom: 2rem;
-  font-weight: 500;
+.invalid-feedback {
+  color: rgb(232, 2, 2);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
 }
 
 .form-row {
@@ -66,10 +98,6 @@ input, select {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
-}
-
-#telephone {
-  width: 100%; /* ou la taille souhaitée */
 }
 
 select {
@@ -135,9 +163,35 @@ input:checked + .toggle-label:before {
   transform: translateX(26px);
 }
 
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 30px;
+}
+
+.password-container i {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #000000;
+}
+
+.toggle-switch input:disabled + .toggle-label {
+  cursor: not-allowed;
+}
+
+/* Boutons */
 .button-group {
   display: flex;
   gap: 1rem;
+  margin-top: 2rem;
+  justify-content: flex-start;
 }
 
 .btn-create {
@@ -148,27 +202,19 @@ input:checked + .toggle-label:before {
   border-radius: 10px;
   cursor: pointer;
   font-weight: 500;
+  transition: background-color 0.2s ease;
 }
 
-.btn-add {
+.btn-add, .btn-cancel {
   background-color: white;
   color: #333;
   border: 1px solid #ddd;
   padding: 0.75rem 2rem;
   border-radius: 10px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.btn-cancel {
-  background-color: white;
-  color: #333;
-  border: 1px solid #ddd;
-  padding: 0.75rem 2rem;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-/* Styles pour les états hover */
 .btn-create:hover {
   background-color: #e67716;
 }
@@ -177,48 +223,26 @@ input:checked + .toggle-label:before {
   background-color: #f5f5f5;
 }
 
-
-
-
-.password-container {
-  position: relative;
-  width: 100%;
-}
-
-.password-container input {
-  width: 100%;
-  padding-right: 30px;  /* Espacement pour laisser de la place à l'icône */
-}
-
-.password-container i {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #000000;  /* Couleur de l'icône */
-}
-
-
-/* Appliquer le curseur 'not-allowed' à la zone du toggle quand l'input est désactivé */
-.toggle-switch input:disabled + .toggle-label {
-  cursor: not-allowed;
-}
-
-
 /* ========== Responsive pour les tailles moyennes (768px à 1199px) ========== */
 @media (max-width: 1199px) {
+  .card-container {
+    padding: 0.5rem;
+  }
+  
+  .card {
+    max-width: 95%;
+  }
+
   .form-container {
     padding: 1.5rem;
-    max-width: 90%; /* Réduction de la largeur */
   }
 
   .form-row {
-    gap: 1.5rem; /* Réduction de l'espace entre les champs */
+    gap: 1.5rem;
   }
 
   .toggle-row {
-    gap: 4rem; /* Adjust gap for medium-sized screens */
+    gap: 4rem;
     margin-right: 0px;
   }
 
@@ -227,95 +251,124 @@ input:checked + .toggle-label:before {
   }
 
   .btn-create, .btn-add, .btn-cancel {
-    padding: 0.6rem 1.5rem; /* Boutons plus compacts */
+    padding: 0.6rem 1.5rem;
   }
 }
 
+/* ========== Responsive pour les écrans intermédiaires ========== */
 @media (max-width: 1460px) {
   .form-container {
     padding: 1rem;
-    max-width: 95%;
   }
 
-
   .toggle-row {
-    
     gap: 0.9rem;
     margin-right: 0;
   }
 
-  
-
-  
-
   .password-container i {
-    right: 10px; /* Ajustement de l'icône pour champs plus petits */
+    right: 10px;
   }
 }
+
 /* ========== Responsive pour les petites tailles (480px à 767px) ========== */
 @media (max-width: 767px) {
+  .card-container {
+    padding: 0.25rem;
+  }
+  
+  .card {
+    max-width: 100%;
+    border-radius: 4px;
+  }
+  
+  .card-header {
+    padding: 1rem;
+  }
+
   .form-container {
     padding: 1rem;
-    max-width: 95%;
   }
 
   .form-row {
-    flex-direction: column; /* Les champs passent en colonne */
+    flex-direction: column;
     gap: 1rem;
+    margin-bottom: 1rem;
   }
 
   .toggle-row {
-    flex-direction: column; /* Les options de bascule passent en colonne */
+    flex-direction: column;
     gap: 0.1rem;
     margin-right: 0;
+    margin-top: 1rem;
   }
 
   .button-group {
-    flex-direction: column; /* Les boutons passent en colonne */
+    flex-direction: column;
     gap: 0.5rem;
   }
 
   .btn-create, .btn-add, .btn-cancel {
     padding: 0.5rem 1rem;
-    width: 100%; /* Les boutons prennent toute la largeur */
-  }
-
-  .password-container i {
-    right: 10px; /* Ajustement de l'icône pour champs plus petits */
+    width: 100%;
   }
 }
 
 /* ========== Responsive pour les très petites tailles (<480px) ========== */
 @media (max-width: 480px) {
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .card-header h2 {
+    font-size: 1.25rem;
+  }
+
   .form-container {
     padding: 0.5rem;
-    max-width: 100%;
   }
 
   h2 {
-    font-size: 1.5rem; /* Réduction de la taille du titre */
+    font-size: 1.5rem;
   }
 
   label {
-    font-size: 0.8rem; /* Réduction de la taille des étiquettes */
+    font-size: 0.8rem;
   }
 
   input, select {
-    font-size: 0.9rem; /* Taille de police plus petite pour les champs */
-    padding: 0.1rem;
+    font-size: 0.9rem;
+    padding: 0.5rem;
   }
 
   .toggle-row {
-    gap: 0.5rem; /* Écart minimal entre les éléments */
+    gap: 0.5rem;
+  }
+
+  .toggle-group {
+    gap: 0.5rem;
+  }
+
+  .toggle-switch {
+    width: 40px;
+    height: 26px;
+  }
+
+  .toggle-label:before {
+    height: 14px;
+    width: 14px;
+  }
+
+  input:checked + .toggle-label:before {
+    transform: translateX(14px);
   }
 
   .password-container i {
-    right: 5px; /* Ajustement supplémentaire pour très petits écrans */
+    right: 5px;
   }
 
   .btn-create, .btn-add, .btn-cancel {
     padding: 0.4rem 0.8rem;
     font-size: 0.9rem;
-    width: 100%;
   }
 }

@@ -91,6 +91,10 @@ export class ProjetService {
     return this.http.get<ProjetMember[]>(`${this.baseUrl}/membres/${projetId}`);
   }
 
+  getUserProjets(): Observable<Projet[]> {
+    return this.http.get<Projet[]>(`${this.baseUrl}/user`);
+  }
+  
   // Assigner ou mettre à jour le rôle d'un utilisateur dans un projet
   assignerRole(projetId: number, userId: number, role: string): Observable<any> {
     // Ici, selon votre API, vous pouvez soit utiliser un endpoint dédié (par exemple assigner-role)

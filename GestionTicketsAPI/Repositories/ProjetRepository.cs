@@ -116,4 +116,12 @@ public class ProjetRepository : IProjetRepository
   {
     return await _context.Projets.AnyAsync(p => p.Nom == nom);
   }
+
+  public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
+  {
+    return await _context.Projets
+      .Where(p => p.ProjetUsers.Any(pu => pu.UserId == userId))
+      .ToListAsync();
+  }
+
 }

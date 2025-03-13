@@ -23,7 +23,8 @@ namespace GestionTicketsAPI.Helpers
                 .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Societe.Pays.Nom))
                 .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe.Nom));
             CreateMap<ProjetDto, Projet>()
-                .ForMember(dest => dest.IdPays, opt => opt.Ignore());
+                .ForMember(dest => dest.IdPays, opt => opt.Ignore())
+                .ForMember(dest => dest.ChefProjetId, opt => opt.MapFrom(src => src.ChefProjetId));
             CreateMap<Societe, SocieteDto>()
                 .ForMember(dest => dest.Pays, opt => opt.MapFrom(src => src.Pays));
             CreateMap<SocieteDto, Societe>()

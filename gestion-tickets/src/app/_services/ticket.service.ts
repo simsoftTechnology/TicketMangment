@@ -45,8 +45,8 @@ export class TicketService {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
-  createTicket(ticket: Ticket): Observable<Ticket> {
-    return this.http.post<Ticket>(this.baseUrl, ticket);
+  createTicket(formData: FormData): Observable<Ticket> {
+    return this.http.post<Ticket>(this.baseUrl, formData);
   }
 
   updateTicket(id: number, ticket: TicketUpdateDto): Observable<any> {
@@ -61,11 +61,6 @@ export class TicketService {
   // Méthode pour supprimer plusieurs tickets (appel vers DELETE api/tickets/bulk)
   deleteMultipleTickets(ticketIds: number[]): Observable<any> {
     return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
-  }
-
-  // Utilise l'endpoint qui gère l'upload via Cloudinary
-  createTicketWithAttachment(formData: FormData): Observable<Ticket> {
-    return this.http.post<Ticket>(`${this.baseUrl}/withAttachment`, formData);
   }
   
   // Pour la mise à jour avec attachment

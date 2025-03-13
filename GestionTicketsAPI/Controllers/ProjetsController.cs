@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
@@ -148,5 +149,18 @@ namespace GestionTicketsAPI.Controllers
 
       return NoContent();
     }
+
+    [HttpGet("user")]
+    public async Task<IActionResult> GetUserProjets()
+    {
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      if (userIdClaim == null)
+        return Unauthorized();
+
+      int userId = int.Parse(userIdClaim.Value);
+      var projets = await _projetService.GetProjetsForUserAsync(userId);
+      return Ok(projets);
+    }
+
   }
 }

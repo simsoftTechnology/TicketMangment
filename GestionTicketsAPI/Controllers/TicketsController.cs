@@ -5,6 +5,7 @@ using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
@@ -17,12 +18,17 @@ namespace GestionTicketsAPI.Controllers
     private readonly ITicketService _ticketService;
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
+    private readonly EmailService _emailService;
 
-    public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService)
+    private readonly IUserService _userService;
+
+    public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService)
     {
       _ticketService = ticketService;
       _mapper = mapper;
       _photoService = photoService;
+      _userService = userService;
+      _emailService = emailService;
     }
 
     // GET api/tickets?...
@@ -61,43 +67,69 @@ namespace GestionTicketsAPI.Controllers
 
     // POST api/tickets
     [HttpPost]
-    public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
+    public async Task<ActionResult<TicketDto>> CreateTicket([FromForm] TicketCreateDto ticketCreateDto)
     {
-      // Vérifier l'existence d'un ticket similaire (par exemple, sur le titre)
+      // Vérification de l'unicité du titre du ticket
       if (await _ticketService.TicketExists(ticketCreateDto.Title))
         return BadRequest("Un ticket avec ce titre existe déjà");
 
-      var ticket = _mapper.Map<Ticket>(ticketCreateDto);
-      ticket.CreatedAt = DateTime.UtcNow;
-      await _ticketService.AddTicketAsync(ticket);
-      var ticketDto = _mapper.Map<TicketDto>(ticket);
-      return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticketDto);
-    }
-
-
-    // POST api/tickets/withAttachment
-    [HttpPost("withAttachment")]
-    public async Task<ActionResult<TicketDto>> CreateTicketWithAttachment([FromForm] TicketCreateDto ticketDto)
-    {
-      // Vérifier l'existence d'un ticket similaire
-      if (await _ticketService.TicketExists(ticketDto.Title))
-        return BadRequest("Un ticket avec ce titre existe déjà");
-
       UploadResult uploadResult = null;
-      if (ticketDto.Attachment != null)
+      if (ticketCreateDto.Attachment != null)
       {
-        uploadResult = await _photoService.UploadFileAsync(ticketDto.Attachment);
-        if (uploadResult.Error != null)
+        uploadResult = await _photoService.UploadFileAsync(ticketCreateDto.Attachment);
+        if (uploadResult?.Error != null)
           return BadRequest(uploadResult.Error.Message);
       }
-      var ticket = _mapper.Map<Ticket>(ticketDto);
+
+      // Mapper le DTO vers l'entité Ticket et définir la date de création
+      var ticket = _mapper.Map<Ticket>(ticketCreateDto);
       ticket.CreatedAt = DateTime.UtcNow;
+
+      // Assignation automatique des valeurs désirées
+      ticket.StatutId = 5;
+      ticket.ValidationId = 4;
+
       if (uploadResult?.SecureUrl != null)
       {
         ticket.Attachments = uploadResult.SecureUrl.AbsoluteUri;
       }
+
+      // Ajout du ticket dans le repository
       await _ticketService.AddTicketAsync(ticket);
-      var resultDto = _mapper.Map<TicketDto>(ticket);
+      await _ticketService.SaveAllAsync();
+
+      // Recharger le ticket avec ses relations (incluant Projet et ChefProjet)
+      var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
+      if (ticketFromDb == null)
+      {
+        return NotFound();
+      }
+
+      // Envoi d'email au chef de projet s'il existe
+      var chefProjet = ticketFromDb.Projet?.ChefProjet;
+      if (chefProjet != null)
+      {
+        await _emailService.SendEmailAsync(
+            $"{chefProjet.FirstName} {chefProjet.LastName}",
+            chefProjet.Email,
+            "Nouveau ticket créé",
+            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' pour le projet '{ticketFromDb.Projet.Nom}'."
+        );
+      }
+
+      // Envoi d'email aux utilisateurs ayant le rôle 'super admin'
+      var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+      foreach (var admin in superAdmins)
+      {
+        await _emailService.SendEmailAsync(
+            $"{admin.FirstName} {admin.LastName}",
+            admin.Email,
+            "Nouveau ticket créé",
+            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}'. Veuillez vérifier les détails dans l'application."
+        );
+      }
+
+      var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
       return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
     }
 

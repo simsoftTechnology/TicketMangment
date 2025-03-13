@@ -3,10 +3,11 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 @Component({
     selector: 'app-ajouter-pays',
-    imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf],
+    imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf, MatSidenavModule],
     templateUrl: './ajouter-pays.component.html',
     styleUrl: './ajouter-pays.component.css'
 })

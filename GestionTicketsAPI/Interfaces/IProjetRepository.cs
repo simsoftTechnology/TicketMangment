@@ -21,5 +21,6 @@ public interface IProjetRepository
         Task<ProjetUser?> GetProjetUserAsync(int projetId, int userId);
         void RemoveProjetUser(ProjetUser projetUser);
         Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId);
+        Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId);
         Task<bool> ProjetExists(string nom);
     }

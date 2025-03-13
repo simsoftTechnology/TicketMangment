@@ -126,25 +126,25 @@ export class ProjectModalComponent {
 
   ajouterProjet(): void {
     if (this.projetForm.invalid) {
+      // Forcer la mise à jour de la validation pour tous les contrôles
       this.projetForm.updateValueAndValidity();
       this.toastr.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-    
+  
     const formValue = this.projetForm.value;
     this.projet.nom = formValue.nom;
     this.projet.description = formValue.description;
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;
-
+    // ASSIGNATION MANQUANTE : affecter chefProjetId au projet
+    this.projet.chefProjetId = formValue.chefProjetId;
+  
     // Appel au service pour ajouter le projet
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
         this.toastr.success('Projet créé avec succès');
-        // Émettre un événement pour notifier que le projet a été créé
-        this.closed.emit({ projectCreated: true });
-        // Fermer le modal
-        this.overlayModalService.close();
+        this.router.navigate(['/home/Projets']);
       },
       error: (error) => {
         console.error('Erreur ajout projet', error);

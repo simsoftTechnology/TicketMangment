@@ -156,8 +156,8 @@
           <input id="attachments" type="file" (change)="onFileSelected($event)" class="form-control-file">
         </ng-container>
         <ng-template #displayAttachment>
-          <ng-container *ngIf="ticket.attachments; else noAttachment">
-            <a [href]="ticket.attachments" target="_blank">Voir l'attachement</a>
+          <ng-container *ngIf="ticket.attachment; else noAttachment">
+            <a [href]="ticket.attachment" target="_blank">Voir l'attachement</a>
           </ng-container>
           <ng-template #noAttachment>
             <span class="info-value">Aucun attachement</span>

@@ -25,6 +25,7 @@ namespace GestionTicketsAPI.Extensions
                     new MySqlServerVersion(new Version(8, 2, 0)));
             });
             services.AddCors();
+            services.AddTransient<EmailService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<IUserRepository, UserRepository>();

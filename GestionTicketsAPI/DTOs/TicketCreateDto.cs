@@ -15,9 +15,6 @@ namespace GestionTicketsAPI.DTOs
         public int PriorityId { get; set; } // Anciennement Priorite
 
         [Required]
-        public int StatutId { get; set; }   // Anciennement Statuts
-
-        [Required]
         public int OwnerId { get; set; }    // Anciennement UtilisateurId
 
         [Required]

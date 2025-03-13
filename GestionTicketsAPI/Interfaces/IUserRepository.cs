@@ -18,5 +18,6 @@ namespace GestionTicketsAPI.Interfaces
 
         // Méthode d'update
         void Update(User user);
+        Task<IEnumerable<User>> GetUsersByRoleAsync(string roleName);
     }
 }

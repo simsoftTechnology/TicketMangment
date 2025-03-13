@@ -164,7 +164,10 @@ public class ProjetService : IProjetService
     return await _projetRepository.SaveAllAsync();
   }
 
-
+  public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
+    {
+        return await _projetRepository.GetProjetsForUserAsync(userId);
+    }
   public async Task<bool> ProjetExists(string nom)
   {
     return await _projetRepository.ProjetExists(nom);

@@ -1,113 +1,117 @@
-<div class="form-container">
-  <h2>Ajouter un Projet</h2>
-  <form [formGroup]="projetForm" (ngSubmit)="ajouterProjet()">
-    <!-- Ligne 1 : Nom du projet -->
-    <div class="form-row">
-      <div class="form-group">
-        <label for="nom">Nom du projet <span class="required">*</span></label>
-        <input id="nom" type="text" formControlName="nom" class="form-control"
-               [class.is-invalid]="projetForm.get('nom')?.touched && projetForm.get('nom')?.invalid" />
-        <div *ngIf="projetForm.get('nom')?.hasError('required')" class="invalid-feedback text-start">
-          Le nom du projet est obligatoire
-        </div>
-      </div>
+<mat-sidenav-content>
+  <div class="outer-wrapper">
+    <div class="container">
+      <h2>Ajouter un Projet</h2>
+      <form [formGroup]="projetForm" (ngSubmit)="ajouterProjet()">
+        <!-- Ligne 1 : Nom du projet et sélection de société -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nom">Nom du projet <span class="required">*</span></label>
+            <input id="nom" type="text" formControlName="nom" class="form-control"
+                   [class.is-invalid]="projetForm.get('nom')?.touched && projetForm.get('nom')?.invalid" />
+            <div *ngIf="projetForm.get('nom')?.hasError('required')" class="invalid-feedback text-start">
+              Le nom du projet est obligatoire
+            </div>
+          </div>
 
-      <!-- Sélection de société -->
-      <div class="form-group">
-        <label for="societe-select">Société <span class="required">*</span></label>
-        <div id="societe-select"
-             class="custom-select"
-             role="combobox"
-             aria-haspopup="listbox"
-             [attr.aria-expanded]="isSocieteDropdownOpen"
-             tabindex="0"
-             (click)="toggleDropdown('societe')">
-          <div class="select-box">
-            <div class="selected-item">
-              {{ getSocieteName(projetForm.get('societeId')?.value) || 'Sélectionner une société' }}
-            </div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
-            <div class="search-box">
-              <input type="text"
-                     placeholder="Rechercher une société..."
-                     [(ngModel)]="searchSociete"
-                     [ngModelOptions]="{standalone: true}"
-                     (input)="filterItems('societe')"
-                     (click)="$event.stopPropagation()" />
-            </div>
-            <div class="option-list">
-              <div *ngFor="let societe of filteredSocietes" class="option-item"
-                   role="option"
-                   (click)="selectItem(societe, 'societe'); $event.stopPropagation()">
-                {{ societe.nom }}
+          <!-- Sélection de société -->
+          <div class="form-group">
+            <label for="societe-select">Société <span class="required">*</span></label>
+            <div id="societe-select"
+                 class="custom-select"
+                 role="combobox"
+                 aria-haspopup="listbox"
+                 [attr.aria-expanded]="isSocieteDropdownOpen"
+                 tabindex="0"
+                 (click)="toggleDropdown('societe')">
+              <div class="select-box">
+                <div class="selected-item">
+                  {{ getSocieteName(projetForm.get('societeId')?.value) || 'Sélectionner une société' }}
+                </div>
+                <span class="arrow">▼</span>
               </div>
-              <div class="no-result" *ngIf="filteredSocietes.length === 0">
-                <span class="no-results-icon">🔍</span>
-                Aucune société trouvée.
+              <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
+                <div class="search-box">
+                  <input type="text"
+                         placeholder="Rechercher une société..."
+                         [(ngModel)]="searchSociete"
+                         [ngModelOptions]="{standalone: true}"
+                         (input)="filterItems('societe')"
+                         (click)="$event.stopPropagation()" />
+                </div>
+                <div class="option-list">
+                  <div *ngFor="let societe of filteredSocietes" class="option-item"
+                       role="option"
+                       (click)="selectItem(societe, 'societe'); $event.stopPropagation()">
+                    {{ societe.nom }}
+                  </div>
+                  <div class="no-result" *ngIf="filteredSocietes.length === 0">
+                    <span class="no-results-icon">🔍</span>
+                    Aucune société trouvée.
+                  </div>
+                </div>
               </div>
+            </div>
+            <div *ngIf="projetForm.get('societeId')?.touched && projetForm.get('societeId')?.invalid"
+                 class="invalid-feedback text-start">
+              Société est obligatoire
             </div>
           </div>
         </div>
-        <div *ngIf="projetForm.get('societeId')?.touched && projetForm.get('societeId')?.invalid"
-             class="invalid-feedback text-start">
-          Société est obligatoire
-        </div>
-      </div>
-    </div>
 
-    <!-- Ligne 2 : Chef de projet -->
-    <div class="form-row">
-      <div class="form-group">
-        <label for="chef-select">Chef de projet <span class="required">*</span></label>
-        <div id="chef-select"
-             class="custom-select"
-             role="combobox"
-             aria-haspopup="listbox"
-             [attr.aria-expanded]="isChefDropdownOpen"
-             tabindex="0"
-             (click)="toggleDropdown('chef')">
-          <div class="select-box">
-            <div class="selected-item">
-              {{ getChefName(projetForm.get('chefProjetId')?.value) || 'Sélectionner un chef de projet' }}
-            </div>
-            <span class="arrow">▼</span>
-          </div>
-          <div class="dropdown-content" [class.show]="isChefDropdownOpen">
-            <div class="search-box">
-              <input type="text"
-                     placeholder="Rechercher un chef..."
-                     [(ngModel)]="searchChef"
-                     [ngModelOptions]="{standalone: true}"
-                     (input)="filterItems('chef')"
-                     (click)="$event.stopPropagation()" />
-            </div>
-            <div class="option-list">
-              <div *ngFor="let chef of filteredChefs" class="option-item"
-                   role="option"
-                   (click)="selectItem(chef, 'chef'); $event.stopPropagation()">
-                {{ chef.firstName }} {{ chef.lastName }}
+        <!-- Ligne 2 : Chef de projet -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="chef-select">Chef de projet <span class="required">*</span></label>
+            <div id="chef-select"
+                 class="custom-select"
+                 role="combobox"
+                 aria-haspopup="listbox"
+                 [attr.aria-expanded]="isChefDropdownOpen"
+                 tabindex="0"
+                 (click)="toggleDropdown('chef')">
+              <div class="select-box">
+                <div class="selected-item">
+                  {{ getChefName(projetForm.get('chefProjetId')?.value) || 'Sélectionner un chef de projet' }}
+                </div>
+                <span class="arrow">▼</span>
               </div>
-              <div class="no-result" *ngIf="filteredChefs.length === 0">
-                <span class="no-results-icon">🔍</span>
-                Aucun utilisateur trouvé.
+              <div class="dropdown-content" [class.show]="isChefDropdownOpen">
+                <div class="search-box">
+                  <input type="text"
+                         placeholder="Rechercher un chef..."
+                         [(ngModel)]="searchChef"
+                         [ngModelOptions]="{standalone: true}"
+                         (input)="filterItems('chef')"
+                         (click)="$event.stopPropagation()" />
+                </div>
+                <div class="option-list">
+                  <div *ngFor="let chef of filteredChefs" class="option-item"
+                       role="option"
+                       (click)="selectItem(chef, 'chef'); $event.stopPropagation()">
+                    {{ chef.firstName }} {{ chef.lastName }}
+                  </div>
+                  <div class="no-result" *ngIf="filteredChefs.length === 0">
+                    <span class="no-results-icon">🔍</span>
+                    Aucun utilisateur trouvé.
+                  </div>
+                </div>
               </div>
             </div>
+            <div *ngIf="projetForm.get('chefProjetId')?.touched && projetForm.get('chefProjetId')?.invalid"
+                 class="invalid-feedback text-start">
+              Le chef de projet est obligatoire
+            </div>
           </div>
+          <div class="form-group"></div>
         </div>
-        <div *ngIf="projetForm.get('chefProjetId')?.touched && projetForm.get('chefProjetId')?.invalid"
-             class="invalid-feedback text-start">
-          Le chef de projet est obligatoire
-        </div>
-      </div>
-      <div class="form-group"></div>
-    </div>
 
-    <!-- Boutons -->
-    <div class="button-group">
-      <button type="submit" class="btn-create" [disabled]="projetForm.invalid">Ajouter</button>
-      <button type="button" class="btn-cancel" routerLink="/home/Projets">Annuler</button>
+        <!-- Boutons -->
+        <div class="button-group">
+          <button type="submit" class="btn-create" [disabled]="projetForm.invalid">Ajouter</button>
+          <button type="button" class="btn-cancel" routerLink="/home/Projets">Annuler</button>
+        </div>
+      </form>
     </div>
-  </form>
-</div>
+  </div>
+</mat-sidenav-content>

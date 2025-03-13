@@ -6,12 +6,16 @@ import { AccountService } from './_services/account.service';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { AngularEditorModule } from '@kolkov/angular-editor';
 import { NgxEditorModule } from 'ngx-editor';
+import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs';
+import { LoaderService } from './_services/loader.service';
 
 @Component({
     selector: 'app-root',
     imports: [RouterOutlet, MatDialogModule, OverlayModule,
       AngularEditorModule,
-      NgxEditorModule],
+      NgxEditorModule,
+    CommonModule],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })
@@ -21,6 +25,12 @@ export class AppComponent implements OnInit {
   private router = inject(Router);
   title = 'gestion-tickets';
   users: any;
+
+  loading$: Observable<boolean>;
+
+  constructor(private loaderService: LoaderService) {
+    this.loading$ = this.loaderService.loading$;
+  }
 
   ngOnInit(): void {
     this.setCurrentUser();

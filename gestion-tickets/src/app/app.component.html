@@ -1,2 +1,7 @@
 
 <router-outlet></router-outlet>
+
+<!-- Loader global -->
+<div class="loader-overlay" *ngIf="loading$ | async">
+  <div class="spinner"></div>
+</div>

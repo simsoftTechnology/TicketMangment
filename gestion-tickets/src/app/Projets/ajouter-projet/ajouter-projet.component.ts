@@ -14,10 +14,11 @@ import { forkJoin } from 'rxjs';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { DropdownService } from './../../_services/dropdown.service';
 import { ToastrService } from 'ngx-toastr';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-ajouter-projet',
-  imports: [CommonModule, FormsModule, NgIf, RouterLink, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, NgIf, RouterLink, ReactiveFormsModule, MatSidenavModule],
   templateUrl: './ajouter-projet.component.html',
   styleUrls: ['./ajouter-projet.component.css']
 })
@@ -128,13 +129,15 @@ export class AjouterProjetComponent implements OnInit {
       this.toastr.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-
+  
     const formValue = this.projetForm.value;
     this.projet.nom = formValue.nom;
     this.projet.description = formValue.description;
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;
-
+    // ASSIGNATION MANQUANTE : affecter chefProjetId au projet
+    this.projet.chefProjetId = formValue.chefProjetId;
+  
     // Appel au service pour ajouter le projet
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {

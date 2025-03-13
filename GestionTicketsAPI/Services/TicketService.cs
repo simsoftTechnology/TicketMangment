@@ -76,5 +76,10 @@ namespace GestionTicketsAPI.Services
     {
       return await _ticketRepository.TicketExists(title);
     }
+    public async Task<bool> SaveAllAsync()
+    {
+      return await _ticketRepository.SaveAllAsync();
+    }
+
   }
 }

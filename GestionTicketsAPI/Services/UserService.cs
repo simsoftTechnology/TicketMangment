@@ -96,5 +96,11 @@ namespace GestionTicketsAPI.Services
             // Sauvegarder les modifications dans la base de données
             return await _userRepository.SaveAllAsync();
         }
+
+        public async Task<IEnumerable<UserDto>> GetUsersByRoleAsync(string roleName)
+    {
+        var users = await _userRepository.GetUsersByRoleAsync(roleName);
+        return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
     }
 }
