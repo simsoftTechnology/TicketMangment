@@ -10,7 +10,8 @@ builder.Services.AddIdentityServices(builder.Configuration);
 
 var app = builder.Build();
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200").WithExposedHeaders("Pagination"));
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:8030", "https://localhost:8030").WithExposedHeaders("Pagination"));
+app.MapGet("/", () => "bienvenue ");
 
 
 // Configure the HTTP request pipeline.

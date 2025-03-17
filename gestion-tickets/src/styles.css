@@ -1,3 +1,6 @@
+@import url('assets/fontawesome/css/all.min.css');
+
+
 .cdk-overlay-container,
 .mat-dialog-container {
   z-index: 10000 !important;

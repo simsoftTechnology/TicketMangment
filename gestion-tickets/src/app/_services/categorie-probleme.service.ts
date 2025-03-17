@@ -3,12 +3,13 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
 import { PaginatedResult } from '../_models/pagination';
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategorieProblemeService {
-  private baseUrl = 'https://localhost:5001/api/CategorieProbleme';
+   baseUrl = environment.URLAPI+'CategorieProbleme/';
 
   constructor(private http: HttpClient) {}
 
@@ -26,7 +27,7 @@ export class CategorieProblemeService {
       .set('pageSize', pageSize.toString())
       .set('searchTerm', searchTerm);
 
-    return this.http.get<CategorieProbleme[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
+    return this.http.get<CategorieProbleme[]>(`${this.baseUrl}paged`, { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<CategorieProbleme[]>) => {
           paginatedResult.items = response.body || [];
@@ -41,7 +42,7 @@ export class CategorieProblemeService {
 
   // Récupère une catégorie par ID
   getCategoryById(id: number): Observable<CategorieProbleme> {
-    return this.http.get<CategorieProbleme>(`${this.baseUrl}/${id}`);
+    return this.http.get<CategorieProbleme>(`${this.baseUrl}${id}`);
   }
 
   // Ajoute une nouvelle catégorie
@@ -51,17 +52,17 @@ export class CategorieProblemeService {
 
   // Met à jour une catégorie existante
   updateCategory(category: CategorieProbleme): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${category.id}`, category);
+    return this.http.put(`${this.baseUrl}${category.id}`, category);
   }
 
   // Supprime une catégorie par ID
   deleteCategory(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+    return this.http.delete(`${this.baseUrl}${id}`);
   }
 
   // Supprime plusieurs catégories à la fois
   deleteSelectedCategories(ids: number[]): Observable<any> {
     // Utilisation de la méthode http.request afin d'envoyer un body avec la requête DELETE
-    return this.http.request('delete', `${this.baseUrl}/deleteMultiple`, { body: ids });
+    return this.http.request('delete', `${this.baseUrl}deleteMultiple`, { body: ids });
   }
 }

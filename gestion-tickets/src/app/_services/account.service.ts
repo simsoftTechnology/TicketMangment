@@ -6,13 +6,13 @@ import { User } from '../_models/user';
 import { Pays } from '../_models/pays';
 import { Projet } from '../_models/Projet';
 import { Ticket } from '../_models/ticket';
-
+import { environment } from '../../environment/environment';
 @Injectable({
   providedIn: 'root'
 })
 export class AccountService {
   private http = inject(HttpClient);
-  baseUrl = 'https://localhost:5001/api/';
+  baseUrl = environment.URLAPI;
   currentUser = signal<User | null>(this.getUserFromLocalStorage());
   paginatedResult = signal<PaginatedResult<User[]> | null>(null);
 
@@ -65,7 +65,7 @@ export class AccountService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-    return this.http.get<User[]>(this.baseUrl + 'users/paged', { observe: 'response', params })
+    return this.http.get<User[]>(environment.URLAPI + 'users/paged', { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<User[]>) => {
           const paginatedResult: PaginatedResult<User[]> = {
