@@ -1,8 +1,5 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
-import { MemberListComponent } from './members/member-list/member-list.component';
-import { MemberDetailComponent } from './members/member-detail/member-detail.component';
-import { ListsComponent } from './lists/lists.component';
 import { HomeComponent } from './home/home.component';
 import { authGuard } from './_guards/auth.guard';
 import { TestErrorsComponent } from './errors/test-errors/test-errors.component';
@@ -36,9 +33,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: HomeComponent,
     children: [
-      { path: 'members', component: MemberListComponent },
-      { path: 'members/:id', component: MemberDetailComponent },
-      { path: 'lists', component: ListsComponent },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'TableauDeBord', component: TableauBordComponent },
       { path: 'Tickets', component: ListTicketsComponent },

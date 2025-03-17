@@ -316,7 +316,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (ticket) => {
           this.toastr.success("Ticket créé avec succès.");
-          this.router.navigate(['/home/Tickets'], { queryParams: { newTicket: ticket.id } });
+          this.router.navigate(['/home/Tickets/details', ticket.id]);
         },
         error: (error) => {
           console.error('Erreur lors de la création du ticket', error);

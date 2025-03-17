@@ -46,6 +46,8 @@ namespace GestionTicketsAPI.Helpers
                 .ForMember(dest => dest.ProblemCategory, opt => opt.MapFrom(src => src.ProblemCategory))
                 .ForMember(dest => dest.Projet, opt => opt.MapFrom(src => src.Projet))
                 .ForMember(dest => dest.Responsible, opt => opt.MapFrom(src => src.Responsible))
+                .ForMember(dest => dest.ApprovedAt, opt => opt.MapFrom(src => src.ApprovedAt))
+                .ForMember(dest => dest.SolvedAt, opt => opt.MapFrom(src => src.SolvedAt))
                 .ReverseMap()
                     .ForMember(dest => dest.Owner, opt => opt.Ignore())
                     .ForMember(dest => dest.ProblemCategory, opt => opt.Ignore())

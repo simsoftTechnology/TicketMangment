@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { SidenavService } from '../_services/sideNavService.service';
+import { User } from '../_models/user';
 
 @Component({
     selector: 'app-header',
@@ -32,7 +33,18 @@ export class HeaderComponent {
   accountService = inject(AccountService);
   private router = inject(Router);
   
+  currentUser: User | null = null;
+  
+  userInitials = "";
+
   constructor(private sidenavService: SidenavService) {}
+
+  ngOnInit(): void {
+    this.currentUser = this.accountService.currentUser();
+    if(this.currentUser) {
+    this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
+    }
+  }
 
   toggleSidenav() {
     this.sidenavService.toggleSidenav();  // Appeler la méthode pour toggler le sidenav
@@ -42,4 +54,5 @@ export class HeaderComponent {
     this.accountService.logout();
     this.router.navigateByUrl('/');
   }
+  
 }

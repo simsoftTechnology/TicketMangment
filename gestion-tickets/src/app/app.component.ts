@@ -9,6 +9,7 @@ import { NgxEditorModule } from 'ngx-editor';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { LoaderService } from './_services/loader.service';
+import localeFr from '@angular/common/locales/fr';
 
 @Component({
     selector: 'app-root',

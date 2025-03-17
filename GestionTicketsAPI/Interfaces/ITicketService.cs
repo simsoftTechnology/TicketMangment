@@ -15,6 +15,8 @@ namespace GestionTicketsAPI.Interfaces
         Task<bool> DeleteTicketAsync(Ticket ticket);
         Task<bool> DeleteMultipleTicketsAsync(IEnumerable<int> ticketIds);
         Task<bool> TicketExists(string title);
+        Task<StatutDesTicket?> GetStatusByNameAsync(string statusName);
+
         Task<bool> SaveAllAsync();
     }
 }

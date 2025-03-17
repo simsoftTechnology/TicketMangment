@@ -90,5 +90,13 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
+    [HttpGet("role/{roleName}")]
+    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersByRole(string roleName)
+    {
+      var users = await _userService.GetUsersByRoleAsync(roleName);
+      return Ok(users);
+    }
+
+
   }
 }

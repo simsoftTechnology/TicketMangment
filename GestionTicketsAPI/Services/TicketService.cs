@@ -81,5 +81,11 @@ namespace GestionTicketsAPI.Services
       return await _ticketRepository.SaveAllAsync();
     }
 
+    public async Task<StatutDesTicket?> GetStatusByNameAsync(string statusName)
+    {
+      return await _ticketRepository.GetStatusByNameAsync(statusName);
+    }
+
+
   }
 }

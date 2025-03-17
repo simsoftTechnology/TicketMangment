@@ -1,4 +1,4 @@
-@GestionTicketsAPI_HostAddress = http://localhost:5079
+@GestionTicketsAPI_HostAddress = https://localhost:5001
 
 GET {{GestionTicketsAPI_HostAddress}}/weatherforecast/
 Accept: application/json

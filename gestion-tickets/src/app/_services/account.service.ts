@@ -142,4 +142,9 @@ export class AccountService {
   validateToken(): Observable<void> {
     return this.http.get<void>(this.baseUrl + 'account/validate');
   }
+
+  getUsersByRole(roleName: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.baseUrl}users/role/${roleName}`);
+  }
+  
 }

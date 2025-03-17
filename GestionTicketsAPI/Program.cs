@@ -1,17 +1,27 @@
+using System.Text.Json;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+
 // Add services to the container.
 
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 
 var app = builder.Build();
 
+
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200").WithExposedHeaders("Pagination"));
 
+app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");
 
 // Configure the HTTP request pipeline.
 app.UseMiddleware<ExceptionMiddleware>();

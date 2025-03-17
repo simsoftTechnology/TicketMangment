@@ -1,5 +1,8 @@
 import { CategorieProbleme } from './categorie-probleme.model';
+import { Priorite } from './priorite.model';
 import { Projet } from './Projet';
+import { Qualification } from './qualification.model';
+import { StatutDesTicket } from './statut-des-ticket.model';
 import { User } from './user';
 
 
@@ -8,7 +11,9 @@ export interface Ticket {
   title: string;
   description: string;
   priorityId: number;
+  priority?: Priorite;
   statutId: number;
+  statut?: StatutDesTicket;
   createdAt: Date;
   updatedAt?: Date;
   ownerId: number;
@@ -16,11 +21,18 @@ export interface Ticket {
   problemCategoryId: number;
   problemCategory?: CategorieProbleme;
   qualificationId: number;
-  attachment?: string;
+  qualification?: Qualification;
+  attachments?: string;
   projetId: number;
   projet?: Projet;
   selected?: boolean;
   responsibleId?: number;
   responsible?: User;
-  reasonRejection?: string; // Si nécessaire pour le workflow (ex : raison de rejet)
+  reasonRejection?: string; 
+  approvedAt?: Date;
+  solvedAt?: Date;
+
+  completionComment?: string;
+  hoursSpent?: number;
+  finishedAt?: Date;
 }

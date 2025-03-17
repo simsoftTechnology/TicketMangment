@@ -7,11 +7,7 @@ html, body {
   overflow: auto; /* Le scrollbar du navigateur est conservé */
 }
 
-.mat-drawer-container, /* ou .mat-sidenav-container */
-.mat-drawer-content, 
-.mat-sidenav-content {
-  overflow: visible !important;
-}
+
 
 app-home {
   display: flex;

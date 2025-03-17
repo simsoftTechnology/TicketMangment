@@ -54,8 +54,8 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
           .Include(t => t.Statut)
-          .OrderBy(t => t.CreatedAt) // Tri par date de création
-          .AsQueryable(); 
+          .OrderByDescending(t => t.CreatedAt) // Tri par date de création
+          .AsQueryable();
 
       // Filtrage par terme de recherche
       if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
@@ -126,6 +126,11 @@ namespace GestionTicketsAPI.Repositories
     public async Task<bool> TicketExists(string title)
     {
       return await _context.Tickets.AnyAsync(t => t.Title == title);
+    }
+
+    public async Task<StatutDesTicket?> GetStatusByNameAsync(string statusName)
+    {
+      return await _context.StatutsDesTickets.FirstOrDefaultAsync(s => s.Name == statusName);
     }
   }
 }
