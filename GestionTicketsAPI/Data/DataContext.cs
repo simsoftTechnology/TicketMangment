@@ -157,7 +157,8 @@ namespace GestionTicketsAPI.Data
           .HasOne(t => t.Owner)
           .WithMany() // Pas de collection spécifique dans User pour les tickets créés
           .HasForeignKey(t => t.OwnerId)
-          .OnDelete(DeleteBehavior.Restrict);
+          .OnDelete(DeleteBehavior.Cascade);
+
 
       // Relation Ticket -> Responsible (utilisateur assigné)
       modelBuilder.Entity<Ticket>()
