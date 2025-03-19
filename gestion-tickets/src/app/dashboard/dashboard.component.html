@@ -2,7 +2,7 @@
   <mat-sidenav [mode]="sidenavMode" [(opened)]="isSidenavOpen">
     <mat-nav-list>
       <!-- Liens communs à tous les rôles -->
-      <a mat-list-item [routerLink]="['/home', 'TableauDeBord']" routerLinkActive="active-nav-item">
+      <a mat-list-item [disableRipple]="true" [routerLink]="['/home', 'TableauDeBord']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">home</mat-icon>
           <span class="nav-text">Tableau de bord</span>

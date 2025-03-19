@@ -8,6 +8,7 @@ import { TicketValidationDto } from '../../_models/ticket-validation.dto';
 import { AccountService } from '../../_services/account.service';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-ticket-validation-modal',
@@ -25,12 +26,18 @@ export class TicketValidationModalComponent implements OnInit {
   
   validationForm!: FormGroup;
   developers: User[] = [];
+  isLoading: boolean = false; // Propriété de chargement
 
   constructor(
     private fb: FormBuilder,
     private ticketService: TicketService,
     private userService: AccountService,
-  ) {}
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     // Création du formulaire
@@ -43,17 +50,13 @@ export class TicketValidationModalComponent implements OnInit {
     // Lors du changement de l'option, appliquer ou supprimer les validateurs et réinitialiser le contrôle concerné
     this.validationForm.get('action')?.valueChanges.subscribe(val => {
       if (val === 'reject') {
-        // Pour refus : rendre "reason" obligatoire et réinitialiser pour effacer l'erreur précédente
         this.validationForm.get('reason')?.setValidators([Validators.required]);
         this.validationForm.get('reason')?.reset();
-        // Supprimer les validateurs du champ "responsibleId" et le réinitialiser
         this.validationForm.get('responsibleId')?.clearValidators();
         this.validationForm.get('responsibleId')?.reset();
       } else if (val === 'accept') {
-        // Pour accepter : rendre "responsibleId" obligatoire et réinitialiser pour effacer l'erreur précédente
         this.validationForm.get('responsibleId')?.setValidators([Validators.required]);
         this.validationForm.get('responsibleId')?.reset();
-        // Supprimer les validateurs du champ "reason" et le réinitialiser
         this.validationForm.get('reason')?.clearValidators();
         this.validationForm.get('reason')?.reset();
       } else {
@@ -97,15 +100,20 @@ export class TicketValidationModalComponent implements OnInit {
       responsibleId: formValue.action === 'accept' ? formValue.responsibleId : null
     };
 
+    // Active le loader
+    this.loaderService.showLoader();
+
     this.ticketService.validateTicket(this.ticket!.id, validationData).subscribe({
       next: () => {
         this.toastr.success('Ticket validé avec succéss');
+        this.loaderService.hideLoader();
         this.validated.emit();
         this.close();
       },
       error: (err) => {
         console.error('Erreur lors de la validation du ticket', err);
         this.toastr.error('Erreur lors de la validation du ticket');
+        this.loaderService.hideLoader();
       }
     });
   }

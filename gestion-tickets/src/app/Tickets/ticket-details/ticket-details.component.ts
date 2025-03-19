@@ -6,6 +6,7 @@ import { Ticket } from '../../_models/ticket';
 import { TicketService } from '../../_services/ticket.service';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
+import { Comment as TicketComment } from '../../_models/comment';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { TicketValidationModalComponent } from '../ticket-validation-modal/ticket-validation-modal.component';
 import { forkJoin } from 'rxjs';
@@ -14,6 +15,7 @@ import { FinishTicketDto } from '../../_models/finish-ticket-dto';
 import { ToastrService } from 'ngx-toastr';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
+import { CommentService } from '../../_services/comment.service';
 registerLocaleData(localeFr);
 
 @Component({
@@ -32,11 +34,16 @@ export class TicketDetailsComponent implements OnInit {
   private accountService = inject(AccountService);
   private overlayModalService = inject(OverlayModalService);
   private toastr = inject(ToastrService);
+  private commentService = inject(CommentService);
 
   ticket: Ticket | null = null;
   currentUser: User | null = null;
   ticketId!: number;
   developers: User[] = [];
+
+  // Pour la gestion des commentaires
+  comments: TicketComment[] = [];
+  newComment: string = '';
 
   // Propriété pour stocker le responsable sélectionné
   selectedResponsibleId: number | null = null;
@@ -49,6 +56,7 @@ export class TicketDetailsComponent implements OnInit {
     // Chargement des détails du ticket
     this.loadTicket();
     this.loadDevelopers();
+    this.loadComments();
   }
 
   loadTicket(): void {
@@ -82,11 +90,40 @@ export class TicketDetailsComponent implements OnInit {
     });
   }
 
+  loadComments(): void {
+    this.commentService.getCommentsByTicket(this.ticketId).subscribe({
+      next: (comments) => {
+        this.comments = comments;
+      },
+      error: (err) => {
+        console.error('Erreur lors du chargement des commentaires', err);
+      }
+    });
+  }
+
+
+
+  onAddComment(): void {
+    if (!this.newComment || this.newComment.trim() === '') return;
+    this.commentService.addComment({ contenu: this.newComment, ticketId: this.ticketId }).subscribe({
+      next: (comment) => {
+        this.newComment = '';
+        this.comments.push(comment);
+        this.loadComments();
+      },
+      error: (err) => {
+        console.error('Erreur lors de l\'ajout du commentaire', err);
+        const message = err.error || 'Erreur lors de l\'ajout du commentaire';
+        this.toastr.error(message, 'Erreur');
+      }
+    });
+  }
+
   // Logique pour afficher le bouton de validation
   canValidateTicket(): boolean {
     if (!this.ticket || !this.currentUser) return false;
     const userRole = this.currentUser.role?.toLowerCase() || '';
-    const statusIsDefault = (this.ticket.statut?.name === "-");
+    const statusIsDefault = (this.ticket.statut?.name === "—");
     return statusIsDefault && (userRole === 'chef de projet' || userRole === 'super admin');
   }
 
@@ -102,7 +139,7 @@ export class TicketDetailsComponent implements OnInit {
 
     // Vérifier le statut du ticket : si le ticket est déjà dans un statut final (résolu, non résolu, refusé ou non validé) on bloque
     const statusName = this.ticket.statut?.name?.toLowerCase();
-    const invalidStatuses = ['-', 'résolu', 'non résolu', 'refusé'];
+    const invalidStatuses = ['—', 'résolu', 'non résolu', 'refusé'];
     if (statusName && invalidStatuses.includes(statusName)) {
       return false;
     }
@@ -125,7 +162,6 @@ export class TicketDetailsComponent implements OnInit {
     modalInstance.ticket = this.ticket;
     modalInstance.validated.subscribe(() => {
       this.handleValidationDone();
-      this.toastr.success('Ticket validé avec succès');
       this.overlayModalService.close();
     });
     modalInstance.closed.subscribe(() => {
@@ -142,19 +178,23 @@ export class TicketDetailsComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(TicketCompletionModalComponent);
     modalInstance.ticket = this.ticket;
     modalInstance.finished.subscribe((finishData: FinishTicketDto) => {
+      // Appel à la méthode qui gère la validation et les mises à jour
       this.updateTicketCompletion(finishData);
-      this.overlayModalService.close();
     });
     modalInstance.closed.subscribe(() => {
       this.overlayModalService.close();
     });
   }
+  
+  
 
   updateTicketCompletion(finishData: any): void {
     this.ticketService.finishTicket(this.ticket!.id, finishData).subscribe({
       next: () => {
         this.toastr.success('Ticket clôturé avec succès');
-        this.loadTicket();  
+        this.loadTicket();
+        this.loadComments();
+        this.overlayModalService.close(); 
       },
       error: err => {
         console.error('Erreur lors de la clôture du ticket', err);
@@ -163,6 +203,7 @@ export class TicketDetailsComponent implements OnInit {
       }
     });
   }
+  
 
   // Méthode pour mettre à jour le responsable
   updateResponsible(): void {
@@ -184,6 +225,20 @@ export class TicketDetailsComponent implements OnInit {
     });
   }
 
+  getInitials(firstName?: string, lastName?: string): string {
+    // Si aucun prénom/nom, on renvoie juste une chaîne vide
+    if (!firstName && !lastName) return '';
+  
+    let initials = '';
+    if (firstName && firstName.length > 0) {
+      initials += firstName.charAt(0).toUpperCase();
+    }
+    if (lastName && lastName.length > 0) {
+      initials += lastName.charAt(0).toUpperCase();
+    }
+    return initials;
+  }
+  
 
 
 }

@@ -15,10 +15,10 @@ import { RoleService } from '../../_services/role.service';
 import { Role } from '../../_models/role.model';
 
 @Component({
-    selector: 'app-ajouter-utilisateur',
-    imports: [CommonModule, ReactiveFormsModule, MatTooltipModule],
-    templateUrl: './ajouter-utilisateur.component.html',
-    styleUrls: ['./ajouter-utilisateur.component.css']
+  selector: 'app-ajouter-utilisateur',
+  imports: [CommonModule, ReactiveFormsModule, MatTooltipModule],
+  templateUrl: './ajouter-utilisateur.component.html',
+  styleUrls: ['./ajouter-utilisateur.component.css']
 })
 export class AjouterUtilisateurComponent implements OnInit {
   registerForm: FormGroup;
@@ -27,6 +27,11 @@ export class AjouterUtilisateurComponent implements OnInit {
   confirmPasswordVisible = false;
   paysList: Pays[] = [];
   societesList: Societe[] = [];
+  selectedCountry: Pays | undefined;
+
+  isRegisterLoading: boolean = false;
+  isCreateAndResetLoading: boolean = false;
+
 
   constructor(
     private paysService: PaysService,
@@ -45,8 +50,14 @@ export class AjouterUtilisateurComponent implements OnInit {
       pays: ['', Validators.required],
       role: ['', Validators.required],
       societe: [{ value: '', disabled: true }],
-      password: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(8)]],
-      numTelephone: ['', [Validators.required, Validators.pattern(/^[+]\d{3}\s?\d{2}\s?\d{3}\s?\d{3}$/)]],
+      password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(16)]],
+      numTelephone: ['', [
+        Validators.required,
+        Validators.pattern(/^[0-9\s]+$/),
+        Validators.minLength(8),
+        Validators.maxLength(10)
+      ]]
+      ,
       confirmPassword: ['', Validators.required],
       actif: [false],
       contrat: [false],
@@ -64,6 +75,10 @@ export class AjouterUtilisateurComponent implements OnInit {
     this.loadSocietes();
     this.loadRoles();
 
+    this.registerForm.get('pays')?.valueChanges.subscribe(value => {
+      this.selectedCountry = this.paysList.find(p => p.idPays === +value);
+    });
+
     // Récupération des contrôles pour plus de lisibilité
     const contratControl = this.registerForm.get('contrat');
     const contractGroup = this.registerForm.get('contract');
@@ -80,7 +95,7 @@ export class AjouterUtilisateurComponent implements OnInit {
       }
       societeControl?.updateValueAndValidity();
     });
-    
+
     // Au démarrage, si la case 'contrat' est false, désactivez le groupe 'contract'
     if (!contratControl?.value) {
       contractGroup?.disable();
@@ -173,11 +188,11 @@ export class AjouterUtilisateurComponent implements OnInit {
 
   openContractDialog(): void {
     const dialogRef = this.dialog.open(ContractDialogComponent, {
-      data: { 
+      data: {
         contractForm: this.registerForm.get('contract')
       }
     });
-  
+
     dialogRef.afterClosed().subscribe(result => {
       if (!result) {
         // Si le dialogue est fermé sans sauvegarder, on désactive la case à cocher contrat
@@ -185,12 +200,18 @@ export class AjouterUtilisateurComponent implements OnInit {
       }
     });
   }
-  
+
   // Bouton "Créer" : crée l'utilisateur et redirige vers la liste
   register(): void {
     if (this.registerForm.valid) {
       const formValue = this.registerForm.value;
       const hasSociete = formValue.societe && formValue.societe !== '';
+
+      const phoneNumber = formValue.numTelephone; 
+      // Concaténer le code pays si disponible
+      const fullPhoneNumber = this.selectedCountry
+        ? this.selectedCountry.codeTel + ' ' + phoneNumber
+        : phoneNumber;
 
       // Construction de l'objet utilisateur à envoyer à l'API
       const userForRegister: any = {
@@ -198,7 +219,7 @@ export class AjouterUtilisateurComponent implements OnInit {
         role: formValue.role.charAt(0).toUpperCase() + formValue.role.slice(1),
         firstname: formValue.firstName,
         lastname: formValue.lastName,
-        numtelephone: formValue.numTelephone,
+        numtelephone: fullPhoneNumber,
         pays: +formValue.pays,
         actif: formValue.actif,
         password: formValue.password,
@@ -221,7 +242,7 @@ export class AjouterUtilisateurComponent implements OnInit {
       }
 
       console.log('Objet envoyé à l\'API :', userForRegister);
-      
+
       this.accountService.register(userForRegister).subscribe({
         next: user => {
           this.toastr.success("Utilisateur enregistré avec succès.");
@@ -233,12 +254,12 @@ export class AjouterUtilisateurComponent implements OnInit {
           const errorMessage = err.error?.message || err.message || "Erreur lors de l'enregistrement de l'utilisateur.";
           this.toastr.error(errorMessage);
         }
-      });      
+      });
     } else {
       this.toastr.warning("Veuillez remplir correctement le formulaire.");
     }
   }
-  
+
   // Bouton "Créer & Ajouter un autre" : crée l'utilisateur et réinitialise le formulaire
   createAndReset(): void {
     if (this.registerForm.valid) {
@@ -271,7 +292,7 @@ export class AjouterUtilisateurComponent implements OnInit {
       }
 
       console.log('Objet envoyé à l\'API :', userForRegister);
-      
+
       this.accountService.register(userForRegister).subscribe({
         next: user => {
           this.toastr.success("Utilisateur enregistré avec succès. Vous pouvez ajouter un autre.");
@@ -328,7 +349,7 @@ export class AjouterUtilisateurComponent implements OnInit {
       this.router.navigate(['/home/utilisateurs']);
     }
   }
-  
+
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;
   }

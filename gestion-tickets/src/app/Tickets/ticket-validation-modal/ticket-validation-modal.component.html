@@ -45,8 +45,14 @@
     </form>
 
     <div class="modal-actions">
-      <button (click)="validateTicket()">Valider</button>
-      <button (click)="close()">Annuler</button>
-    </div>
+      <button (click)="validateTicket()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">Valider</ng-container>
+        <ng-template #loadingTpl>
+          <!-- Vous pouvez définir ici votre animation ou spinner -->
+          <span class="spinner"></span> Valider
+        </ng-template>
+      </button>
+      <button (click)="close()" [disabled]="isLoading">Annuler</button>
+    </div>    
   </div>
 </div>

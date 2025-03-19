@@ -29,6 +29,7 @@ public class ProjetRepository : IProjetRepository
     var query = _context.Projets
         .Include(p => p.Societe)
             .ThenInclude(s => s.Pays)
+        .OrderByDescending(t => t.CreatedAt)
         .AsQueryable();
 
     if (!string.IsNullOrEmpty(projetParams.SearchTerm))

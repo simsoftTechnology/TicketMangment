@@ -17,7 +17,11 @@ namespace GestionTicketsAPI.Repositories
 
     public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
     {
-      var query = _context.Users.Include(u => u.Contrats).Include(u => u.Role).AsQueryable();
+      var query = _context.Users
+                    .Include(u => u.Contrats)
+                    .Include(u => u.Role)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .AsQueryable();
 
       if (!string.IsNullOrEmpty(userParams.SearchTerm))
       {

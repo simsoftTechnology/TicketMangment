@@ -17,7 +17,8 @@ namespace GestionTicketsAPI.Helpers
             CreateMap<UserUpdateDto, User>();
             CreateMap<Photo, PhotoDto>();
             CreateMap<Pays, PaysDto>()
-                .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null));
+                .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null))
+                .ForMember(dest => dest.CodeTel, opt => opt.MapFrom(src => src.CodeTel));
             CreateMap<PaysUpdateDto, Pays>();
             CreateMap<Projet, ProjetDto>()
                 .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Societe.Pays.Nom))
@@ -46,17 +47,32 @@ namespace GestionTicketsAPI.Helpers
                 .ForMember(dest => dest.ProblemCategory, opt => opt.MapFrom(src => src.ProblemCategory))
                 .ForMember(dest => dest.Projet, opt => opt.MapFrom(src => src.Projet))
                 .ForMember(dest => dest.Responsible, opt => opt.MapFrom(src => src.Responsible))
-                .ForMember(dest => dest.ApprovedAt, opt => opt.MapFrom(src => src.ApprovedAt))
-                .ForMember(dest => dest.SolvedAt, opt => opt.MapFrom(src => src.SolvedAt))
+                // Conversion des dates en heure locale
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt.ToLocalTime()))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt.HasValue 
+                                                                            ? src.UpdatedAt.Value.ToLocalTime() 
+                                                                            : (DateTime?)null))
+                .ForMember(dest => dest.ApprovedAt, opt => opt.MapFrom(src => src.ApprovedAt.HasValue 
+                                                                            ? src.ApprovedAt.Value.ToLocalTime() 
+                                                                            : (DateTime?)null))
+                .ForMember(dest => dest.SolvedAt, opt => opt.MapFrom(src => src.SolvedAt.HasValue 
+                                                                            ? src.SolvedAt.Value.ToLocalTime() 
+                                                                            : (DateTime?)null))
                 .ReverseMap()
                     .ForMember(dest => dest.Owner, opt => opt.Ignore())
                     .ForMember(dest => dest.ProblemCategory, opt => opt.Ignore())
                     .ForMember(dest => dest.Projet, opt => opt.Ignore())
                     .ForMember(dest => dest.Responsible, opt => opt.Ignore());
 
+
             CreateMap<TicketCreateDto, Ticket>()
                 // Le fichier attaché est géré séparément, donc on l'ignore ici
                 .ForMember(dest => dest.Attachments, opt => opt.Ignore());
+
+            CreateMap<Commentaire, CommentDto>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToLocalTime()))
+                .ForMember(dest => dest.Utilisateur, opt => opt.MapFrom(src => src.Utilisateur));
+
         }
     }
 }

@@ -14,7 +14,7 @@ import { PrioriteService } from '../../_services/priorite.service';
 import { QualificationService } from '../../_services/qualification.service';
 import { Qualification } from '../../_models/qualification.model';
 import { Priorite } from '../../_models/priorite.model';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { LoaderService } from '../../_services/loader.service';
 
 @Component({
@@ -68,6 +68,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   editor!: Editor;
   toolbar!: Toolbar;
 
+  isLoading: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private ticketService: TicketService,
@@ -93,11 +95,13 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadProjets();
-    this.loadPriorites();
-    this.loadQualifications();
-    this.loadUsers(); // Charger la liste des utilisateurs
+    forkJoin([
+      this.loadCategories(),
+      this.loadProjets(),
+      this.loadPriorites(),
+      this.loadQualifications(),
+      this.loadUsers()
+    ]).subscribe();
 
     // Initialisation de ngx-editor
     this.editor = new Editor();
@@ -282,11 +286,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Soumission du formulaire pour créer le ticket
   onSubmit(): void {
     this.formSubmitted = true;
-    if (
-      this.addTicketForm.invalid ||
-      !this.selectedQualification ||
-      !this.selectedPriority
-    ) {
+    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
       Object.values(this.addTicketForm.controls).forEach(control => control.markAsTouched());
       return;
     }
@@ -309,10 +309,10 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       formData.append('attachment', this.selectedFile, this.selectedFile.name);
     }
 
-    // Active le loader
-    this.loaderService.show();
+    // Active le loader local
+    this.loaderService.showLoader();
     this.ticketService.createTicket(formData)
-      .pipe(finalize(() => this.loaderService.hide()))
+      .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
         next: (ticket) => {
           this.toastr.success("Ticket créé avec succès.");
@@ -343,11 +343,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
 
   // Créer le ticket et réinitialiser le formulaire pour en ajouter un autre
   createAndReset(): void {
-    if (
-      this.addTicketForm.invalid ||
-      !this.selectedQualification ||
-      !this.selectedPriority
-    ) {
+    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
       this.toastr.warning("Veuillez remplir correctement le formulaire.");
       return;
     }
@@ -370,9 +366,9 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       formData.append('attachment', this.selectedFile, this.selectedFile.name);
     }
 
-    this.loaderService.show();
+    this.loaderService.showLoader();
     this.ticketService.createTicket(formData)
-      .pipe(finalize(() => this.loaderService.hide()))
+      .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
         next: (ticket) => {
           this.toastr.success("Ticket créé avec succès. Vous pouvez en ajouter un autre.");
@@ -400,7 +396,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
         }
       });
   }
-
+  
   // Réinitialisation du formulaire
   resetForm(): void {
     this.addTicketForm.reset();

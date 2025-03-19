@@ -58,6 +58,8 @@ namespace GestionTicketsAPI.Extensions
             services.AddScoped<IStatutDesTicketRepository, StatutDesTicketRepository>();
             services.AddScoped<IStatutDesTicketService, StatutDesTicketService>();
 
+            services.AddScoped<ICommentService, CommentService>();
+
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));

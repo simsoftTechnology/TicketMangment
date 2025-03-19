@@ -61,6 +61,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   roles: Role[] = [];
   statuses: StatutDesTicket[] = [];
   priorities: Priorite[] = [];
+  selectedCountry: Pays | undefined;
 
   constructor(
     private paysService: PaysService,
@@ -86,27 +87,35 @@ export class DetailsUtilisateurComponent implements OnInit {
   private ticketSearchSubject = new Subject<string>();
 
   ngOnInit(): void {
+    // Initialisation du formulaire dès le départ
+    this.initForm();
+    this.initContratForm();
+  
     this.loadPays();
     this.loadSocietes();
     this.loadRoles();
     this.loadStatuses();
     this.loadPriorities();
-
+  
+    // Maintenant, userForm est initialisé, on peut souscrire à valueChanges
+    this.userForm.get('pays')?.valueChanges.subscribe(value => {
+      this.selectedCountry = this.paysList.find(p => p.idPays === +value);
+    });
+  
     this.ticketSearchSubject.pipe(
-      debounceTime(300),          // Attendre 300ms de pause
-      distinctUntilChanged()      // Émettre uniquement si la valeur change
+      debounceTime(300),
+      distinctUntilChanged()
     ).subscribe(searchTerm => {
       this.ticketSearchTerm = searchTerm;
       this.ticketPageNumber = 1;
       this.loadTickets();
     });
+  
     const userId = this.route.snapshot.paramMap.get('id');
     if (userId) {
       this.loadUserDetails(+userId);
     }
-    this.initForm();
-    this.initContratForm();
-  }
+  }  
 
 
 
@@ -199,7 +208,12 @@ export class DetailsUtilisateurComponent implements OnInit {
       // Ces champs sont optionnels, à renseigner uniquement si l’utilisateur souhaite changer son mot de passe
       nouveauPassword: ['', [Validators.minLength(6), Validators.maxLength(8)]],
       confirmNouveauPassword: [''],
-      numTelephone: ['', [Validators.required, Validators.pattern(/^[+]\d{3}\s?\d{2}\s?\d{3}\s?\d{3}$/)]],
+      numTelephone: ['', [
+        Validators.required,
+        Validators.pattern(/^[0-9\s]+$/),
+        Validators.minLength(8),
+        Validators.maxLength(10)
+      ]],
       actif: [false]
     }, { validators: newPasswordMatchValidator });
   }
@@ -220,22 +234,39 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.accountService.getUser(userId).subscribe({
       next: (user) => {
         this.user = user;
-        // Remplir le formulaire de l'utilisateur
+  
+        // 1. Récupérer le code pays à partir de la liste des pays
+        const codeTel = user.pays
+          ? this.paysList.find(p => p.idPays === +user.pays)?.codeTel
+          : '';
+  
+        // 2. Retirer le code pays du numéro de téléphone si présent
+        let numeroLocal = user.numTelephone || '';
+        if (codeTel && numeroLocal.startsWith(codeTel)) {
+          numeroLocal = numeroLocal.substring(codeTel.length).trim();
+        }
+        // 4. Mémoriser le pays sélectionné (pour l’affichage du drapeau et du code)
+        this.selectedCountry = this.paysList.find(p => p.idPays === +user.pays);
+  
+        // 3. Mettre à jour le formulaire de l'utilisateur
         this.userForm.patchValue({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           role: user.role,
-          pays: user.pays,              // Ajout du pays
-          societe: user.societeId,       // Ajout de la société (vérifiez le nom du champ)
-          numTelephone: user.numTelephone, // Ajout du numéro de téléphone
-          actif: user.actif              // Ajout de l'état actif
+          pays: user.pays,
+          societe: user.societeId,
+          numTelephone: numeroLocal,
+          actif: user.actif
         });
-        // Si un contrat existe, remplir également le formulaire du contrat
+  
+        
+  
+        // 5. Si l'utilisateur a un contrat, on met à jour le formulaire du contrat
         if (user.contrat) {
           this.contratForm.patchValue({
-            id: user.contrat.id, // Assurez-vous de patcher l'identifiant du contrat
+            id: user.contrat.id,
             dateDebut: user.contrat.dateDebut
               ? new Date(user.contrat.dateDebut + 'Z').toISOString().substring(0, 10)
               : '',
@@ -244,13 +275,17 @@ export class DetailsUtilisateurComponent implements OnInit {
               : '',
           });
         }
+  
+        // 6. Charger les projets et tickets associés à l’utilisateur
         this.loadProjects();
         this.loadTickets();
       },
-      error: (error) =>
-        console.error("Erreur lors du chargement de l'utilisateur", error)
+      error: (error) => {
+        console.error('Erreur lors du chargement de l’utilisateur', error);
+      }
     });
   }
+  
 
 
   // Mise à jour de l'utilisateur

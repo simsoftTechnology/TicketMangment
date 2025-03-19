@@ -196,22 +196,6 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  getStatusClass(statutId: number): string {
-    switch (statutId) {
-      case 1:
-        return 'status-non-ouvert';
-      case 2:
-        return 'status-accepte';
-      case 3:
-        return 'status-refuse';
-      case 4:
-        return 'status-en-cours';
-      case 5:
-        return 'status-resolu';
-      default:
-        return '';
-    }
-  }
 
   getQualificationLabel(qualificationId: number): string {
     const found = this.qualifications.find(q => q.id === qualificationId);

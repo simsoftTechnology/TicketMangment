@@ -86,6 +86,11 @@ namespace GestionTicketsAPI.Services
       return await _ticketRepository.GetStatusByNameAsync(statusName);
     }
 
+    public List<object> GetTicketCountByStatus(int userId, string role)
+    {
+      return _ticketRepository.GetTicketCountByStatus(userId, role);
+    }
+
 
   }
 }

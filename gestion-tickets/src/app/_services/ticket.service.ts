@@ -6,6 +6,7 @@ import { PaginatedResult } from '../_models/pagination';
 import { TicketUpdateDto } from '../_models/ticketUpdateDto';
 import { TicketValidationDto } from '../_models/ticket-validation.dto';
 import { FinishTicketDto } from '../_models/finish-ticket-dto';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,18 +14,30 @@ import { FinishTicketDto } from '../_models/finish-ticket-dto';
 export class TicketService {
   private baseUrl = 'https://localhost:5001/api/tickets';
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) { }
 
   getPaginatedTickets(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Ticket[]>> {
     let params = new HttpParams();
+    
     if (pageNumber != null && pageSize != null) {
       params = params.append('pageNumber', pageNumber.toString());
       params = params.append('pageSize', pageSize.toString());
     }
+    
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-
+    
+    // Récupération de l'utilisateur courant via AccountService
+    const currentUser = this.accountService.currentUser();
+    if (currentUser) {
+      params = params.append('userId', currentUser.id.toString());
+      params = params.append('role', currentUser.role);
+    }
+    
     return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<any>) => {
@@ -81,6 +94,8 @@ export class TicketService {
   updateResponsible(ticketId: number, responsibleDto: { responsibleId: number }): Observable<any> {
     return this.http.post(`${this.baseUrl}/updateResponsible/${ticketId}`, responsibleDto);
   }
-
+  getTicketCountByStatus() {
+    return this.http.get<any[]>(`${this.baseUrl}/status-count`);
+  }
 
 }

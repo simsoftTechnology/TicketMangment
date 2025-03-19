@@ -132,5 +132,39 @@ namespace GestionTicketsAPI.Repositories
     {
       return await _context.StatutsDesTickets.FirstOrDefaultAsync(s => s.Name == statusName);
     }
+
+    public List<object> GetTicketCountByStatus(int userId, string role)
+    {
+      // Commence par récupérer tous les tickets
+      IQueryable<Ticket> filteredTickets = _context.Tickets;
+
+      // Si l'utilisateur n'est pas un superadmin, on filtre les tickets
+      if (!string.Equals(role, "super admin", StringComparison.OrdinalIgnoreCase))
+      {
+        filteredTickets = filteredTickets.Where(t =>
+            t.OwnerId == userId ||
+            t.ResponsibleId == userId ||
+            (t.Projet != null && t.Projet.ChefProjetId == userId)
+        );
+      }
+
+      // Groupement par statut en utilisant uniquement les tickets filtrés
+      var results = _context.StatutsDesTickets
+           .GroupJoin(
+                filteredTickets,
+                statut => statut.Id,       // clé côté Statut
+                ticket => ticket.StatutId, // clé côté Ticket
+                (statut, ticketsGroup) => new
+                {
+                  Id = statut.Id,
+                  Name = statut.Name,
+                  Count = ticketsGroup.Count()
+                }
+           )
+           .ToList();
+
+      return results.Cast<object>().ToList();
+    }
+
   }
 }
