@@ -19,7 +19,7 @@ builder.Services.AddControllers()
 var app = builder.Build();
 
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:8030", "https://localhost:8030").WithExposedHeaders("Pagination"));
-app.MapGet("/", () => "bienvenue ");
+ 
 
 app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");
 

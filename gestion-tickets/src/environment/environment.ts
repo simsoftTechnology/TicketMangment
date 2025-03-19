@@ -5,7 +5,7 @@
 export const environment = {
   production: false,
   //BASE PROD
-  URLAPI: 'http://localhost:8050/api/',
+  URLAPI: 'http://localhost:8055/api/',
  
   
  
