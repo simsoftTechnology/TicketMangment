@@ -33,6 +33,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     component: HomeComponent,
     children: [
+      { path: '', redirectTo: 'home', pathMatch: 'full' },
+ 
       { path: 'dashboard', component: DashboardComponent },
       { path: 'TableauDeBord', component: TableauBordComponent },
       { path: 'Tickets', component: ListTicketsComponent },
@@ -116,12 +118,12 @@ export const routes: Routes = [
         component: CategoriesComponent,
         canActivate: [RoleGuard],
         data: { roles: ['Super Admin'] }
-      },
-      { path: '', redirectTo: 'home', pathMatch: 'full' },
+      }
+    
     ]
   },
   { path: 'errors', component: TestErrorsComponent },
   { path: 'not-found', component: NotFoundComponent },
   { path: 'server-error', component: ServerErrorComponent },
-  { path: '**', component: LoginComponent, pathMatch: 'full' }
+  // { path: '**', component: LoginComponent, pathMatch: 'full' }
 ];

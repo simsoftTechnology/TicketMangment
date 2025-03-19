@@ -22,7 +22,12 @@
             "tsConfig": "tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "src/assets/fontawesome",
+                "output": "/assets/fontawesome/"
+              }
             ],
 
             "styles": [
@@ -35,17 +40,22 @@
             "scripts": []
           },
           "configurations": {
-            "production": {
+            "production": {            
+              "optimization": true,
+              "sourceMap": false,
+              "namedChunks": false,
+              "aot": true,
+              "extractLicenses": true,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1mb",
+                  "maximumError": "2.1mb"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "2kB",
-                  "maximumError": "4kB"
+                  "maximumError": "13kB"
                 }
               ],
               "outputHashing": "all"
@@ -55,6 +65,7 @@
               "extractLicenses": false,
               "sourceMap": true
             }
+           
           },
           "defaultConfiguration": "production"
         },

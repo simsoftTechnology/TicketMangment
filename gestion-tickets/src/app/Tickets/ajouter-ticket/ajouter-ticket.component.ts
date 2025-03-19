@@ -140,7 +140,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
         this.filteredProjets = [...this.projets];
       },
       error: (err) => {
-        console.error("Erreur lors du chargement des projets", err);
+        // console.error("Erreur lors du chargement des pro/jets", err);
         this.toastr.error("Erreur lors du chargement des projets.");
       }
     });

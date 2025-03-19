@@ -55,10 +55,10 @@ export class ModifierPaysComponent implements OnInit {
     const hasFileChanged = !!this.selectedFile;
   
     // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
-    if (!hasNomChanged && !hasFileChanged) {
-      this.router.navigate(['/home/Pays']);
-      return;
-    }
+    // if (!hasNomChanged && !hasFileChanged) {
+    //   this.router.navigate(['/home/Pays']);
+    //   return;
+    // }
   
     // Toujours inclure le nom, même s'il n'a pas changé
     const paysUpdateDto: any = {
@@ -69,7 +69,7 @@ export class ModifierPaysComponent implements OnInit {
     const fileToSend = hasFileChanged ? this.selectedFile : undefined;
   
     this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
-      this.router.navigate(['/home/Pays']);
+      // this.router.navigate(['/home/Pays']);
     });
   }
   
