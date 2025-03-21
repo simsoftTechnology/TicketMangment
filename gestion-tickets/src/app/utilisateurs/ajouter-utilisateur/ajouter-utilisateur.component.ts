@@ -13,6 +13,9 @@ import { Router } from '@angular/router';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RoleService } from '../../_services/role.service';
 import { Role } from '../../_models/role.model';
+import { LoaderService } from '../../_services/loader.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
   selector: 'app-ajouter-utilisateur',
@@ -29,8 +32,7 @@ export class AjouterUtilisateurComponent implements OnInit {
   societesList: Societe[] = [];
   selectedCountry: Pays | undefined;
 
-  isRegisterLoading: boolean = false;
-  isCreateAndResetLoading: boolean = false;
+  isLoading: boolean = false;
 
 
   constructor(
@@ -42,7 +44,12 @@ export class AjouterUtilisateurComponent implements OnInit {
     private accountService: AccountService,
     private toastr: ToastrService,
     private router: Router,
+    private loaderService: LoaderService,
+    private overlayModalService: OverlayModalService,
   ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
     this.registerForm = this.fb.group({
       lastName: ['', Validators.required],
       firstName: ['', Validators.required],
@@ -241,11 +248,12 @@ export class AjouterUtilisateurComponent implements OnInit {
         }
       }
 
-      console.log('Objet envoyé à l\'API :', userForRegister);
+      this.loaderService.showLoader();
 
       this.accountService.register(userForRegister).subscribe({
         next: user => {
           this.toastr.success("Utilisateur enregistré avec succès.");
+          this.loaderService.hideLoader();
           this.router.navigate(['/home/utilisateurs'], { queryParams: { newUser: user.id } });
         },
         error: err => {
@@ -253,6 +261,7 @@ export class AjouterUtilisateurComponent implements OnInit {
           // Extraire le message d'erreur exact, en tenant compte d'une potentielle présence de err.error.message
           const errorMessage = err.error?.message || err.message || "Erreur lors de l'enregistrement de l'utilisateur.";
           this.toastr.error(errorMessage);
+          this.loaderService.hideLoader();
         }
       });
     } else {
@@ -260,53 +269,7 @@ export class AjouterUtilisateurComponent implements OnInit {
     }
   }
 
-  // Bouton "Créer & Ajouter un autre" : crée l'utilisateur et réinitialise le formulaire
-  createAndReset(): void {
-    if (this.registerForm.valid) {
-      const formValue = this.registerForm.value;
-      const hasSociete = formValue.societe && formValue.societe !== '';
-      const userForRegister: any = {
-        email: formValue.email,
-        role: formValue.role.charAt(0).toUpperCase() + formValue.role.slice(1),
-        firstname: formValue.firstName,
-        lastname: formValue.lastName,
-        numtelephone: formValue.numTelephone,
-        pays: +formValue.pays,
-        actif: formValue.actif,
-        password: formValue.password,
-        societeId: hasSociete ? +formValue.societe : null,
-        contract: null
-      };
 
-      if (formValue.contrat) {
-        if (hasSociete) {
-          this.toastr.error("Un utilisateur lié à une société ne peut pas créer de contrat.");
-          return;
-        } else {
-          userForRegister.contract = {
-            dateDebut: formValue.contract.dateDebut,
-            dateFin: formValue.contract.dateFin,
-            type: formValue.contract.type
-          };
-        }
-      }
-
-      console.log('Objet envoyé à l\'API :', userForRegister);
-
-      this.accountService.register(userForRegister).subscribe({
-        next: user => {
-          this.toastr.success("Utilisateur enregistré avec succès. Vous pouvez ajouter un autre.");
-          this.resetForm();
-        },
-        error: err => {
-          console.error('Erreur lors de l\'enregistrement', err);
-          this.toastr.error("Erreur lors de l'enregistrement de l'utilisateur.");
-        }
-      });
-    } else {
-      this.toastr.warning("Veuillez remplir correctement le formulaire.");
-    }
-  }
 
   // Méthode pour réinitialiser le formulaire à son état initial
   private resetForm(): void {
@@ -342,13 +305,22 @@ export class AjouterUtilisateurComponent implements OnInit {
   // Bouton "Annuler" : si des modifications sont présentes, demander confirmation, sinon retourner à la liste
   cancel(): void {
     if (this.registerForm.dirty) {
-      if (confirm("Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?")) {
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = "Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?";
+  
+      modalInstance.confirmed.subscribe(() => {
         this.router.navigate(['/home/utilisateurs']);
-      }
+        this.overlayModalService.close();
+      });
+  
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
+      });
     } else {
       this.router.navigate(['/home/utilisateurs']);
     }
   }
+  
 
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;

@@ -39,41 +39,45 @@ public class PaysService : IPaysService
   }
 
   public async Task<bool> UpdatePaysAsync(int idPays, PaysUpdateDto paysUpdateDto, IFormFile? file)
-  {
+{
     var pays = await _paysRepository.GetPaysByIdAsync(idPays);
     if (pays == null) return false;
 
     // Mettre à jour le nom si fourni
     if (!string.IsNullOrWhiteSpace(paysUpdateDto.Nom))
-      pays.Nom = paysUpdateDto.Nom;
+        pays.Nom = paysUpdateDto.Nom;
+    
+    // Mettre à jour le code téléphonique si fourni
+    if (!string.IsNullOrWhiteSpace(paysUpdateDto.CodeTel))
+        pays.CodeTel = paysUpdateDto.CodeTel;
 
     // Mettre à jour la photo si un fichier est fourni
     if (file != null && file.Length > 0)
     {
-      if (pays.paysPhoto != null)
-      {
-        var deleteResult = await _photoService.DeletePhotoAsync(pays.paysPhoto.PublicId);
-        if (deleteResult.Error != null) return false;
-        // Suppression de l'enregistrement de la photo est gérée par le DataContext via la relation
-      }
+        if (pays.paysPhoto != null)
+        {
+            var deleteResult = await _photoService.DeletePhotoAsync(pays.paysPhoto.PublicId);
+            if (deleteResult.Error != null) return false;
+            // La suppression de l'enregistrement de la photo est gérée par le DataContext via la relation
+        }
 
-      var result = await _photoService.AddPhotoAsync(file);
-      if (result.Error != null) return false;
+        var result = await _photoService.AddPhotoAsync(file);
+        if (result.Error != null) return false;
 
-      var newPhoto = new Photo
-      {
-        Url = result.SecureUrl.AbsoluteUri,
-        PublicId = result.PublicId,
-        PaysId = idPays
-      };
+        var newPhoto = new Photo
+        {
+            Url = result.SecureUrl.AbsoluteUri,
+            PublicId = result.PublicId,
+            PaysId = idPays
+        };
 
-      pays.paysPhoto = newPhoto;
+        pays.paysPhoto = newPhoto;
     }
 
     return await _paysRepository.SaveAllAsync();
-  }
+}
 
-  public async Task<PaysDto> AddPaysAsync(string nom, IFormFile file)
+  public async Task<PaysDto> AddPaysAsync(string nom, string? codeTel, IFormFile file)
   {
     if (string.IsNullOrWhiteSpace(nom))
       throw new Exception("Le nom du pays est requis.");
@@ -93,6 +97,7 @@ public class PaysService : IPaysService
     var pays = new Pays
     {
       Nom = nom,
+      CodeTel = codeTel, // Affectation du code téléphonique
       paysPhoto = photo
     };
 
@@ -102,6 +107,7 @@ public class PaysService : IPaysService
 
     return _mapper.Map<PaysDto>(pays);
   }
+
 
   public async Task<bool> DeletePaysAsync(int idPays)
   {

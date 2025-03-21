@@ -106,14 +106,16 @@ public class CommentService : ICommentService
     }
     // D'autres cas peuvent être ajoutés selon vos besoins
 
-    // Préparation du sujet et du message
+    // Préparation du sujet et du message de base sans salutation
     var subject = $"Nouveau commentaire sur le ticket #{ticket.Id}";
-    var message = $"Un nouveau commentaire a été ajouté par {user.FirstName} {user.LastName} sur le ticket '{ticket.Title}' (n° {ticket.Id}).<br><br>Contenu : {commentaire.Contenu}";
+    var baseMessage = $"Un nouveau commentaire a été ajouté par {user.FirstName} {user.LastName} sur le ticket '{ticket.Title}' (n° {ticket.Id}).<br><br>Contenu : {commentaire.Contenu}";
 
     // Envoi des notifications par email en évitant les doublons (basé sur l'email)
     foreach (var recipient in recipients.GroupBy(r => r.Email).Select(g => g.First()))
     {
-      await _emailService.SendEmailAsync(recipient.Name, recipient.Email, subject, message);
+      // Ajout de la salutation personnalisée pour chaque destinataire
+      var personalizedMessage = $"Bonjour {recipient.Name},<br><br>" + baseMessage;
+      await _emailService.SendEmailAsync(recipient.Name, recipient.Email, subject, personalizedMessage);
     }
 
     // Retourner le DTO du commentaire créé
@@ -126,6 +128,8 @@ public class CommentService : ICommentService
       TicketId = commentaire.TicketId
     };
   }
+
+
 
 
 

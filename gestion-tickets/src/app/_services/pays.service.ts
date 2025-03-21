@@ -24,18 +24,21 @@ export class PaysService {
     return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`);
   }
 
-  addPays(nom: string, file: File): Observable<any> {
+  addPays(nom: string, codeTel: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('nom', nom);
+    formData.append('codeTel', codeTel);
     formData.append('file', file);
-
+  
     return this.http.post(`${this.baseUrl}/pays/ajouterPays`, formData);
   }
   
+  
 
-  updatePays(idPays: number, paysUpdateDto: { nom: string }, file?: File): Observable<any> {
+  updatePays(idPays: number, paysUpdateDto: { nom: string; codeTel: string }, file?: File): Observable<any> {
     const formData = new FormData();
     formData.append('nom', paysUpdateDto.nom);
+    formData.append('codeTel', paysUpdateDto.codeTel);
   
     if (file) {
       formData.append('file', file); // Ajouter le fichier si fourni
@@ -43,6 +46,7 @@ export class PaysService {
   
     return this.http.put(`${this.baseUrl}/pays/ModifierPays/${idPays}`, formData);
   }
+  
 
   deletePays(idPays: number): Observable<any> {
     return this.http.delete(`${this.baseUrl}/pays/supprimerPays/${idPays}`);

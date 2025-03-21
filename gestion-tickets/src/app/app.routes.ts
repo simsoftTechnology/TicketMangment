@@ -1,4 +1,5 @@
-import { Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
 import { LoginComponent } from './login/login.component';
 import { HomeComponent } from './home/home.component';
 import { authGuard } from './_guards/auth.guard';
@@ -24,6 +25,7 @@ import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.compon
 import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
 import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
 import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
+import { UserProfileComponent } from './user-profile/user-profile.component';
 
 export const routes: Routes = [
   { path: '', component: LoginComponent },
@@ -38,7 +40,7 @@ export const routes: Routes = [
       { path: 'Tickets', component: ListTicketsComponent },
       { path: 'Tickets/ajouterTicket', component: AjouterTicketComponent },
       { path: 'Tickets/details/:id', component: TicketDetailsComponent },
-      // Utilisateurs : Super Admin uniquement
+      { path: 'profile', component: UserProfileComponent },
       {
         path: 'utilisateurs',
         component: ListUtilisateursComponent,
@@ -125,3 +127,15 @@ export const routes: Routes = [
   { path: 'server-error', component: ServerErrorComponent },
   { path: '**', component: LoginComponent, pathMatch: 'full' }
 ];
+
+@NgModule({
+  imports: [
+    RouterModule.forRoot(routes, { 
+      anchorScrolling: 'enabled',
+      scrollOffset: [0, 1000],
+      onSameUrlNavigation: 'reload'
+    })
+  ],
+  exports: [RouterModule]
+})
+export class AppRoutingModule { }

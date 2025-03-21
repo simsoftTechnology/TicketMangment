@@ -35,7 +35,7 @@ public class AccountController : BaseApiController
       var userDto = await _accountService.RegisterAsync(registerDto);
 
       // Préparation du corps de l'e-mail en HTML
-      var body = $"Bonjour {userDto.FirstName},<br><br>" +
+      var body = $"Bonjour {userDto.FirstName} {userDto.LastName},<br><br>" +
                  "Votre compte a été créé avec succès.<br><br>" +
                  $"Email : {userDto.Email}<br>" +
                  $"Mot de passe : {registerDto.Password}<br>" +

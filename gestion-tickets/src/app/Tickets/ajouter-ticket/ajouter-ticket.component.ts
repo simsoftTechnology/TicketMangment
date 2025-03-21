@@ -16,6 +16,8 @@ import { Qualification } from '../../_models/qualification.model';
 import { Priorite } from '../../_models/priorite.model';
 import { finalize, forkJoin } from 'rxjs';
 import { LoaderService } from '../../_services/loader.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
   selector: 'app-ajouter-ticket',
@@ -80,8 +82,13 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     private qualificationService: QualificationService,
     private toastr: ToastrService,
     private router: Router,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private overlayModalService: OverlayModalService,
   ) {
+
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
     // Création du formulaire réactif avec les clés du modèle
     this.addTicketForm = this.fb.group({
       title: ['', Validators.required],
@@ -412,13 +419,22 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Annulation : redirige selon si des modifications ont été effectuées
   cancel(): void {
     if (this.addTicketForm.dirty) {
-      if (confirm("Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?")) {
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = "Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?";
+      
+      modalInstance.confirmed.subscribe(() => {
         this.router.navigate(['/home/Tickets']);
-      }
+        this.overlayModalService.close();
+      });
+      
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
+      });
     } else {
       this.router.navigate(['/home/Tickets']);
     }
   }
+  
 
   // Gestionnaire de clic global pour fermer les dropdowns si le clic se fait en dehors
   @HostListener('document:click', ['$event'])

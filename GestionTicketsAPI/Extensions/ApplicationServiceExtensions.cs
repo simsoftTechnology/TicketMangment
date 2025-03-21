@@ -59,6 +59,8 @@ namespace GestionTicketsAPI.Extensions
             services.AddScoped<IStatutDesTicketService, StatutDesTicketService>();
 
             services.AddScoped<ICommentService, CommentService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+
 
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

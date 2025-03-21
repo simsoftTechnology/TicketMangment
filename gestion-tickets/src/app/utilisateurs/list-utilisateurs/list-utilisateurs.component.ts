@@ -5,6 +5,9 @@ import { User } from '../../_models/user';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { PaginatedResult } from '../../_models/pagination';
+import { ToastrService } from 'ngx-toastr';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
     selector: 'app-list-utilisateurs',
@@ -16,6 +19,8 @@ export class ListUtilisateursComponent implements OnInit {
   public accountService = inject(AccountService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private toastr = inject(ToastrService);
+  private overlayModalService = inject(OverlayModalService);
   
   
   // Variables pour la pagination
@@ -163,20 +168,26 @@ export class ListUtilisateursComponent implements OnInit {
 
 
   deleteUser(user: User): void {
-    if (confirm(`Voulez-vous vraiment supprimer l'utilisateur ${user.firstName} ${user.lastName} ?`)) {
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = `Voulez-vous vraiment supprimer l'utilisateur ${user.firstName} ${user.lastName} ?`;
+  
+    modalInstance.confirmed.subscribe(() => {
       this.accountService.deleteUser(user.id).subscribe({
         next: () => {
-          // Optionnel : afficher un message de succès
-          alert('Utilisateur supprimé avec succès.');
-          // Rafraîchir la liste
+          this.toastr.success('Utilisateur supprimé avec succès.');
           this.getUsers();
         },
         error: error => {
-          console.error('Erreur lors de la suppression de l\'utilisateur', error);
-          alert('Une erreur est survenue lors de la suppression.');
+          console.error("Erreur lors de la suppression de l'utilisateur", error);
+          this.toastr.error('Une erreur est survenue lors de la suppression.');
         }
       });
-    }
-  }
+      this.overlayModalService.close();
+    });
+  
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
+  }  
   
 }

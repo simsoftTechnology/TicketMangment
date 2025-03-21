@@ -28,29 +28,34 @@ export class LoginComponent {
     this.formSubmitted = true; 
     this.loginError = {}; // Réinitialisation des erreurs
     
-
-  
     if (this.loginForm.invalid) {
       return;
     }
-  
+    
     this.accountService.login(this.loginForm.value).subscribe({
       next: () => {
         this.router.navigateByUrl('/home/TableauDeBord');
       },
       error: (error) => {
-        if (error.errorType === 'email') {
-          this.loginError.email = error.message; // Erreur spécifique à l'e-mail
-          console.log('Erreur interceptée :', error);
-        } else if (error.errorType === 'password') {
-          this.loginError.password = error.message; // Erreur spécifique au mot de passe
-          console.log('Erreur interceptée :', error);
+        // Supposons que le backend renvoie une erreur Unauthorized avec le message dans error.error.message
+        const errorMsg = error.error?.message || 'Erreur inconnue';
+  
+        // Déduire le type d'erreur en se basant sur le contenu du message
+        if (errorMsg.toLowerCase().includes('e-mail')) {
+          this.loginError.email = errorMsg;
+        } else if (errorMsg.toLowerCase().includes('mot de passe')) {
+          this.loginError.password = errorMsg;
         } else {
-          console.error('Erreur inconnue:', error);
+          // Affecter par défaut à email ou afficher un message général
+          this.loginError.email = errorMsg;
         }
+        
+        console.error('Erreur interceptée :', error);
       },
     });
   }
+  
+  
 
    // Fonction pour basculer la visibilité du mot de passe
    togglePasswordVisibility() {

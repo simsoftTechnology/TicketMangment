@@ -40,7 +40,7 @@ namespace GestionTicketsAPI.Services
 
                 {
 
-                    HtmlBody = $"<h1>Bonjour Mr/Mme {name},</h1> <br> <p>{body}</p>"
+                    HtmlBody = $"<p>{body}</p>"
 
                 };
 

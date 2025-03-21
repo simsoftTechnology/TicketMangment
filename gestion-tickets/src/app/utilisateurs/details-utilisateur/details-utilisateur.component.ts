@@ -26,6 +26,8 @@ import { StatusService } from '../../_services/status.service';
 import { PrioriteService } from '../../_services/priorite.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AttachProjectDialogComponent } from '../attach-project-dialog/attach-project-dialog.component';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
   selector: 'app-details-utilisateur',
@@ -76,7 +78,8 @@ export class DetailsUtilisateurComponent implements OnInit {
     private roleService: RoleService,
     private statusService: StatusService,
     private prioriteService: PrioriteService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private overlayModalService: OverlayModalService,
   ) { }
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
@@ -206,7 +209,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       role: ['', Validators.required],
       societe: [''],
       // Ces champs sont optionnels, à renseigner uniquement si l’utilisateur souhaite changer son mot de passe
-      nouveauPassword: ['', [Validators.minLength(6), Validators.maxLength(8)]],
+      nouveauPassword: ['', [Validators.minLength(8), Validators.maxLength(16)]],
       confirmNouveauPassword: [''],
       numTelephone: ['', [
         Validators.required,
@@ -256,7 +259,7 @@ export class DetailsUtilisateurComponent implements OnInit {
           email: user.email,
           role: user.role,
           pays: user.pays,
-          societe: user.societeId,
+          societe: user.societe ? user.societe.id : null,
           numTelephone: numeroLocal,
           actif: user.actif
         });
@@ -462,11 +465,16 @@ export class DetailsUtilisateurComponent implements OnInit {
 
   onDeleteUserFromProject(projetId: number): void {
     if (!this.user) return; // Vérification si l'utilisateur est chargé
-
+  
     const firstName = this.user.firstName;
     const lastName = this.user.lastName;
-    if (confirm(`Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`)) {
-      this.projetService.supprimerUtilisateurDuProjet(projetId, this.user.id).subscribe({
+    const confirmationMessage = `Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`;
+  
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = confirmationMessage;
+    
+    modalInstance.confirmed.subscribe(() => {
+      this.projetService.supprimerUtilisateurDuProjet(projetId, this.user!.id).subscribe({
         next: () => {
           this.toastr.success(`${firstName} ${lastName} a été retiré du projet.`);
           this.loadProjects(); // Recharge la liste des projets
@@ -476,8 +484,14 @@ export class DetailsUtilisateurComponent implements OnInit {
           this.toastr.error('Une erreur est survenue lors de la suppression.');
         }
       });
-    }
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
+  
 
 
 }

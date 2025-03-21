@@ -181,7 +181,6 @@
 
   <!-- Boutons de suppression du projet et de retour -->
   <div class="buttons">
-    <button class="delete-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"  (click)="deleteProjet(projet.id)">Supprimer</button>
     <button class="back-btn" (click)="goBack()">Retourner</button>
   </div>
 </div>

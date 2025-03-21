@@ -156,15 +156,36 @@ namespace GestionTicketsAPI.Repositories
 
     public async Task<bool> AttachUserToSocieteAsync(int societeId, int userId)
     {
+      // Récupérer l'utilisateur pour connaître son rôle
+      var user = await _context.Users.FindAsync(userId);
+      if (user == null)
+      {
+        // Gestion de l'erreur : utilisateur non trouvé
+        return false;
+      }
+
+      // Si l'utilisateur est client, vérifier qu'il n'est associé à aucune autre société
+      if (user.Role.Name.ToLower() == "client")
+      {
+        bool isAlreadyClient = await _context.SocieteUsers
+            .AnyAsync(su => su.UserId == userId);
+        if (isAlreadyClient)
+        {
+          // Ne pas autoriser plusieurs associations pour un client
+          return false;
+        }
+      }
+
+      // Vérifier si l'association existe déjà (pour tous les rôles)
       var association = await _context.SocieteUsers
           .FirstOrDefaultAsync(su => su.SocieteId == societeId && su.UserId == userId);
-
       if (association != null)
       {
         Console.WriteLine($"Association existante : SocieteId {societeId}, UserId {userId}");
         return false;
       }
 
+      // Créer l'association
       var societeUser = new SocieteUser
       {
         SocieteId = societeId,
@@ -180,6 +201,7 @@ namespace GestionTicketsAPI.Repositories
         : $"Erreur lors de l'insertion dans la base pour SocieteId {societeId}, UserId {userId}");
       return result;
     }
+
 
 
 

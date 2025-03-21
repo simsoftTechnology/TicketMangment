@@ -121,6 +121,7 @@ namespace GestionTicketsAPI.Controllers
             $"{chefProjet.FirstName} {chefProjet.LastName}",
             chefProjet.Email,
             "Nouveau ticket créé",
+            $"Bonjour {chefProjet.FirstName} {chefProjet.LastName},<br><br>" +
             $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}) pour le projet '{ticketFromDb.Projet.Nom}'."
         ));
       }
@@ -133,7 +134,8 @@ namespace GestionTicketsAPI.Controllers
             $"{client.FirstName} {client.LastName}",
             client.Email,
             "Confirmation de création de ticket",
-            $"Bonjour {client.FirstName},\n\nVotre ticket intitulé '{ticket.Title}' (n° {ticket.Id}) a été créé avec succès. Nous vous remercions pour votre confiance."
+            $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
+            $"Votre ticket intitulé '{ticket.Title}' (n° {ticket.Id}) a été créé avec succès. Nous vous remercions pour votre confiance."
         ));
       }
 
@@ -145,6 +147,7 @@ namespace GestionTicketsAPI.Controllers
             $"{admin.FirstName} {admin.LastName}",
             admin.Email,
             "Nouveau ticket créé",
+            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
             $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}). Veuillez vérifier les détails dans l'application."
         ));
       }
@@ -198,6 +201,7 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket accepté",
+              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
               $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été accepté."
           ));
         }
@@ -218,6 +222,7 @@ namespace GestionTicketsAPI.Controllers
                 $"{responsible.FirstName} {responsible.LastName}",
                 responsible.Email,
                 "Nouveau ticket assigné",
+                $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
                 $"Le ticket '{ticket.Title}' (n°{ticket.Id}) vous a été assigné."
             ));
           }
@@ -239,6 +244,7 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket refusé",
+              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
               $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été refusé. Raison : {ticket.ValidationReason}"
           ));
         }
@@ -349,6 +355,7 @@ namespace GestionTicketsAPI.Controllers
             $"{ticket.Owner.FirstName} {ticket.Owner.LastName}",
             ticket.Owner.Email,
             "Ticket terminé",
+            $"Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},<br><br>" +
             $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
         ));
       }
@@ -360,6 +367,7 @@ namespace GestionTicketsAPI.Controllers
             $"{ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName}",
             ticket.Projet.ChefProjet.Email,
             "Ticket terminé",
+            $"Bonjour {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) du projet '{ticket.Projet.Nom}' est {ticket.Statut.Name}.{commentText}"
         ));
       }
@@ -371,6 +379,7 @@ namespace GestionTicketsAPI.Controllers
             $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
             ticket.Responsible.Email,
             "Ticket terminé",
+            $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) qui vous a été assigné est {ticket.Statut.Name}.{commentText}"
         ));
       }
@@ -383,6 +392,7 @@ namespace GestionTicketsAPI.Controllers
             $"{admin.FirstName} {admin.LastName}",
             admin.Email,
             "Ticket terminé",
+            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
         ));
       }
@@ -457,6 +467,7 @@ namespace GestionTicketsAPI.Controllers
           $"{responsible.FirstName} {responsible.LastName}",
           responsible.Email,
           "Ticket mis à jour - Nouveau responsable assigné",
+          $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
           $"Le ticket '{ticket.Title}' (n°{ticket.Id}) vous a été assigné en tant que responsable."
         ));
       }

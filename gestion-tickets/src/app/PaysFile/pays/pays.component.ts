@@ -1,23 +1,31 @@
 import { NgFor, NgIf } from '@angular/common';
-import { Component, inject, input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Pays } from '../../_models/pays';
 import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-pays',
     imports: [NgFor, NgIf, RouterLink],
     templateUrl: './pays.component.html',
-    styleUrl: './pays.component.css'
+    styleUrls: ['./pays.component.css']
 })
 export class PaysComponent {
   private paysService = inject(PaysService);
-  private router = inject (Router);
+  private router = inject(Router);
+  private overlayModalService = inject(OverlayModalService);
   paysList: Pays[] = [];
   selectedFile: File | null = null; // Pour stocker le fichier sélectionné
   selectedPaysId: number | null = null; // ID du pays sélectionné pour l'ajout de la photo
 
-  constructor(public route: ActivatedRoute) { }
+  constructor(
+    public route: ActivatedRoute,
+    private toastr: ToastrService,
+  ) { }
+
   ngOnInit(): void {
     this.loadPays();
   }
@@ -38,21 +46,20 @@ export class PaysComponent {
     }
   }
   
-
   uploadPhoto(): void {
     if (this.selectedPaysId && this.selectedFile) {
       this.paysService.addPhoto(this.selectedPaysId, this.selectedFile).subscribe({
         next: () => {
-          alert('Photo ajoutée avec succès !');
+          this.toastr.success('Photo ajoutée avec succès !');
           this.loadPays(); // Rafraîchir la liste des pays
         },
         error: (err) => {
           console.error('Erreur lors de l\'ajout de la photo', err);
-          alert('Erreur lors de l\'ajout de la photo');
+          this.toastr.error(err,'Erreur lors de l\'ajout de la photo');
         },
       });
     } else {
-      alert('Veuillez sélectionner un pays et un fichier.');
+      this.toastr.warning('Veuillez sélectionner un pays et un fichier.');
     }
   }
 
@@ -63,22 +70,28 @@ export class PaysComponent {
     this.router.navigate(['/home/Pays/ModifierPays', idPays]);
   }
 
-
   deletePays(idPays: number): void {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce pays ?')) {
+    // Remplace la fonction native confirm() par le modal de confirmation
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = 'Êtes-vous sûr de vouloir supprimer ce pays ?';
+
+    modalInstance.confirmed.subscribe(() => {
       this.paysService.deletePays(idPays).subscribe({
         next: () => {
           // Met à jour la liste localement après suppression réussie
           this.paysList = this.paysList.filter((p) => p.idPays !== idPays);
-          alert('Pays supprimé avec succès.');
+          this.toastr.success('Pays supprimé avec succès.');
         },
         error: (err) => {
           console.error(err);
-          alert('Une erreur s\'est produite lors de la suppression du pays.');
+          this.toastr.error('Une erreur s\'est produite lors de la suppression du pays.');
         },
       });
-    }
+      this.overlayModalService.close();
+    });
+
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
-  
-  
 }

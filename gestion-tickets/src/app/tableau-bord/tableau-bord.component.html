@@ -1,4 +1,5 @@
 <div class="dashboard-container">
+
   <h1 class="page-title">Tableau de bord</h1>
 
   <!-- User Greeting -->
@@ -11,8 +12,104 @@
     </div>
   </div>
 
-  <!-- Graphique ngx-charts (Pie Chart) -->
-  <div class="pie-chart-container">
+  <!-- Statistiques -->
+  <div class="stats-container">
+    <!-- Tickets : visible pour tous -->
+    <div class="stat-box" *ngIf="isSuperAdmin() || isChefDeProjet() || isCollaborateur() || isClient()">
+      <a [routerLink]="['/home', 'Tickets']" class="stat-content">
+        <div class="stat-title">Tickets</div>
+        <div class="stat-value">{{ ticketsCount || 0 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M15.58,16.8L12,14.5L8.42,16.8L9.5,12.68L6.21,10L10.46,9.74L12,5.8L13.54,9.74L17.79,10L14.5,12.68M20,12C20,10.89 20.9,10 22,10V6C22,4.89 21.1,4 20,4H4A2,2 0 0,0 2,6V10C3.11,10 4,10.9 4,12A2,2 0 0,1 2,14V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V14A2,2 0 0,1 20,12Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Projets : visible pour SuperAdmin, Chef de Projet et Collaborateur -->
+    <div class="stat-box" *ngIf="isSuperAdmin() || isChefDeProjet() || isCollaborateur()">
+      <a [routerLink]="['/home', 'Projets']" class="stat-content">
+        <div class="stat-title">Projets</div>
+        <div class="stat-value">{{ projectsCount || 3 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10,2H14A2,2 0 0,1 16,4V6H20A2,2 0 0,1 22,8V19A2,2 0 0,1 20,21H4C2.89,21 2,20.1 2,19V8C2,6.89 2.89,6 4,6H8V4C8,2.89 8.89,2 10,2M14,6V4H10V6H14Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Catégories des problèmes : uniquement pour SuperAdmin -->
+    <div class="stat-box with-bg" *ngIf="isSuperAdmin()">
+      <a [routerLink]="['/home', 'Categories']" class="stat-content">
+        <div class="stat-title">Catégories Des Problèmes</div>
+        <div class="stat-value">{{ categoriesCount || 18 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Pays : uniquement pour SuperAdmin -->
+    <div class="stat-box" *ngIf="isSuperAdmin()">
+      <a [routerLink]="['/home', 'Pays']" class="stat-content">
+        <div class="stat-title">Pays</div>
+        <div class="stat-value">{{ paysCount || 3 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20,6H12L10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8A2,2 0 0,0 20,6M20,18H4V8H20V18Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Sociétés : uniquement pour SuperAdmin -->
+    <div class="stat-box" *ngIf="isSuperAdmin()">
+      <a [routerLink]="['/home', 'Societes']" class="stat-content">
+        <div class="stat-title">Sociétés</div>
+        <div class="stat-value">{{ societesCount || 4 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10,2V4.26L12,5.59V4H22V19H17V21H24V2H10M7.5,5L0,10V21H15V10L7.5,5M14,6V6.93L7.5,11.93L1,6.93V6H14Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Status des Tickets : uniquement pour SuperAdmin 
+         Ici, le lien référence l'id du conteneur du graphique -->
+         <div class="stat-box with-bg" *ngIf="isSuperAdmin()">
+          <a [routerLink]="['/home', 'TableauDeBord']" [fragment]="'pie-chart-container'" class="stat-content">
+            <div class="stat-title">Status Des Tickets</div>
+            <div class="stat-value">{{ statutsCount || 5 }}</div>
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3,4H21V8H3V4M3,10H21V14H3V10M3,16H21V20H3V16Z"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+        
+
+    <!-- Utilisateurs : uniquement pour SuperAdmin -->
+    <div class="stat-box" *ngIf="isSuperAdmin()">
+      <a [routerLink]="['/home', 'utilisateurs']" class="stat-content">
+        <div class="stat-title">Utilisateurs</div>
+        <div class="stat-value">{{ usersCount || 10 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Graphique (ngx-charts Pie Chart) -->
+  <div id="pie-chart-container" class="pie-chart-container">
     <ngx-charts-pie-chart 
       [view]="view"
       [scheme]="colorScheme"
@@ -22,7 +119,6 @@
       [labels]="true">
     </ngx-charts-pie-chart>
   </div>
-  
 
   <!-- Tableau récapitulatif -->
   <table class="table-stats">

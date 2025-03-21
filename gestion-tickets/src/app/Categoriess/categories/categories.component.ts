@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { CategorieModalComponent } from '../categorie-modal/categorie-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ToastrService } from 'ngx-toastr';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-categories',
@@ -29,7 +30,7 @@ export class CategoriesComponent implements OnInit {
 
   constructor(private categorieService: CategorieProblemeService,
     private overlayModalService: OverlayModalService,
-    private toastr: ToastrService,
+    private toastr: ToastrService
   ) { }
 
   ngOnInit(): void {
@@ -75,35 +76,55 @@ export class CategoriesComponent implements OnInit {
 
   // Suppression d'une catégorie individuellement
   deleteCategorie(id: number): void {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette catégorie ?")) {
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";
+    
+    modalInstance.confirmed.subscribe(() => {
       this.categorieService.deleteCategory(id).subscribe({
-        next: () => this.loadCategories(),
+        next: () =>{ this.toastr.success("Catégorie suprimée avec succèss"),
+                  this.loadCategories()},
         error: (err) => console.error("Erreur lors de la suppression de la catégorie :", err)
       });
-    }
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
+  
 
   // Suppression en masse des catégories sélectionnées
   deleteSelectedCategories(): void {
     const selectedCategories = this.categories.filter(categorie => categorie.selected);
     if (selectedCategories.length === 0) {
-      alert("Aucune catégorie sélectionnée.");
+      this.toastr.warning("Aucune catégorie sélectionnée.");
       return;
     }
-    if (confirm("Êtes-vous sûr de vouloir supprimer les catégories sélectionnées ?")) {
+  
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer les catégories sélectionnées ?";
+    
+    modalInstance.confirmed.subscribe(() => {
       const selectedIds = selectedCategories.map(categorie => categorie.id);
       this.categorieService.deleteSelectedCategories(selectedIds).subscribe({
         next: () => {
-          alert("Les catégories sélectionnées ont été supprimées.");
+          this.toastr.success("Les catégories sélectionnées ont été supprimées.");
           this.loadCategories();
         },
         error: (error) => {
           console.error("Erreur lors de la suppression des catégories sélectionnées", error);
-          alert("Une erreur est survenue lors de la suppression.");
+          this.toastr.error("Une erreur est survenue lors de la suppression.");
         }
       });
-    }
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
+  
 
   // Méthode utilitaire pour générer une plage de nombres (pour le per-page-selector)
   range(start: number, end: number): number[] {
@@ -122,7 +143,7 @@ export class CategoriesComponent implements OnInit {
       // Appel du service pour ajouter la catégorie
       this.categorieService.addCategory(nouvelleCategorie).subscribe({
         next: (categorie) => {
-          alert('Catégorie ajoutée avec succès.');
+          this.toastr.success('Catégorie ajoutée avec succès.');
           // Fermeture du modal
           this.overlayModalService.close();
           // Recharge la liste des catégories pour afficher la nouvelle
@@ -169,12 +190,12 @@ export class CategoriesComponent implements OnInit {
   saveEdit(categorie: CategorieProbleme): void {
     this.categorieService.updateCategory(categorie).subscribe({
       next: () => {
-        alert("Catégorie modifiée avec succès.");
+        this.toastr.success("Catégorie modifiée avec succès.");
         categorie.editing = false;
       },
       error: (err) => {
         console.error("Erreur lors de la mise à jour de la catégorie :", err);
-        alert("Une erreur est survenue lors de la modification de la catégorie.");
+        this.toastr.error("Une erreur est survenue lors de la modification de la catégorie.");
       }
     });
   }
