@@ -12,7 +12,7 @@ import { environment } from '../../environment/environment';
   providedIn: 'root'
 })
 export class TicketService {
-  private   baseUrl = environment.URLAPI+'tickets/';
+  private   baseUrl = environment.URLAPI+'tickets';
 
   constructor(private http: HttpClient) { }
 
@@ -45,7 +45,7 @@ export class TicketService {
 
 
   getTicket(id: number): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.baseUrl}${id}`);
+    return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
   createTicket(formData: FormData): Observable<Ticket> {
@@ -53,22 +53,22 @@ export class TicketService {
   }
 
   updateTicket(id: number, ticket: TicketUpdateDto): Observable<any> {
-    return this.http.put(`${this.baseUrl}${id}`, ticket);
+    return this.http.put(`${this.baseUrl}/${id}`, ticket);
   }
 
 
   deleteTicket(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}${id}`);
+    return this.http.delete(`${this.baseUrl}/${id}`);
   }
 
   // Méthode pour supprimer plusieurs tickets (appel vers DELETE api/tickets/bulk)
   deleteMultipleTickets(ticketIds: number[]): Observable<any> {
-    return this.http.request('delete', `${this.baseUrl}bulk`, { body: ticketIds });
+    return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
   }
 
   // Pour la mise à jour avec attachment
   uploadAttachment(formData: FormData): Observable<{ secureUrl: string }> {
-    return this.http.post<{ secureUrl: string }>(`${this.baseUrl}upload`, formData);
+    return this.http.post<{ secureUrl: string }>(`${this.baseUrl}/upload`, formData);
   }
 
   validateTicket(id: number, validationData: TicketValidationDto): Observable<any> {

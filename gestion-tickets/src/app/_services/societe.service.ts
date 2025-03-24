@@ -69,7 +69,7 @@ export class SocieteService {
   }
 
   deleteSociete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}${id}`);
   }
 
   deleteSelectedSocietes(ids: number[]): Observable<void> {

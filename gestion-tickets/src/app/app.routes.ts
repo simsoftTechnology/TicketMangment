@@ -63,7 +63,7 @@ export const routes: Routes = [
         path: 'Pays',
         component: PaysComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['Super Admin'] }
+        data: { roles: ['Super Admin'] },
       },
       {
         path: 'Pays/ajouterPays',
