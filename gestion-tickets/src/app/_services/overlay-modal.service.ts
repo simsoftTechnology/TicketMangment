@@ -18,7 +18,7 @@ export class OverlayModalService {
         .global()
         .centerHorizontally()
         .centerVertically(),
-      scrollStrategy: this.overlay.scrollStrategies.block()
+      scrollStrategy: this.overlay.scrollStrategies.noop()
     });
 
     const portal = new ComponentPortal(component);

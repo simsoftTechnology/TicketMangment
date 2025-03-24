@@ -10,6 +10,9 @@ import { User } from '../../_models/user';
 import { QualificationService } from '../../_services/qualification.service';
 import { PrioriteService } from '../../_services/priorite.service';
 import { StatusService } from '../../_services/status.service';
+import { ToastrService } from 'ngx-toastr';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
   selector: 'app-list-tickets',
@@ -26,6 +29,8 @@ export class ListTicketsComponent implements OnInit {
   private qualificationService = inject(QualificationService);
   private priorityService = inject(PrioriteService);
   private statusService = inject(StatusService);
+  private toastr = inject(ToastrService);
+  private overlayModalService = inject(OverlayModalService);
 
   currentUser: User | null = null;
   pageNumber: number = 1;
@@ -157,25 +162,34 @@ export class ListTicketsComponent implements OnInit {
   deleteSelectedTickets(): void {
     const items = this.paginatedResult?.items ?? [];
     const selectedIds = items.filter(ticket => ticket.selected).map(ticket => ticket.id);
-
+  
     if (selectedIds.length === 0) {
-      alert("Aucun ticket sélectionné pour la suppression.");
+      this.toastr.warning("Aucun ticket sélectionné pour la suppression.");
       return;
     }
-
-    if (confirm("Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?")) {
+  
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?";
+  
+    modalInstance.confirmed.subscribe(() => {
       this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
         next: () => {
-          alert("Tickets supprimés avec succès.");
+          this.toastr.success("Tickets supprimés avec succès.");
           this.getTickets();
         },
         error: error => {
           console.error("Erreur lors de la suppression des tickets", error);
-          alert("Une erreur est survenue lors de la suppression.");
+          this.toastr.error("Une erreur est survenue lors de la suppression.");
         }
       });
-    }
+      this.overlayModalService.close();
+    });
+  
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
+  
 
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
@@ -196,22 +210,6 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  getStatusClass(statutId: number): string {
-    switch (statutId) {
-      case 1:
-        return 'status-non-ouvert';
-      case 2:
-        return 'status-accepte';
-      case 3:
-        return 'status-refuse';
-      case 4:
-        return 'status-en-cours';
-      case 5:
-        return 'status-resolu';
-      default:
-        return '';
-    }
-  }
 
   getQualificationLabel(qualificationId: number): string {
     const found = this.qualifications.find(q => q.id === qualificationId);

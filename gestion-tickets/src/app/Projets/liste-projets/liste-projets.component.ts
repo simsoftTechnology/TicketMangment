@@ -1,5 +1,5 @@
+import { ToastrService } from 'ngx-toastr';
 import { Component, OnInit } from '@angular/core';
-
 import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatedResult } from '../../_models/pagination';
@@ -7,6 +7,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Projet } from '../../_models/Projet';
 import { ProjetService } from '../../_services/projet.service';
 import { AccountService } from '../../_services/account.service';
+
+// Importations pour le modal de confirmation
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-liste-projets',
@@ -24,7 +28,10 @@ export class ListeProjetsComponent implements OnInit {
   constructor(
     private projetsService: ProjetService,
     public accountService: AccountService,
-    public route: ActivatedRoute) {}
+    public route: ActivatedRoute,
+    private overlayModalService: OverlayModalService,
+    private toastr: ToastrService,
+  ) {}
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
@@ -100,12 +107,22 @@ export class ListeProjetsComponent implements OnInit {
     }
   }
 
+  // Suppression d'un projet via le modal de confirmation
   deleteProjet(id: number): void {
-    if (confirm("Êtes-vous sûr de vouloir ce projet ?")) {
-        this.projetsService.deleteProjet(id).subscribe(() => {
-          this.loadProjets();
-        });
-      }
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer ce projet ?";
+    
+    modalInstance.confirmed.subscribe(() => {
+      this.projetsService.deleteProjet(id).subscribe(() => {
+        this.toastr.success("Projet suprimé avec succès")
+        this.loadProjets();
+      });
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
 
   selectAll(event: Event): void {
@@ -126,6 +143,7 @@ export class ListeProjetsComponent implements OnInit {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  // Suppression en masse des projets via le modal de confirmation
   deleteSelectedProjects(): void {
     const projets = this.paginatedResult?.items || [];
     const selectedIds = projets
@@ -133,18 +151,26 @@ export class ListeProjetsComponent implements OnInit {
       .map(projet => projet.id);
   
     if (selectedIds.length === 0) {
-      console.warn("Aucun projet sélectionné pour suppression.");
+      this.toastr.warning("Aucun projet sélectionné pour suppression.");
       return;
     }
   
-    if (confirm("Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?")) {
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?";
+    
+    modalInstance.confirmed.subscribe(() => {
       this.projetsService.deleteSelectedProjets(selectedIds).subscribe({
         next: () => {
+          this.toastr.success("Les projets sélectionnés ont été supprimés avec succès.");
           this.loadProjets();
         },
-        error: error => console.error("Erreur lors de la suppression", error)
+        error: error => this.toastr.error("Erreur lors de la suppression")
       });
-    }
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
-  
 }

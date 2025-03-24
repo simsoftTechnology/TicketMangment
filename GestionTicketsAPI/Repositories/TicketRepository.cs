@@ -49,13 +49,33 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Owner)
           .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
-            .ThenInclude(p => p.ChefProjet)
+              .ThenInclude(p => p.ChefProjet)
           .Include(t => t.Responsible)
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
           .Include(t => t.Statut)
           .OrderByDescending(t => t.CreatedAt) // Tri par date de création
           .AsQueryable();
+
+      // Si l'utilisateur n'est pas un super admin,
+      // on impose que le ticket soit lié à un projet
+      // et que l'utilisateur soit associé au projet.
+      // Pour les chefs de projet, on vérifie l'association via le ChefProjetId.
+      if (!ticketParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? true)
+      {
+        if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase))
+        {
+          query = query.Where(t =>
+              t.Projet != null &&
+              t.Projet.ChefProjetId == ticketParams.UserId);
+        }
+        else
+        {
+          query = query.Where(t =>
+              t.Projet != null &&
+              _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
+        }
+      }
 
       // Filtrage par terme de recherche
       if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
@@ -65,7 +85,7 @@ namespace GestionTicketsAPI.Repositories
                                || t.Description.ToLower().Contains(lowerSearchTerm));
       }
 
-      // Filtrage basé sur le rôle et l'utilisateur
+      // Filtrage complémentaire selon le rôle
       if (!ticketParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? true)
       {
         if (string.Equals(ticketParams.Role, "client", StringComparison.OrdinalIgnoreCase))
@@ -75,18 +95,21 @@ namespace GestionTicketsAPI.Repositories
         }
         else if (string.Equals(ticketParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
         {
-          // Le développeur voit uniquement les tickets qui lui sont assignés
+          // Le collaborateur voit uniquement les tickets qui lui sont assignés
           query = query.Where(t => t.ResponsibleId == ticketParams.UserId);
         }
         else if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase))
         {
-          // Le chef de projet voit les tickets des projets dont il est le responsable
-          query = query.Where(t => t.Projet != null && t.Projet.ChefProjetId == ticketParams.UserId);
+          // En plus du filtre par ChefProjetId, on peut autoriser
+          // le chef de projet à voir les tickets qui lui sont assignés.
+          query = query.Where(t => t.ResponsibleId == ticketParams.UserId || t.Projet.ChefProjetId == ticketParams.UserId);
         }
       }
 
       return await PagedList<Ticket>.CreateAsync(query, ticketParams.PageNumber, ticketParams.PageSize);
     }
+
+
 
     public async Task AddTicketAsync(Ticket ticket)
     {
@@ -132,5 +155,39 @@ namespace GestionTicketsAPI.Repositories
     {
       return await _context.StatutsDesTickets.FirstOrDefaultAsync(s => s.Name == statusName);
     }
+
+    public List<object> GetTicketCountByStatus(int userId, string role)
+    {
+      // Commence par récupérer tous les tickets
+      IQueryable<Ticket> filteredTickets = _context.Tickets;
+
+      // Si l'utilisateur n'est pas un superadmin, on filtre les tickets
+      if (!string.Equals(role, "super admin", StringComparison.OrdinalIgnoreCase))
+      {
+        filteredTickets = filteredTickets.Where(t =>
+            t.OwnerId == userId ||
+            t.ResponsibleId == userId ||
+            (t.Projet != null && t.Projet.ChefProjetId == userId)
+        );
+      }
+
+      // Groupement par statut en utilisant uniquement les tickets filtrés
+      var results = _context.StatutsDesTickets
+           .GroupJoin(
+                filteredTickets,
+                statut => statut.Id,       // clé côté Statut
+                ticket => ticket.StatutId, // clé côté Ticket
+                (statut, ticketsGroup) => new
+                {
+                  Id = statut.Id,
+                  Name = statut.Name,
+                  Count = ticketsGroup.Count()
+                }
+           )
+           .ToList();
+
+      return results.Cast<object>().ToList();
+    }
+
   }
 }

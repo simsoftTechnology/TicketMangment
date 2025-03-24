@@ -37,6 +37,7 @@
             <label for="selectAll" class="checkbox-label"></label>
           </div>
         </th>
+        <th>Id</th>
         <th>Titre</th>
         <th>Qualification</th>
         <th>Projet</th>
@@ -56,6 +57,7 @@
             <label [for]="'ticket' + i" class="checkbox-label"></label>
           </div>
         </td>
+        <td>{{ ticket.id }}</td>
         <td>{{ ticket.title }}</td>
         <td>{{ getQualificationLabel(ticket.qualificationId) }}</td>
         <td>{{ ticket.projet?.nom || 'Non défini' }}</td>
@@ -69,7 +71,7 @@
           </span>
         </td>                        
         <td>
-          <span [ngClass]="getStatusClass(ticket.statutId)">
+          <span >
             {{ getStatusLabel(ticket.statutId) }}
           </span>
         </td>        

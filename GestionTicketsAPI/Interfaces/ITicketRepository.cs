@@ -2,9 +2,9 @@ using System;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 
-namespace GestionTicketsAPI.Interfaces;
-
-public interface ITicketRepository
+namespace GestionTicketsAPI.Interfaces
+{
+    public interface ITicketRepository
     {
         Task<Ticket?> GetTicketByIdAsync(int id);
         Task<IEnumerable<Ticket>> GetTicketsAsync();
@@ -16,6 +16,6 @@ public interface ITicketRepository
         Task<bool> DeleteMultipleTicketsAsync(IEnumerable<int> ticketIds);
         Task<bool> TicketExists(string title);
         Task<StatutDesTicket?> GetStatusByNameAsync(string statusName);
-
-
+        List<object> GetTicketCountByStatus(int userId, string role);
     }
+}

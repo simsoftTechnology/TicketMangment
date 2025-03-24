@@ -1,5 +1,3 @@
-
-
 <div class="container">
   <h2>Créer Ticket</h2>
   <div class="form-container">
@@ -19,12 +17,12 @@
             </div>
             <div class="dropdown-content" [class.show]="isQualificationDropdownOpen">
               <div class="search-box">
-                <input type="text" placeholder="Rechercher une qualification..."
-                  [(ngModel)]="qualificationSearchTerm" [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="filterQualifications()" />
+                <input type="text" placeholder="Rechercher une qualification..." [(ngModel)]="qualificationSearchTerm"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterQualifications()" />
               </div>
               <div class="option-list">
-                <ng-container *ngIf="filteredQualifications && filteredQualifications.length > 0; else noQualificationResults">
+                <ng-container
+                  *ngIf="filteredQualifications && filteredQualifications.length > 0; else noQualificationResults">
                   <div *ngFor="let q of filteredQualifications" class="option-item" (click)="selectQualification(q)">
                     {{ q.name }}
                   </div>
@@ -54,9 +52,8 @@
             </div>
             <div class="dropdown-content" [class.show]="isProjetDropdownOpen">
               <div class="search-box">
-                <input type="text" placeholder="Rechercher un projet..."
-                  [(ngModel)]="searchProjet" [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="filterProjets()" />
+                <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="searchProjet"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterProjets()" />
               </div>
               <div class="option-list">
                 <ng-container *ngIf="filteredProjets && filteredProjets.length > 0; else noProjetResults">
@@ -93,9 +90,8 @@
             </div>
             <div class="dropdown-content" [class.show]="isCategorieDropdownOpen">
               <div class="search-box">
-                <input type="text" placeholder="Rechercher une catégorie..."
-                  [(ngModel)]="searchCategorie" [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="filterCategories()" />
+                <input type="text" placeholder="Rechercher une catégorie..." [(ngModel)]="searchCategorie"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterCategories()" />
               </div>
               <div class="option-list">
                 <ng-container *ngIf="filteredCategories && filteredCategories.length > 0; else noCategorieResults">
@@ -128,9 +124,8 @@
             </div>
             <div class="dropdown-content" [class.show]="isPriorityDropdownOpen">
               <div class="search-box">
-                <input type="text" placeholder="Rechercher une priorité..."
-                  [(ngModel)]="prioritySearchTerm" [ngModelOptions]="{ standalone: true }"
-                  (ngModelChange)="filterPriorities()" />
+                <input type="text" placeholder="Rechercher une priorité..." [(ngModel)]="prioritySearchTerm"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterPriorities()" />
               </div>
               <div class="option-list">
                 <ng-container *ngIf="filteredPriorities && filteredPriorities.length > 0; else noPriorityResults">
@@ -158,7 +153,9 @@
         <label for="title">Titre <span class="required">*</span></label>
         <input id="title" type="text" formControlName="title" class="form-control"
           [class.is-invalid]="addTicketForm.get('title')?.touched && addTicketForm.get('title')?.invalid">
-        <div *ngIf="(addTicketForm.get('title')?.touched || formSubmitted) && addTicketForm.get('title')?.hasError('required')" class="invalid-feedback">
+        <div
+          *ngIf="(addTicketForm.get('title')?.touched || formSubmitted) && addTicketForm.get('title')?.hasError('required')"
+          class="invalid-feedback">
           Le titre est obligatoire.
         </div>
       </div>
@@ -170,7 +167,9 @@
           <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
           <ngx-editor [editor]="editor" formControlName="description" id="description"></ngx-editor>
         </div>
-        <div *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')" class="invalid-feedback">
+        <div
+          *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')"
+          class="invalid-feedback">
           La description est obligatoire.
         </div>
       </div>
@@ -183,10 +182,28 @@
 
       <!-- Boutons -->
       <div class="button-group">
-        <button type="submit" class="btn-create">Créer</button>
-        <button type="button" class="btn-add" (click)="createAndReset()">Créer &amp; Ajouter un autre</button>
-        <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
+        <button type="submit" class="btn-create" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingCreate">
+            Créer
+          </ng-container>
+          <ng-template #loadingCreate>
+            <span class="spinner"></span> Création...
+          </ng-template>
+        </button>
+        <button type="button" class="btn-add" (click)="createAndReset()" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingAdd">
+            Créer &amp; Ajouter un autre
+          </ng-container>
+          <ng-template #loadingAdd>
+            <span class="spinner"></span> Création...
+          </ng-template>
+        </button>
+        <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isLoading">
+          Annuler
+        </button>
       </div>
+
+      
 
     </form>
   </div>

@@ -35,7 +35,7 @@ import { User } from '../_models/user';
     FormsModule,
     MatExpansionModule,
     NgIf,
-    RouterModule
+    RouterModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']

@@ -56,9 +56,6 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("DateModification")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
@@ -135,6 +132,10 @@ namespace GestionTicketsAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasColumnName("id_pays");
+
+                    b.Property<string>("CodeTel")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
 
                     b.Property<string>("Nom")
                         .IsRequired()
@@ -425,7 +426,7 @@ namespace GestionTicketsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("ValidationReason")

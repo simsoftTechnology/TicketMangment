@@ -54,7 +54,7 @@ namespace GestionTicketsAPI.Controllers
 
     [Authorize]
     [HttpPost("ajouterPays")]
-    public async Task<ActionResult<PaysDto>> AddPays([FromForm] string nom, IFormFile file)
+    public async Task<ActionResult<PaysDto>> AddPays([FromForm] string nom, [FromForm] string? codeTel, IFormFile file)
     {
       // Vérifier si le pays existe déjà en fonction de son nom
       if (await _paysService.PaysExists(nom))
@@ -62,7 +62,7 @@ namespace GestionTicketsAPI.Controllers
 
       try
       {
-        var paysDto = await _paysService.AddPaysAsync(nom, file);
+        var paysDto = await _paysService.AddPaysAsync(nom, codeTel, file);
         return CreatedAtAction(nameof(GetPays), new { idPays = paysDto.IdPays }, paysDto);
       }
       catch (Exception ex)
@@ -70,6 +70,7 @@ namespace GestionTicketsAPI.Controllers
         return BadRequest(ex.Message);
       }
     }
+
 
 
     [Authorize]

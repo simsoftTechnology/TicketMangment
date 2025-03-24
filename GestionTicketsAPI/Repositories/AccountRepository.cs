@@ -26,6 +26,8 @@ namespace GestionTicketsAPI.Repositories
             return await _context.Users
                 .Include(u => u.PaysNavigation)
                 .Include(u => u.Role)
+                .Include(u => u.SocieteUsers)
+                    .ThenInclude(su => su.Societe)
                 .FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
         }
 

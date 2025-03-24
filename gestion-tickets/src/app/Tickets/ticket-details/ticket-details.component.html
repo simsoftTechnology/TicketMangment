@@ -1,9 +1,8 @@
 <body>
 
-
   <!-- En-tête du ticket : titre à gauche, bouton à droite -->
   <div class="ticket-header">
-    <h1>Titre du ticket</h1>
+    <h1>{{ ticket?.title }}</h1>
     <!-- Groupe de boutons -->
     <div>
       <button *ngIf="canValidateTicket()" (click)="openValidationModal()">
@@ -54,7 +53,6 @@
         </div>
 
         <!-- Ligne 5 : Attachement (colonne complète) -->
-
         <div *ngIf="ticket?.attachments; else noAttachment" class="full-width">
           <label>Attachement</label>
           <a [href]="ticket.attachments" target="_blank">Voir le fichier</a>
@@ -94,15 +92,13 @@
         <div *ngIf="currentUser?.role?.toLowerCase() === 'client'; else selectableResponsible">
           <label>Responsable</label>
           <!-- Si le ticket possède déjà un responsable, affichez-le, sinon affichez le nom du client -->
-          <input
-            type="text"
+          <input type="text"
             [value]="ticket.responsible ? (ticket.responsible.firstName + ' ' + ticket.responsible.lastName)  : 'Aucun responsable'"
             disabled />
         </div>
         <ng-template #selectableResponsible>
           <label>Responsable</label>
-          <select [(ngModel)]="selectedResponsibleId"
-                  [disabled]="ticket.statut?.name === '-' ||
+          <select [(ngModel)]="selectedResponsibleId" [disabled]="ticket.statut?.name === '-' ||
                               ticket.statut?.name === 'Résolu' ||
                               ticket.statut?.name === 'Non Résolu' ||
                               ticket.statut?.name === 'Refusé'">
@@ -111,14 +107,60 @@
               {{ dev.firstName }} {{ dev.lastName }} - {{ dev.role }}
             </option>
           </select>
-        </ng-template>        
-
+        </ng-template>
 
         <div class="sidebar-item">
-          <p><strong>Créé le :</strong> {{ ticket.createdAt ? (ticket.createdAt| date:'short') : 'N/A'  }}</p>
+          <p><strong>Créé le :</strong> {{ ticket.createdAt ? (ticket.createdAt| date:'short') : 'N/A' }}</p>
           <p><strong>Mise à jour :</strong> {{ ticket.updatedAt ? (ticket.updatedAt | date:'short') : '-' }}</p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Section Commentaires -->
+  <div class="comments-container">
+    <!-- Titre de la section commentaires -->
+    <h2>Commentaires</h2>
+
+    <!-- Liste des commentaires -->
+    <div class="comments-list" *ngIf="comments && comments.length > 0; else noCommentsTemplate">
+      <div class="comment" *ngFor="let comment of comments">
+        <div class="comment-header">
+          <!-- Partie gauche : icône et nom -->
+          <div class="left-part">
+            <div class="comment-icon">
+              {{ getInitials(comment.utilisateur?.firstName, comment.utilisateur?.lastName) }}
+            </div>
+            <div class="comment-info">
+              <span class="comment-author">
+                {{ comment.utilisateur?.id === currentUser?.id 
+                    ? 'Moi' 
+                    : (comment.utilisateur?.firstName + ' ' + comment.utilisateur?.lastName + ' - ' + comment.utilisateur?.role) }}
+              </span>        
+            </div>
+          </div>
+          <!-- Partie droite : date -->
+          <small class="comment-date">{{ comment.date | date:'short' }}</small>
+        </div>
+        <!-- Contenu du commentaire en dessous -->
+        <p class="comment-content" [innerHTML]="comment.contenu"></p>
+      </div>
+    </div>
+
+    <!-- Message si aucune donnée -->
+    <ng-template #noCommentsTemplate>
+      <div class="no-content">
+        <span class="icon">✕</span>
+        <p>Aucun commentaire trouvé</p>
+      </div>
+    </ng-template>
+    
+    <!-- Champ de saisie pour nouveau commentaire -->
+    <div class="comment-input-container">
+      <textarea [(ngModel)]="newComment" placeholder="Écrire un commentaire..." class="comment-input" rows="1"></textarea>
+      <button class="send-button" (click)="onAddComment()">
+        <i class="fas fa-paper-plane"></i>
+      </button>
     </div>
   </div>
 

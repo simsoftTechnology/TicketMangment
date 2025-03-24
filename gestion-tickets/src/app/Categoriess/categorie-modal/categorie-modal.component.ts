@@ -1,11 +1,12 @@
+import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-categorie-modal',
-    imports: [FormsModule],
+    imports: [FormsModule, CommonModule],
     templateUrl: './categorie-modal.component.html',
-    styleUrl: './categorie-modal.component.css'
+    styleUrls: ['./categorie-modal.component.css']
 })
 export class CategorieModalComponent {
   categoryName: string = '';
@@ -14,13 +15,7 @@ export class CategorieModalComponent {
   @Output() close = new EventEmitter<void>();
 
   addCategory(): void {
-    if (this.categoryName.trim() === '') {
-      alert('Veuillez saisir un nom de catégorie.');
-      return;
-    }
-    // Émettre l'événement avec le nom de la catégorie
     this.categoryAdded.emit(this.categoryName.trim());
-    // Réinitialiser le champ ou fermer le modal si besoin
     this.categoryName = '';
   }
 

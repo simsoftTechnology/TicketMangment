@@ -27,11 +27,7 @@ export class AppComponent implements OnInit {
   title = 'gestion-tickets';
   users: any;
 
-  loading$: Observable<boolean>;
-
-  constructor(private loaderService: LoaderService) {
-    this.loading$ = this.loaderService.loading$;
-  }
+  
 
   ngOnInit(): void {
     this.setCurrentUser();

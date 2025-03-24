@@ -96,25 +96,41 @@
               Mot de passe est obligatoire
             </div>
             <div *ngIf="userForm.controls['nouveauPassword'].hasError('minlength')" class="invalid-feedback text-start">
-              Mot de passe doit avoir au moins 6 caractères
+              Mot de passe doit avoir au moins 8 caractères
             </div>
             <div *ngIf="userForm.controls['nouveauPassword'].hasError('maxlength')" class="invalid-feedback text-start">
-              Mot de passe ne doit pas dépasser 8 caractères
+              Mot de passe ne doit pas dépasser 16 caractères
             </div>
           </div>
         </div>
 
         <div class="form-group">
           <label for="numTelephone">Numéro de Téléphone <span class="required">*</span></label>
-          <input id="numTelephone" type="tel" class="form-control" formControlName="numTelephone"
-            [class.is-invalid]="userForm.controls['numTelephone'].touched && userForm.controls['numTelephone'].invalid">
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">
+                <img *ngIf="selectedCountry?.photoUrl"
+                     [src]="selectedCountry?.photoUrl"
+                     alt="{{ selectedCountry?.nom }}"
+                     style="width: 24px; height: auto; margin-right: 5px;" />
+                {{ selectedCountry?.codeTel || '+XX' }}
+              </span>
+            </div>
+            <input
+              id="numTelephone"
+              type="tel"
+              formControlName="numTelephone"
+              class="form-control"
+              [class.is-invalid]="userForm.controls['numTelephone'].touched && userForm.controls['numTelephone'].invalid"
+            />
+          </div>          
           <div *ngIf="userForm.controls['numTelephone'].hasError('required')" class="invalid-feedback text-start">
             Numéro de téléphone est obligatoire
           </div>
           <div *ngIf="userForm.controls['numTelephone'].hasError('pattern')" class="invalid-feedback text-start">
             Numéro de téléphone invalide (exemple : +216 54 567 589)
           </div>
-        </div>
+        </div>        
       </div>
 
       <div class="form-row">
@@ -129,10 +145,9 @@
             <div *ngIf="userForm.controls['confirmNouveauPassword'].hasError('required')" class="invalid-feedback text-start">
               Confirmation du mot de passe est obligatoire
             </div>
-            <div *ngIf="userForm.controls['confirmNouveauPassword'].hasError('passwordMismatch')"
-              class="invalid-feedback text-start">
+            <div *ngIf="userForm.hasError('passwordMismatch') && userForm.get('confirmNouveauPassword')?.touched" class="invalid-feedback text-start">
               Les mots de passe ne sont pas identiques
-            </div>
+            </div>            
           </div>
         </div>
 

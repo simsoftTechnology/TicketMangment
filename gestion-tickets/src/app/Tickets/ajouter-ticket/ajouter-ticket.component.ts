@@ -14,8 +14,10 @@ import { PrioriteService } from '../../_services/priorite.service';
 import { QualificationService } from '../../_services/qualification.service';
 import { Qualification } from '../../_models/qualification.model';
 import { Priorite } from '../../_models/priorite.model';
-import { finalize } from 'rxjs';
+import { finalize, forkJoin } from 'rxjs';
 import { LoaderService } from '../../_services/loader.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
 
 @Component({
   selector: 'app-ajouter-ticket',
@@ -68,6 +70,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   editor!: Editor;
   toolbar!: Toolbar;
 
+  isLoading: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private ticketService: TicketService,
@@ -78,8 +82,13 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     private qualificationService: QualificationService,
     private toastr: ToastrService,
     private router: Router,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private overlayModalService: OverlayModalService,
   ) {
+
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
     // Création du formulaire réactif avec les clés du modèle
     this.addTicketForm = this.fb.group({
       title: ['', Validators.required],
@@ -93,11 +102,13 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadCategories();
-    this.loadProjets();
-    this.loadPriorites();
-    this.loadQualifications();
-    this.loadUsers(); // Charger la liste des utilisateurs
+    forkJoin([
+      this.loadCategories(),
+      this.loadProjets(),
+      this.loadPriorites(),
+      this.loadQualifications(),
+      this.loadUsers()
+    ]).subscribe();
 
     // Initialisation de ngx-editor
     this.editor = new Editor();
@@ -282,11 +293,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Soumission du formulaire pour créer le ticket
   onSubmit(): void {
     this.formSubmitted = true;
-    if (
-      this.addTicketForm.invalid ||
-      !this.selectedQualification ||
-      !this.selectedPriority
-    ) {
+    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
       Object.values(this.addTicketForm.controls).forEach(control => control.markAsTouched());
       return;
     }
@@ -309,10 +316,10 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       formData.append('attachment', this.selectedFile, this.selectedFile.name);
     }
 
-    // Active le loader
-    this.loaderService.show();
+    // Active le loader local
+    this.loaderService.showLoader();
     this.ticketService.createTicket(formData)
-      .pipe(finalize(() => this.loaderService.hide()))
+      .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
         next: (ticket) => {
           this.toastr.success("Ticket créé avec succès.");
@@ -343,11 +350,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
 
   // Créer le ticket et réinitialiser le formulaire pour en ajouter un autre
   createAndReset(): void {
-    if (
-      this.addTicketForm.invalid ||
-      !this.selectedQualification ||
-      !this.selectedPriority
-    ) {
+    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
       this.toastr.warning("Veuillez remplir correctement le formulaire.");
       return;
     }
@@ -370,9 +373,9 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       formData.append('attachment', this.selectedFile, this.selectedFile.name);
     }
 
-    this.loaderService.show();
+    this.loaderService.showLoader();
     this.ticketService.createTicket(formData)
-      .pipe(finalize(() => this.loaderService.hide()))
+      .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
         next: (ticket) => {
           this.toastr.success("Ticket créé avec succès. Vous pouvez en ajouter un autre.");
@@ -400,7 +403,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
         }
       });
   }
-
+  
   // Réinitialisation du formulaire
   resetForm(): void {
     this.addTicketForm.reset();
@@ -416,13 +419,22 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Annulation : redirige selon si des modifications ont été effectuées
   cancel(): void {
     if (this.addTicketForm.dirty) {
-      if (confirm("Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?")) {
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = "Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?";
+      
+      modalInstance.confirmed.subscribe(() => {
         this.router.navigate(['/home/Tickets']);
-      }
+        this.overlayModalService.close();
+      });
+      
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
+      });
     } else {
       this.router.navigate(['/home/Tickets']);
     }
   }
+  
 
   // Gestionnaire de clic global pour fermer les dropdowns si le clic se fait en dehors
   @HostListener('document:click', ['$event'])

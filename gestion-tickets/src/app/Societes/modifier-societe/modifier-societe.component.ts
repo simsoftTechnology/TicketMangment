@@ -19,6 +19,7 @@ import { PaysService } from '../../_services/pays.service';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-modifier-societe',
@@ -137,24 +138,34 @@ export class ModifierSocieteComponent implements OnInit {
       return;
     }
     if (this.societeForm.valid) {
-      if (!confirm("Confirmez-vous la modification de la société ?")) {
-        return; // L'utilisateur a annulé la modification
-      }
-      const updatedSociete: Societe = {
-        ...this.societeDetails,
-        ...this.societeForm.value
-      };
-      this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
-        next: () => {
-          this.toastr.success("Société modifiée avec succès");
-        },
-        error: error => {
-          console.error('Erreur lors de la mise à jour de la société', error);
-          this.toastr.error("Erreur lors de la mise à jour de la société");
-        }
+      // Ouvre le modal de confirmation via l'OverlayModalService
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = "Confirmez-vous la modification de la société ?";
+      
+      modalInstance.confirmed.subscribe(() => {
+        const updatedSociete: Societe = {
+          ...this.societeDetails,
+          ...this.societeForm.value
+        };
+        this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
+          next: () => {
+            this.toastr.success("Société modifiée avec succès");
+          },
+          error: error => {
+            console.error('Erreur lors de la mise à jour de la société', error);
+            this.toastr.error("Erreur lors de la mise à jour de la société");
+          }
+        });
+        this.overlayModalService.close();
+      });
+      
+      modalInstance.cancelled.subscribe(() => {
+        // Fermeture du modal si l'utilisateur annule
+        this.overlayModalService.close();
       });
     }
-  }  
+  }
+    
 
   onSubmitContrat(): void {
     if (this.contratForm.valid) {
@@ -433,20 +444,28 @@ export class ModifierSocieteComponent implements OnInit {
 
   detachUser(user: User): void {
     const confirmationMessage = `Êtes-vous sûr de vouloir détacher ${user.firstName} ${user.lastName} de ${this.societeDetails.nom} ?`;
-    if (!confirm(confirmationMessage)) {
-      return; // L'utilisateur a annulé l'action
-    }
-    this.societeService.detachUser(this.societeDetails.id, user.id).subscribe({
-      next: () => {
-        this.toastr.success("Utilisateur détaché avec succès");
-        this.loadSocieteUsers(); // Rafraîchir la liste après suppression
-      },
-      error: error => {
-        console.error("Erreur lors du détachement de l'utilisateur", error);
-        this.toastr.error("Erreur lors du détachement de l'utilisateur");
-      }
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = confirmationMessage;
+    
+    modalInstance.confirmed.subscribe(() => {
+      this.societeService.detachUser(this.societeDetails.id, user.id).subscribe({
+        next: () => {
+          this.toastr.success("Utilisateur détaché avec succès");
+          this.loadSocieteUsers(); // Rafraîchir la liste après suppression
+        },
+        error: error => {
+          console.error("Erreur lors du détachement de l'utilisateur", error);
+          this.toastr.error("Erreur lors du détachement de l'utilisateur");
+        }
+      });
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
     });
   }
+  
   
   
   toggleDropdown(type: string): void {

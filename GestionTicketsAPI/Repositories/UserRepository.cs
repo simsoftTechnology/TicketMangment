@@ -17,7 +17,11 @@ namespace GestionTicketsAPI.Repositories
 
     public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
     {
-      var query = _context.Users.Include(u => u.Contrats).Include(u => u.Role).AsQueryable();
+      var query = _context.Users
+                    .Include(u => u.Contrats)
+                    .Include(u => u.Role)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .AsQueryable();
 
       if (!string.IsNullOrEmpty(userParams.SearchTerm))
       {
@@ -52,18 +56,87 @@ namespace GestionTicketsAPI.Repositories
 
     public async Task<bool> DeleteUserAsync(User user)
     {
-      await _context.Entry(user)
-          .Collection(u => u.Contrats)
-          .LoadAsync();
+      // Identifiant de l'utilisateur par défaut (à adapter ou récupérer depuis la configuration)
+      int defaultUserId = 1;
 
-      if (user.Contrats?.Any() == true)
+      // Supprimer les tickets où l'utilisateur est owner
+      var ownerTickets = await _context.Tickets
+          .Where(t => t.OwnerId == user.Id)
+          .ToListAsync();
+      if (ownerTickets.Any())
       {
-        _context.Contrats.RemoveRange(user.Contrats);
+        _context.Tickets.RemoveRange(ownerTickets);
       }
 
+      // Réassigner les tickets où l'utilisateur est responsable
+      var responsibleTickets = await _context.Tickets
+          .Where(t => t.ResponsibleId == user.Id)
+          .ToListAsync();
+      if (responsibleTickets.Any())
+      {
+        foreach (var ticket in responsibleTickets)
+        {
+          ticket.ResponsibleId = defaultUserId;
+        }
+      }
+
+      // Supprimer les commentaires où l'utilisateur est assigné
+      var userComments = await _context.Commentaires
+          .Where(c => c.UtilisateurId == user.Id)
+          .ToListAsync();
+      if (userComments.Any())
+      {
+        _context.Commentaires.RemoveRange(userComments);
+      }
+
+      // Supprimer les contrats où l'utilisateur est assigné (en tant que Client)
+      var userContracts = await _context.Contrats
+          .Where(c => c.ClientId == user.Id)
+          .ToListAsync();
+      if (userContracts.Any())
+      {
+        _context.Contrats.RemoveRange(userContracts);
+      }
+
+  
+
+      // Réassigner les projets où l'utilisateur est ChefProjet
+      var projectsAsChef = await _context.Projets
+          .Where(p => p.ChefProjetId == user.Id)
+          .ToListAsync();
+      if (projectsAsChef.Any())
+      {
+        foreach (var project in projectsAsChef)
+        {
+          project.ChefProjetId = defaultUserId;
+        }
+      }
+
+      // Supprimer les enregistrements ProjetUser où l'utilisateur est assigné
+      var projetUsers = await _context.ProjetUser
+          .Where(pu => pu.UserId == user.Id)
+          .ToListAsync();
+      if (projetUsers.Any())
+      {
+        _context.ProjetUser.RemoveRange(projetUsers);
+      }
+
+      // Supprimer les enregistrements SocieteUser où l'utilisateur est assigné
+      var societeUsers = await _context.SocieteUsers
+          .Where(su => su.UserId == user.Id)
+          .ToListAsync();
+      if (societeUsers.Any())
+      {
+        _context.SocieteUsers.RemoveRange(societeUsers);
+      }
+
+      // Enfin, supprimer l'utilisateur
       _context.Users.Remove(user);
+
       return await _context.SaveChangesAsync() > 0;
     }
+
+
 
     public async Task<bool> SaveAllAsync()
     {

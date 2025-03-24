@@ -40,7 +40,7 @@
 /* Container principal du projet */
 .form-container {
   padding: 0rem;
-  max-width: 1200px;
+  width: 100%;
   margin: 1rem auto;
 }
 
@@ -867,13 +867,15 @@ input, select, button {
   margin: 0;
 }
 
+.cdk-overlay-backdrop-showing{
+  color: #2d3748 !important;
+}
 
 /* Responsive */
 /* Breakpoints plus précis */
 /* Large desktop et écrans 4K */
 @media (min-width: 1921px) {
   .form-container {
-    max-width: 1600px;
     padding: 3rem;
   }
 
@@ -890,7 +892,6 @@ input, select, button {
 /* Desktop standard */
 @media (max-width: 1920px) {
   .form-container {
-    max-width: 1400px;
     padding: 2.5rem;
   }
 
@@ -903,7 +904,6 @@ input, select, button {
 /* Petits écrans desktop et grands tablets */
 @media (max-width: 1366px) {
   .form-container {
-    max-width: 1200px;
     padding: 2rem;
   }
 

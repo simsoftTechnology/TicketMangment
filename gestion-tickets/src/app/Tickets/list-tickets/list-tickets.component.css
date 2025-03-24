@@ -239,9 +239,8 @@ td {
 
 
 .checkbox-column {
-  width: 40px;
+  width: 30px;
   text-align: center;
-  padding: 20px 25px !important;
 }
 
 /* Custom checkbox styles */
@@ -328,12 +327,7 @@ td {
   vertical-align: middle;
 }
 
-/* Additional responsive tweaks */
-.checkbox-column {
-  width: auto;
-  text-align: center;
-  padding: 10px !important;
-}
+
 
 /* Ensure input fields are responsive */
 input, select, button {
@@ -477,44 +471,6 @@ input, select, button {
 .priority-faible {
   color: #28a745;
   background-color: rgba(61, 219, 68, 0.1);
-}
-/* Badges de statut - style de type tag/pill */
-/* Style commun pour tous les statuts */
-.status-non-ouvert,
-.status-accepte,
-.status-refuse,
-.status-en-cours,
-.status-resolu {
-  display: inline-block;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 5px;
-}
-
-/* Couleurs spécifiques pour chaque statut */
-.status-non-ouvert {
-  color: #6c757d;
-  background-color: rgba(108, 117, 125, 0.1);
-}
-
-.status-accepte {
-  color: #28a794;
-  background-color: rgba(40, 167, 163, 0.1);
-}
-
-.status-refuse {
-  color: #dc3545;
-  background-color: rgba(220, 53, 69, 0.1);
-}
-
-.status-en-cours {
-  color: #ffc107;
-  background-color: rgba(255, 193, 7, 0.1);
-}
-
-.status-resolu {
-  color: #28a745;
-  background-color: rgba(40, 167, 69, 0.1);
 }
 
 

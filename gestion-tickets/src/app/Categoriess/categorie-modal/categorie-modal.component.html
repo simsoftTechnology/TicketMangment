@@ -10,14 +10,19 @@
           type="text" 
           id="categoryName" 
           class="form-control" 
+          name="categoryName"
           [(ngModel)]="categoryName" 
+          #categoryNameInput="ngModel"
+          required
           placeholder="Entrez le nom de la catégorie" />
       </div>
     </div>
     <div class="modal-footer">
-      <button type="button" class="btn btn-primary" (click)="addCategory()">
+      <button type="button" class="btn btn-primary" 
+              [disabled]="categoryName.trim() === ''"
+              (click)="addCategory()">
         Ajouter
-      </button>
+      </button>      
       <button type="button" class="btn btn-secondary" (click)="onBackdropClick()">
         Annuler
       </button>

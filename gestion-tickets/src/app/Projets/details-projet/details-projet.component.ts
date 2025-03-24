@@ -18,6 +18,8 @@ import { SocieteService } from '../../_services/societe.service';
 import { UserSelectorDialogComponent } from '../../user-selector-dialog/user-selector-dialog.component';
 import { PaginatedResult } from '../../_models/pagination';
 import { ToastrService } from 'ngx-toastr';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
     selector: 'app-details-projet',
@@ -75,7 +77,8 @@ export class DetailsProjetComponent implements OnInit {
     public router: Router,
     private dialog: MatDialog,
     private location: Location,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private overlayModalService: OverlayModalService
   ) {}
 
   ngOnInit(): void {
@@ -244,16 +247,22 @@ export class DetailsProjetComponent implements OnInit {
 
   // --- Sauvegarde, annulation et suppression du projet ---
   saveProjet(): void {
-    if (confirm("Confirmez-vous la modification du projet ?")) {
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Confirmez-vous la modification du projet ?";
+    modalInstance.confirmed.subscribe(() => {
       this.projetService.updateProjet(this.projet).subscribe({
         next: () => {
-          alert('Projet mis à jour avec succès');
+          this.toastr.success('Projet mis à jour avec succès');
           this.editMode = false;
           this.getProjetDetails();
         },
         error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
       });
-    }
+      this.overlayModalService.close();
+    });
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
   
 
@@ -262,17 +271,6 @@ export class DetailsProjetComponent implements OnInit {
     this.getProjetDetails();
   }
 
-  deleteProjet(id: number): void {
-    if (confirm('Voulez-vous vraiment supprimer ce projet ?')) {
-      this.projetService.deleteProjet(id).subscribe({
-        next: () => {
-          alert('Projet supprimé avec succès');
-          this.router.navigate(['/home/projets']);
-        },
-        error: (err) => { console.error('Erreur lors de la suppression du projet', err); }
-      });
-    }
-  }
 
   // --- Gestion des utilisateurs dans la modale ---
   openUserSelector(): void {
@@ -321,14 +319,16 @@ export class DetailsProjetComponent implements OnInit {
           }
         });
     } else {
-      alert("Veuillez sélectionner un utilisateur valide.");
+      this.toastr.warning("Veuillez sélectionner un utilisateur valide.");
     }
   }
   
 
   removeUser(userId: number): void {
     if (this.projet && this.projet.id) {
-      if (confirm('Confirmer la suppression de cet utilisateur du projet ?')) {
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = 'Confirmer la suppression de cet utilisateur du projet ?';
+      modalInstance.confirmed.subscribe(() => {
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
             next: () => {
@@ -337,7 +337,11 @@ export class DetailsProjetComponent implements OnInit {
             },
             error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }
           });
-      }
+        this.overlayModalService.close();
+      });
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
+      });
     }
   }
 
@@ -353,20 +357,25 @@ export class DetailsProjetComponent implements OnInit {
       .map(m => m.userId);
     
     if (selectedUserIds.length === 0) {
-      alert("Aucun membre sélectionné pour la suppression.");
+      this.toastr.warning("Aucun membre sélectionné pour la suppression.");
       return;
     }
     
-    if (confirm("Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?")) {
-      // Loop through each user and call the single deletion endpoint.
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?";
+    modalInstance.confirmed.subscribe(() => {
       selectedUserIds.forEach(userId => {
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
-            next: () => this.getMembres(), // Refresh the members list after each deletion.
+            next: () => this.getMembres(),
             error: err => console.error("Erreur lors du retrait de l’utilisateur", err)
           });
       });
-    }
+      this.overlayModalService.close();
+    });
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
     
   // Gestionnaire de clic global pour fermer les dropdowns

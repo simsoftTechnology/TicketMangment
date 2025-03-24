@@ -81,7 +81,6 @@ mat-nav-list {
   padding: 20px 15px;
   font-size: 1.2rem;
   font-weight: 500;
-  color: #373737;
   text-decoration: none;
   border-radius: 15px;
   transition: all 0.3s ease;
@@ -117,11 +116,22 @@ mat-nav-list {
 
 
 /* Style pour l'item actif */
+/* Force la couleur de fond sur l’élément actif */
+::ng-deep .mat-mdc-list-item.active-nav-item,
+::ng-deep .mat-mdc-list-item.active-nav-item:hover,
+::ng-deep .mat-mdc-list-item.active-nav-item:focus,
+::ng-deep .mat-mdc-list-item.active-nav-item:active,
+::ng-deep .mat-mdc-list-item.active-nav-item.mdc-list-item--activated {
+  background-color: #fa9745 !important;
+  color: #fff !important;
+}
+
+
 .active-nav-item {
   background-color: #fa9745 !important;
   color: white !important;
   border-radius: 15px !important;
-  
+  opacity: 1 !important;
 }
 
 .active-nav-item .nav-icon {
@@ -133,6 +143,7 @@ mat-nav-list {
   color: white !important;
   opacity: 1;
 }
+
 
 /* Contenu principal */
 mat-sidenav-content {

@@ -1,13 +1,23 @@
 using System.Text.Json;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Middleware;
+using Hangfire;
+using Hangfire.MySql;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-
 // Add services to the container.
-
+builder.Services.AddHangfire(configuration =>
+{
+    configuration.UseStorage(
+        new MySqlStorage(builder.Configuration.GetConnectionString("DefaultConnection"), new MySqlStorageOptions
+        {
+            TablesPrefix = "Hangfire" // Préfixe pour les tables de Hangfire
+        })
+    );
+});
+builder.Services.AddHangfireServer();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
 builder.Services.AddControllers()

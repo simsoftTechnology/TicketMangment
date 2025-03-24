@@ -100,9 +100,14 @@
       </div>
 
       <div class="modal-actions">
-        <button type="submit">Valider</button>
-        <button type="button" (click)="onClose()">Annuler</button>
-      </div>
+        <button type="submit" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">Valider</ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Valider
+          </ng-template>
+        </button>
+        <button type="button" (click)="onClose()" [disabled]="isLoading">Annuler</button>
+      </div>      
     </form>
   </div>
 </div>
