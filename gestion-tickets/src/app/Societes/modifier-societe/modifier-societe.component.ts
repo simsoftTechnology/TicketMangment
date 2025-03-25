@@ -53,7 +53,6 @@ export class ModifierSocieteComponent implements OnInit {
   displayedUsers: User[] = [];
   userJumpPage: number = 1;
 
-
   // --- Dropdown Pays ---
   pays: Pays[] = [];
   filteredPays: Pays[] = [];
@@ -75,9 +74,20 @@ export class ModifierSocieteComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Chargez la liste des pays
     this.loadPays();
-    this.societeId = +this.route.snapshot.paramMap.get('id')!;
 
+    // Initialisez les formulaires
+    this.initForms();
+
+    // Écoutez les changements de paramètres de la route
+    this.route.params.subscribe(params => {
+      this.societeId = +params['id'];
+      this.loadSocieteDetails();
+    });
+  }
+
+  private initForms(): void {
     // Initialisation du formulaire de la société
     this.societeForm = this.fb.group({
       nom: ['', Validators.required],
@@ -94,7 +104,9 @@ export class ModifierSocieteComponent implements OnInit {
       type: ['Standard', Validators.required],
       typeContrat: ['Client-Societe', Validators.required]
     });
+  }
 
+  private loadSocieteDetails(): void {
     // Récupération des détails de la société, incluant éventuellement le contrat
     this.societeService.getSocieteDetails(this.societeId).subscribe(
       (details: Societe) => {
@@ -120,16 +132,12 @@ export class ModifierSocieteComponent implements OnInit {
             typeContrat: details.contrat.typeContrat
           });
         }
-              
-        
-        
         // Chargement des projets et utilisateurs
         this.loadProjects();
         this.loadSocieteUsers();
       },
       error => { console.error('Erreur lors de la récupération des détails', error); }
     );
-    
   }
 
   onSubmit(): void {
@@ -138,7 +146,6 @@ export class ModifierSocieteComponent implements OnInit {
       return;
     }
     if (this.societeForm.valid) {
-      // Ouvre le modal de confirmation via l'OverlayModalService
       const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
       modalInstance.message = "Confirmez-vous la modification de la société ?";
       
@@ -160,23 +167,19 @@ export class ModifierSocieteComponent implements OnInit {
       });
       
       modalInstance.cancelled.subscribe(() => {
-        // Fermeture du modal si l'utilisateur annule
         this.overlayModalService.close();
       });
     }
   }
     
-
   onSubmitContrat(): void {
     if (this.contratForm.valid) {
-      // Ajout du champ societePartenaireId si nécessaire
       const contractData: Contrat = {
         ...this.contratForm.value,
         societePartenaireId: this.societeDetails.id
       };
   
       if (contractData.id && contractData.id > 0) {
-        // Mise à jour du contrat existant
         this.contratService.updateContract(contractData.id, contractData).subscribe({
           next: () => {
             this.toastr.success("Contrat mis à jour avec succès");
@@ -188,7 +191,6 @@ export class ModifierSocieteComponent implements OnInit {
           }
         });
       } else {
-        // Création d'un nouveau contrat
         this.contratService.addContract(contractData).subscribe({
           next: (newContract: Contrat) => {
             this.toastr.success("Contrat créé avec succès");
@@ -205,8 +207,6 @@ export class ModifierSocieteComponent implements OnInit {
     }
   }
   
-  
-
   cancelContrat(): void {
     if (this.societeDetails.contrat) {
       this.contratForm.patchValue({
@@ -232,8 +232,6 @@ export class ModifierSocieteComponent implements OnInit {
     this.contratForm.markAsPristine();
   }
   
-  
-
   onCancel(): void {
     this.societeForm.patchValue({
       nom: this.societeDetails.nom,
@@ -257,7 +255,6 @@ export class ModifierSocieteComponent implements OnInit {
     this.contratForm.markAsPristine();
   }
   
-
   switchTab(tab: string): void {
     this.activeTab = tab;
     if (tab === 'projets') {
@@ -281,8 +278,6 @@ export class ModifierSocieteComponent implements OnInit {
     });
   }
   
-
-  // Fonctions de pagination pour les projets et utilisateurs
   loadProjects(): void {
     this.projetsService.getPaginatedProjets(
         this.pageNumber,
@@ -291,10 +286,7 @@ export class ModifierSocieteComponent implements OnInit {
         this.societeDetails.id
       )
       .subscribe((result: PaginatedResult<Projet[]>) => {
-        // Utiliser un tableau vide par défaut si result.items est undefined
         this.displayedProjects = result.items || [];
-        
-        // Gérer le cas où la pagination pourrait être undefined
         if (result.pagination) {
           this.totalProjects = result.pagination.totalItems;
           this.totalPages = result.pagination.totalPages;
@@ -305,11 +297,8 @@ export class ModifierSocieteComponent implements OnInit {
       }, error => {
         console.error('Erreur lors du chargement des projets paginés', error);
       });
-  }  
+  }
   
-  
-
-
   onPageChange(newPage: number): void {
     this.pageNumber = Math.min(Math.max(newPage, 1), this.totalPages);
     this.jumpPage = this.pageNumber;
@@ -339,11 +328,8 @@ export class ModifierSocieteComponent implements OnInit {
       )
       .subscribe(
         (result: PaginatedResult<User[]>) => {
-          // On récupère la liste paginée
           this.displayedUsers = result.items || [];
-          // On met à jour la pagination en fonction des données renvoyées
           if (result.pagination) {
-            // Par exemple, si votre objet pagination contient totalCount et totalPages
             this.totalUsers = result.pagination.totalItems;
             this.userTotalPages = result.pagination.totalPages;
           } else {
@@ -358,9 +344,6 @@ export class ModifierSocieteComponent implements OnInit {
       );
   }
   
-
-  
-
   onUserPageChange(newPage: number): void {
     this.userPageNumber = Math.min(Math.max(newPage, 1), this.userTotalPages);
     this.userJumpPage = this.userPageNumber;
@@ -391,7 +374,6 @@ export class ModifierSocieteComponent implements OnInit {
   openAttachUserDialog(): void {
     this.accountService.getAllUsers().subscribe({
       next: (allUsers: User[]) => {
-        // On passe directement la liste complète des utilisateurs au dialogue
         const dialogRef = this.dialog.open(UserSelectorDialogComponent, {
           data: { availableUsers: allUsers }
         });
@@ -416,7 +398,6 @@ export class ModifierSocieteComponent implements OnInit {
           this.toastr.success("Utilisateur attaché avec succès");
           this.loadSocieteUsers();
         } else {
-          // Si le backend renvoie false, on affiche le message associé à une association existante
           this.toastr.error("L'utilisateur est déjà associé à cette société");
         }
       },
@@ -451,7 +432,7 @@ export class ModifierSocieteComponent implements OnInit {
       this.societeService.detachUser(this.societeDetails.id, user.id).subscribe({
         next: () => {
           this.toastr.success("Utilisateur détaché avec succès");
-          this.loadSocieteUsers(); // Rafraîchir la liste après suppression
+          this.loadSocieteUsers();
         },
         error: error => {
           console.error("Erreur lors du détachement de l'utilisateur", error);
@@ -466,8 +447,6 @@ export class ModifierSocieteComponent implements OnInit {
     });
   }
   
-  
-  
   toggleDropdown(type: string): void {
     if (type === 'pays') {
       this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
@@ -478,7 +457,6 @@ export class ModifierSocieteComponent implements OnInit {
     return this.pays.find(p => p.idPays === idPays)?.nom || '';
   }  
 
-  // --- Gestion des dropdowns pour Pays ---
   loadPays(): void {
     this.paysService.getPays(this.paysSearchTerm).subscribe({
       next: (data) => {
@@ -496,7 +474,6 @@ export class ModifierSocieteComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    // Vérifiez si le clic se produit en dehors d'un élément ayant la classe 'custom-select'
     if (!target.closest('.custom-select')) {
       this.isPaysDropdownOpen = false;
     }
@@ -513,7 +490,6 @@ export class ModifierSocieteComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(ProjectModalComponent);
     modalInstance.societeId = this.societeDetails.id;
     
-    // S'abonner à l'événement de fermeture du modal
     if (modalInstance.closed) {
       modalInstance.closed.subscribe((result: any) => {
         if (result && result.projectCreated) {
@@ -522,7 +498,4 @@ export class ModifierSocieteComponent implements OnInit {
       });
     }
   }
-  
-  
-  
 }

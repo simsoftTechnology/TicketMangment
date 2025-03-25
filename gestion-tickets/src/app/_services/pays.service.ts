@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { Pays } from '../_models/pays';
 
 @Injectable({
@@ -17,12 +17,31 @@ export class PaysService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`, { params });
+    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`, { params }).pipe(
+      map((paysList) =>
+        paysList.map((pays) => {
+          if (pays.photoUrl) {
+            // Remplacer les antislashs par des slashs et ajouter l'URL de base
+            pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+          }
+          return pays;
+        })
+      )
+    );
   }
 
   getPaysById(idPays: number): Observable<Pays> {
-    return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`);
+    return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`).pipe(
+      map((pays) => {
+        if (pays.photoUrl) {
+          pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+        }
+        return pays;
+      })
+    );
   }
+  
+  
 
   addPays(nom: string, codeTel: string, file: File): Observable<any> {
     const formData = new FormData();

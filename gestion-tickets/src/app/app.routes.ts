@@ -6,7 +6,6 @@ import { authGuard } from './_guards/auth.guard';
 import { TestErrorsComponent } from './errors/test-errors/test-errors.component';
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { ListUtilisateursComponent } from './utilisateurs/list-utilisateurs/list-utilisateurs.component';
 import { AjouterUtilisateurComponent } from './utilisateurs/ajouter-utilisateur/ajouter-utilisateur.component';
 import { PaysComponent } from './PaysFile/pays/pays.component';

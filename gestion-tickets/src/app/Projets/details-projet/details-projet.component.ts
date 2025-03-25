@@ -82,7 +82,13 @@ export class DetailsProjetComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getProjetDetails();
+    // S'abonner aux paramètres de la route pour détecter les changements de l'ID du projet
+  this.route.params.subscribe(params => {
+    const id = Number(params['id']);
+    if (id) {
+      this.getProjetDetails(id);
+    }
+  });
     this.getAvailableUsers();
     this.loadPays();
     this.loadSocietes();
@@ -90,17 +96,16 @@ export class DetailsProjetComponent implements OnInit {
   }
 
   // --- Chargement du projet et de ses membres ---
-  getProjetDetails(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.projetService.getProjetById(id).subscribe({
-        next: (data) => {
-          this.projet = data;
-          this.getMembres();
-        },
-        error: (err) => { console.error('Erreur lors de la récupération du projet', err); }
-      });
-    }
+  getProjetDetails(id: number): void {
+    this.projetService.getProjetById(id).subscribe({
+      next: (data) => {
+        this.projet = data;
+        this.getMembres();
+      },
+      error: (err) => {
+        console.error('Erreur lors de la récupération du projet', err);
+      }
+    });
   }
 
   getMembres(): void {
@@ -254,7 +259,8 @@ export class DetailsProjetComponent implements OnInit {
         next: () => {
           this.toastr.success('Projet mis à jour avec succès');
           this.editMode = false;
-          this.getProjetDetails();
+          // Passer l'ID du projet pour recharger ses détails
+          this.getProjetDetails(this.projet.id);
         },
         error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
       });
@@ -265,11 +271,12 @@ export class DetailsProjetComponent implements OnInit {
     });
   }
   
-
   cancelEdit(): void {
     this.editMode = false;
-    this.getProjetDetails();
+    // Recharger les détails du projet en passant l'ID du projet
+    this.getProjetDetails(this.projet.id);
   }
+  
 
 
   // --- Gestion des utilisateurs dans la modale ---

@@ -49,15 +49,21 @@ export class TicketDetailsComponent implements OnInit {
   selectedResponsibleId: number | null = null;
 
   ngOnInit(): void {
-    // Récupère l'ID depuis la route
-    this.ticketId = +this.route.snapshot.paramMap.get('id')!;
-    this.currentUser = this.accountService.currentUser();
-
-    // Chargement des détails du ticket
-    this.loadTicket();
+    // Souscrire aux changements de paramètres
+    this.route.paramMap.subscribe(paramMap => {
+      // Récupère l'ID depuis la route à chaque changement
+      this.ticketId = +paramMap.get('id')!;
+      // Recharge les données associées au ticket
+      this.loadTicket();
+      this.loadComments();
+    });
+  
+    // Charge une seule fois la liste des développeurs (si elle ne change pas en fonction de l'ID)
     this.loadDevelopers();
-    this.loadComments();
+    // Récupère l'utilisateur courant
+    this.currentUser = this.accountService.currentUser();
   }
+  
 
   loadTicket(): void {
     this.ticketService.getTicket(this.ticketId).subscribe({
