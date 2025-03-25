@@ -1,12 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component';
-import { LayoutComponent } from './layout/layout.component'; // Composant qui contient header + sidenav
-import { TestErrorsComponent } from './errors/test-errors/test-errors.component';
-import { NotFoundComponent } from './errors/not-found/not-found.component';
-import { ServerErrorComponent } from './errors/server-error/server-error.component';
-import { authGuard } from './_guards/auth.guard';
-import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
+import { LoginComponent } from '../login/login.component';
+import { LayoutComponent } from '../layout/layout.component';
+import { authGuard } from '../_guards/auth.guard';
+import { TableauBordComponent } from '../tableau-bord/tableau-bord.component';
 
 export const routes: Routes = [
   // Page de login
