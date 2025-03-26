@@ -68,7 +68,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     [HttpGet("{userId:int}/tickets/paged")]
-    public async Task<ActionResult<PagedList<Ticket>>> GetUserTicketsPaged(int userId, [FromQuery] UserParams userParams)
+    public async Task<ActionResult<PagedList<TicketDto>>> GetUserTicketsPaged(int userId, [FromQuery] UserParams userParams)
     {
       var tickets = await _userService.GetUserTicketsPagedAsync(userId, userParams);
       Response.AddPaginationHeader(tickets);
