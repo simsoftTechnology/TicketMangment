@@ -104,7 +104,7 @@ export class ListTicketsComponent implements OnInit {
   getTickets(): void {
     this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, this.ticketsSearchTerm).subscribe({
       next: (response) => {
-        console.log('Réponse reçue:', response);
+        // console.log('Réponse reçue:', response);
         const updatedItems = (response.items ?? []).map(ticket => {
           ticket.createdAt = new Date(ticket.createdAt);
           if (ticket.updatedAt) {

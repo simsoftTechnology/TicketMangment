@@ -162,13 +162,6 @@
   font-size: 0.75rem;
 }
 
-@media screen and (max-width: 1000px) {
-  :host ::ng-deep .ngx-charts-pie-series{
-    width: 100px;
-    height:100px;
-  }
-}
-
 /* Tableau récapitulatif */
 .table-stats {
   width: 100%;
