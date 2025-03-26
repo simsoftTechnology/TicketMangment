@@ -53,10 +53,20 @@ namespace GestionTicketsAPI.Controllers
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-      var result = await _userService.DeleteUserAsync(id);
-      if (!result)
-        return NotFound();
-      return NoContent();
+            try
+            {
+                var result = await _userService.DeleteUserAsync(id);
+                Console.WriteLine(result);
+                 if (!result)
+                    return NotFound();
+                return NoContent();
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+
+            }
     }
 
     [HttpGet("{userId:int}/projects/paged")]

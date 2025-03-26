@@ -18,12 +18,12 @@ export class PaysService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`, { params }).pipe(
+    return this.http.get<Pays[]>(`${this.baseUrl}pays/getPays`, { params }).pipe(
       map((paysList) =>
         paysList.map((pays) => {
           if (pays.photoUrl) {
             // Remplacer les antislashs par des slashs et ajouter l'URL de base
-            pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+            pays.photoUrl = `http://localhost:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
           }
           return pays;
         })
@@ -32,10 +32,10 @@ export class PaysService {
   }
 
   getPaysById(idPays: number): Observable<Pays> {
-    return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`).pipe(
+    return this.http.get<Pays>(`${this.baseUrl}pays/${idPays}`).pipe(
       map((pays) => {
         if (pays.photoUrl) {
-          pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+          pays.photoUrl = `http://localhost:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
         }
         return pays;
       })

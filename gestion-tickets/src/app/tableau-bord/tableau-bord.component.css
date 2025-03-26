@@ -111,7 +111,7 @@
   text-align: right;
   font-size: 2.5rem;
   font-weight: 500;
-  color: #828181;
+  color: #535353;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -160,6 +160,13 @@
 :host ::ng-deep .ngx-charts .pie-label {
   fill: #333;
   font-size: 0.75rem;
+}
+
+@media screen and (max-width: 1000px) {
+  :host ::ng-deep .ngx-charts-pie-series{
+    width: 100px;
+    height:100px;
+  }
 }
 
 /* Tableau récapitulatif */
