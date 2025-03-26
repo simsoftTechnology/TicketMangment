@@ -6,6 +6,8 @@
   height: 100%;
   margin: 0 auto;
   font-weight: 500;
+  background-color: white; /* Add white background */
+  border-radius: 12px; /* Add border radius */
 }
 /* fallback */
 @font-face {
@@ -49,15 +51,14 @@
 h1 {
   font-size: 2.5rem;
   color: #2d3748;
-  margin-bottom: 0.2rem;
-  margin-left: 2rem;
+  margin: 0.7rem;
+  margin-left: 0.01rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   position: relative;
   padding-bottom: 0.2rem;
   transition: all 0.3s ease;
 }
-
 h1::after {
   content: '';
   position: absolute;

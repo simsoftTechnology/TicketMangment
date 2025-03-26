@@ -1,30 +1,66 @@
 <header class="header">
-  <!-- Bouton hamburger (menu) à gauche du titre -->
+  <!-- Bouton hamburger -->
   <button class="menu-button" (click)="toggleSidenav()">
-      <div></div>
-      <div></div>
-      <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
   </button>
-   <!-- Logo -->
-   <div class="header-title">
+
+  <!-- Logo -->
+  <div class="header-title">
     <div class="logo">
       SIMSOFT & SIMSOFT <span>WARE</span>
     </div>
     <div class="vertical-line"></div>
   </div>
 
-  
+  <!-- Conteneur pour la barre de recherche et les actions -->
+  <div class="right-actions-container">
+    <!-- Barre de recherche avec résultats -->
+    <div class="search-container">
+      <div class="search-bar" [class.active]="isSearchActive" #searchBar>
+        <input type="text" placeholder="Rechercher" [(ngModel)]="query" (focus)="isSearchActive = true"
+          (keyup)="onSearchChange()">
+        <i class="fas fa-search"></i>
+      </div>
 
-   <!-- Barre de recherche -->
-   <div class="search-bar">
-       <input type="text" placeholder="Rechercher">
-       <i class="fas fa-search"></i> 
-   </div>
+      <div class="search-results" [class.visible]="isSearchActive && (results.length > 0 || query)">
+        <div *ngIf="results.length > 0; else noResultTemplate">
+          <div *ngFor="let result of results" class="result-item" (click)="navigateToResult(result)">
+            <h4>{{ result.title }} <small>({{ result.type }})</small></h4>
+            <p>{{ result.description }}</p>
+          </div>
+        </div>
+        <ng-template #noResultTemplate>
+          <div class="no-results">
+            <span class="no-results-icon">🔍</span>
+            <p class="no-results-text">Aucun résultat trouvé.</p>
+          </div>
+        </ng-template>
+      </div>
 
-   <!-- Actions à droite -->
-   <div class="actions">
-       <i class="fas fa-bell notification-icon"></i>
-       <button class="action-item" (click)="logout()">{{ userInitials }}</button>
-   </div>
-  
+    </div>
+
+
+    <!-- Actions à droite -->
+    <div class="actions" style="position: relative;">
+      <!-- Bouton affichant les initiales de l'utilisateur -->
+      <button class="action-item" (click)="toggleMenu()">
+        {{ userInitials }}
+      </button>
+
+      <!-- Menu déroulant qui apparaît quand isMenuOpen est true -->
+      <div class="profile-menu" *ngIf="isMenuOpen">
+        <ul>
+          <li (click)="navigateToProfile()">
+            <i class="fas fa-user"></i> Mon Profil
+          </li>
+          <li (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </li>
+        </ul>
+      </div>      
+    </div>
+
+  </div>
 </header>

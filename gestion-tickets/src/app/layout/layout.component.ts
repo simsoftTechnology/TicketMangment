@@ -1,87 +1,86 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { SidenavService } from '../_services/sideNavService.service';
+import { Subscription } from 'rxjs';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { SidenavService } from '../_services/sideNavService.service';
 import { AccountService } from '../_services/account.service';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatListModule } from '@angular/material/list';
-import { FormsModule } from '@angular/forms';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { NgIf } from '@angular/common';
 import { User } from '../_models/user';
+import { filter } from 'rxjs/operators';
+import { HeaderComponent } from '../header/header.component';
+import { CommonModule, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-layout',
   imports: [
+    HeaderComponent,
+    RouterModule,
     MatToolbarModule,
     MatSidenavModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatCardModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatIconModule,
     MatListModule,
+    MatIconModule,
+    MatButtonModule,
+    MatDividerModule,
     FormsModule,
-    MatExpansionModule,
     NgIf,
-    RouterModule,
+    CommonModule
   ],
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  templateUrl: './layout.component.html',
+  styleUrls: ['./layout.component.css']
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class LayoutComponent implements OnInit, OnDestroy {
 
+  // Pour le menu principal (gauche)
   isSidenavOpen: boolean = true;
   sidenavMode: 'side' | 'over' = 'side';
   private sidenavSubscription?: Subscription;
 
-  // Pour les menus déroulants
+  // Pour le menu déroulant dans le menu principal
   isBaseDataOpen = false;
   isAccountOpen = false;
 
+  // Pour les notifications (sidenav droit)
+  isNotificationSidenavOpen: boolean = false;
+
+  // Autres variables
   isModalOpen = false;
-
-
   userInitials = "";
+
   constructor(
     private sidenavService: SidenavService,
     private breakpointObserver: BreakpointObserver,
     public route: ActivatedRoute,
-    private accountService: AccountService
+    private accountService: AccountService,
   ) { }
 
   ngOnInit() {
     if (this.currentUser) {
       this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
     }
-    // 1) Subscribe to the BehaviorSubject so the component knows what the current state is
+
+    // Abonnement au sidenav principal (géré par le service)
     this.sidenavSubscription = this.sidenavService.sidenavState$.subscribe(state => {
       this.isSidenavOpen = state;
     });
 
-    // 2) Use breakpointObserver only to decide side vs. over mode, and also update the service’s state if needed
+    // Détecter la taille de l'écran pour adapter le mode du sidenav principal
     this.breakpointObserver.observe([Breakpoints.Small, Breakpoints.XSmall])
       .subscribe(result => {
         if (result.matches) {
           this.sidenavMode = 'over';
-          // tell the service to close the sidenav for small screens
           this.sidenavService.setSidenavState(false);
         } else {
           this.sidenavMode = 'side';
           this.sidenavService.setSidenavState(true);
         }
       });
+
   }
 
   ngOnDestroy() {
@@ -90,37 +89,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Méthodes pour le menu principal
   toggleBaseData() {
     this.isBaseDataOpen = !this.isBaseDataOpen;
   }
-
   toggleAccount() {
     this.isAccountOpen = !this.isAccountOpen;
   }
 
-  // Méthodes d'aide pour vérifier le rôle de l'utilisateur
+  // Méthode pour récupérer l'utilisateur courant
   get currentUser(): User | null {
     return this.accountService.currentUser();
   }
 
-
-
   isSuperAdmin(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'super admin';
   }
-
   isChefDeProjet(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'chef de projet';
   }
-
   isCollaborateur(): boolean {
-    // Ici, le rôle est "collaborateur" d'après l'API
     return this.currentUser?.role?.toLowerCase() === 'collaborateur';
   }
-
   isClient(): boolean {
     return this.currentUser?.role?.toLowerCase() === 'client';
   }
 
-}
+  // Méthodes pour le sidenav des notifications
+  toggleNotificationSidenav(): void {
+    this.isNotificationSidenavOpen = !this.isNotificationSidenavOpen;
+  }
 
+  
+}

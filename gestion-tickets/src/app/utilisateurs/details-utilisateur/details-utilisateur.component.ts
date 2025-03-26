@@ -90,21 +90,21 @@ export class DetailsUtilisateurComponent implements OnInit {
   private ticketSearchSubject = new Subject<string>();
 
   ngOnInit(): void {
-    // Initialisation du formulaire dès le départ
+    // Initialisation des formulaires et chargement des listes
     this.initForm();
     this.initContratForm();
-  
     this.loadPays();
     this.loadSocietes();
     this.loadRoles();
     this.loadStatuses();
     this.loadPriorities();
   
-    // Maintenant, userForm est initialisé, on peut souscrire à valueChanges
+    // Souscription aux changements du champ 'pays' du formulaire utilisateur
     this.userForm.get('pays')?.valueChanges.subscribe(value => {
       this.selectedCountry = this.paysList.find(p => p.idPays === +value);
     });
   
+    // Souscription à la recherche sur les tickets avec débounce
     this.ticketSearchSubject.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -114,12 +114,22 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.loadTickets();
     });
   
-    const userId = this.route.snapshot.paramMap.get('id');
-    if (userId) {
-      this.loadUserDetails(+userId);
-    }
-  }  
-
+    // Écouter les changements dans les paramètres de la route
+    this.route.params.subscribe(params => {
+      const userId = params['id'];
+      if (userId) {
+        // Charger les détails de l'utilisateur à chaque changement d'ID
+        this.loadUserDetails(+userId);
+      }
+    });
+  
+    // (Optionnel) Écouter également les queryParams
+    this.route.queryParams.subscribe(queryParams => {
+      console.log("QueryParams mis à jour :", queryParams);
+      // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
+    });
+  }
+  
 
 
   openAttachProjectDialog(): void {
@@ -237,12 +247,12 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.accountService.getUser(userId).subscribe({
       next: (user) => {
         this.user = user;
-  
+
         // 1. Récupérer le code pays à partir de la liste des pays
         const codeTel = user.pays
           ? this.paysList.find(p => p.idPays === +user.pays)?.codeTel
           : '';
-  
+
         // 2. Retirer le code pays du numéro de téléphone si présent
         let numeroLocal = user.numTelephone || '';
         if (codeTel && numeroLocal.startsWith(codeTel)) {
@@ -250,7 +260,7 @@ export class DetailsUtilisateurComponent implements OnInit {
         }
         // 4. Mémoriser le pays sélectionné (pour l’affichage du drapeau et du code)
         this.selectedCountry = this.paysList.find(p => p.idPays === +user.pays);
-  
+
         // 3. Mettre à jour le formulaire de l'utilisateur
         this.userForm.patchValue({
           id: user.id,
@@ -263,9 +273,9 @@ export class DetailsUtilisateurComponent implements OnInit {
           numTelephone: numeroLocal,
           actif: user.actif
         });
-  
-        
-  
+
+
+
         // 5. Si l'utilisateur a un contrat, on met à jour le formulaire du contrat
         if (user.contrat) {
           this.contratForm.patchValue({
@@ -278,7 +288,7 @@ export class DetailsUtilisateurComponent implements OnInit {
               : '',
           });
         }
-  
+
         // 6. Charger les projets et tickets associés à l’utilisateur
         this.loadProjects();
         this.loadTickets();
@@ -288,7 +298,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
-  
+
 
 
   // Mise à jour de l'utilisateur
@@ -465,14 +475,14 @@ export class DetailsUtilisateurComponent implements OnInit {
 
   onDeleteUserFromProject(projetId: number): void {
     if (!this.user) return; // Vérification si l'utilisateur est chargé
-  
+
     const firstName = this.user.firstName;
     const lastName = this.user.lastName;
     const confirmationMessage = `Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`;
-  
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = confirmationMessage;
-    
+
     modalInstance.confirmed.subscribe(() => {
       this.projetService.supprimerUtilisateurDuProjet(projetId, this.user!.id).subscribe({
         next: () => {
@@ -486,12 +496,12 @@ export class DetailsUtilisateurComponent implements OnInit {
       });
       this.overlayModalService.close();
     });
-    
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
   }
-  
+
 
 
 }

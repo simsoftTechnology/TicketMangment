@@ -9,13 +9,11 @@ namespace GestionTicketsAPI.Services;
 public class PaysService : IPaysService
 {
   private readonly IPaysRepository _paysRepository;
-  private readonly IPhotoService _photoService;
   private readonly IMapper _mapper;
 
-  public PaysService(IPaysRepository paysRepository, IPhotoService photoService, IMapper mapper)
+  public PaysService(IPaysRepository paysRepository, IMapper mapper)
   {
     _paysRepository = paysRepository;
-    _photoService = photoService;
     _mapper = mapper;
   }
 
@@ -39,43 +37,46 @@ public class PaysService : IPaysService
   }
 
   public async Task<bool> UpdatePaysAsync(int idPays, PaysUpdateDto paysUpdateDto, IFormFile? file)
-{
+  {
     var pays = await _paysRepository.GetPaysByIdAsync(idPays);
     if (pays == null) return false;
 
     // Mettre à jour le nom si fourni
     if (!string.IsNullOrWhiteSpace(paysUpdateDto.Nom))
-        pays.Nom = paysUpdateDto.Nom;
-    
+      pays.Nom = paysUpdateDto.Nom;
+
     // Mettre à jour le code téléphonique si fourni
     if (!string.IsNullOrWhiteSpace(paysUpdateDto.CodeTel))
-        pays.CodeTel = paysUpdateDto.CodeTel;
+      pays.CodeTel = paysUpdateDto.CodeTel;
 
     // Mettre à jour la photo si un fichier est fourni
     if (file != null && file.Length > 0)
     {
-        if (pays.paysPhoto != null)
-        {
-            var deleteResult = await _photoService.DeletePhotoAsync(pays.paysPhoto.PublicId);
-            if (deleteResult.Error != null) return false;
-            // La suppression de l'enregistrement de la photo est gérée par le DataContext via la relation
-        }
+      // 1. Si le pays a déjà une photo en base, supprimer l'ancienne du disque
+      if (pays.paysPhoto != null && !string.IsNullOrEmpty(pays.paysPhoto.Url))
+      {
+        // Récupération du chemin complet sur le disque
+        var oldPhotoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pays.paysPhoto.Url);
+        if (System.IO.File.Exists(oldPhotoPath))
+          System.IO.File.Delete(oldPhotoPath);
+      }
 
-        var result = await _photoService.AddPhotoAsync(file);
-        if (result.Error != null) return false;
+      // 2. Sauvegarder le nouveau fichier
+      var localPath = await SaveFileLocally(file);
 
-        var newPhoto = new Photo
-        {
-            Url = result.SecureUrl.AbsoluteUri,
-            PublicId = result.PublicId,
-            PaysId = idPays
-        };
-
-        pays.paysPhoto = newPhoto;
+      // 3. Mettre à jour la photo dans l'entité
+      var newPhoto = new Photo
+      {
+        Url = localPath,       // ex: "assets/xxx.jpg"
+        PublicId = null,       // plus besoin de PublicId si on ne gère plus Cloudinary
+        PaysId = idPays
+      };
+      pays.paysPhoto = newPhoto;
     }
 
     return await _paysRepository.SaveAllAsync();
-}
+  }
+
 
   public async Task<PaysDto> AddPaysAsync(string nom, string? codeTel, IFormFile file)
   {
@@ -84,23 +85,25 @@ public class PaysService : IPaysService
     if (file == null || file.Length == 0)
       throw new Exception("Veuillez fournir une photo valide.");
 
-    var result = await _photoService.AddPhotoAsync(file);
-    if (result.Error != null)
-      throw new Exception(result.Error.Message);
+    // 1. Sauvegarder le fichier localement
+    var localPath = await SaveFileLocally(file);
 
+    // 2. Créer l'entité Photo
     var photo = new Photo
     {
-      Url = result.SecureUrl.AbsoluteUri,
-      PublicId = result.PublicId
+      Url = localPath, // ex: "assets/xxx.jpg"
+      PublicId = null  // plus utilisé
     };
 
+    // 3. Créer l'entité Pays
     var pays = new Pays
     {
       Nom = nom,
-      CodeTel = codeTel, // Affectation du code téléphonique
+      CodeTel = codeTel,
       paysPhoto = photo
     };
 
+    // 4. Ajouter et sauvegarder
     await _paysRepository.AddPaysAsync(pays);
     if (!await _paysRepository.SaveAllAsync())
       throw new Exception("Erreur lors de l'ajout du pays.");
@@ -109,50 +112,66 @@ public class PaysService : IPaysService
   }
 
 
+
   public async Task<bool> DeletePaysAsync(int idPays)
   {
+    // 1. Récupérer le pays en base
     var pays = await _paysRepository.GetPaysByIdAsync(idPays);
     if (pays == null) return false;
 
-    if (pays.paysPhoto != null)
+    // 2. S'il y a une photo associée, la supprimer du disque
+    if (pays.paysPhoto != null && !string.IsNullOrEmpty(pays.paysPhoto.Url))
     {
-      var deleteResult = await _photoService.DeletePhotoAsync(pays.paysPhoto.PublicId);
-      if (deleteResult.Error != null) return false;
+      // Construit le chemin absolu vers le fichier
+      var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", pays.paysPhoto.Url);
+      if (File.Exists(filePath))
+      {
+        File.Delete(filePath);
+      }
     }
 
+    // 3. Supprimer le pays de la base (et donc la photo associée, 
+    //    si la relation est configurée en cascade ou si vous gérez manuellement la suppression).
     _paysRepository.RemovePays(pays);
+
+    // 4. Sauvegarder les changements
     return await _paysRepository.SaveAllAsync();
   }
 
-  public async Task<PhotoDto> AddPhotoAsync(int idPays, IFormFile file)
-  {
-    if (file == null || file.Length == 0)
-      throw new Exception("Le fichier fourni est invalide.");
 
-    var pays = await _paysRepository.GetPaysByIdAsync(idPays);
-    if (pays == null)
-      throw new Exception("Le pays spécifié n'existe pas.");
 
-    var result = await _photoService.AddPhotoAsync(file);
-    if (result.Error != null)
-      throw new Exception(result.Error.Message);
-
-    var photo = new Photo
-    {
-      Url = result.SecureUrl.AbsoluteUri,
-      PublicId = result.PublicId,
-      PaysId = idPays
-    };
-
-    pays.paysPhoto = photo;
-    if (!await _paysRepository.SaveAllAsync())
-      throw new Exception("Erreur lors de l'ajout de la photo.");
-
-    return _mapper.Map<PhotoDto>(photo);
-  }
 
   public async Task<bool> PaysExists(string nom)
   {
     return await _paysRepository.PaysExists(nom);
   }
+
+  private async Task<string> SaveFileLocally(IFormFile file)
+  {
+    // Chemin absolu vers le dossier "assets" dans wwwroot
+    // => wwwroot/assets
+    var assetsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "assets");
+
+    // Assurer l'existence du dossier
+    if (!Directory.Exists(assetsFolder))
+      Directory.CreateDirectory(assetsFolder);
+
+    // Nom unique (ou usage direct du nom d’origine file.FileName)
+    // Ici, on préfixe par un GUID pour éviter les collisions
+    var uniqueFileName = Guid.NewGuid() + Path.GetExtension(file.FileName);
+
+    // Chemin complet où sera stocké le fichier
+    var filePath = Path.Combine(assetsFolder, uniqueFileName);
+
+    // Copier le contenu du IFormFile dans un fichier physique
+    using (var stream = new FileStream(filePath, FileMode.Create))
+    {
+      await file.CopyToAsync(stream);
+    }
+
+    // Retourne le nom de fichier ou le chemin relatif 
+    // Par exemple : "assets/xxxxxxx.png"
+    return Path.Combine("assets", uniqueFileName);
+  }
+
 }

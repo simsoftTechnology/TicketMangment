@@ -82,18 +82,5 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
-    [HttpPost("{idPays}/add-photo")]
-    public async Task<ActionResult<PhotoDto>> AddPhoto(int idPays, IFormFile file)
-    {
-      try
-      {
-        var photoDto = await _paysService.AddPhotoAsync(idPays, file);
-        return CreatedAtAction(nameof(GetPays), new { idPays = idPays }, photoDto);
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
   }
 }
