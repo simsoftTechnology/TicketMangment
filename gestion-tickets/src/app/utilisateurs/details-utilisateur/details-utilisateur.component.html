@@ -74,7 +74,8 @@
         <div class="form-group">
           <label for="societe">Société</label>
           <select id="societe" formControlName="societe" class="form-control"
-            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid">
+            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid"
+            [disabled]="userForm.get('role')?.value !== 'Client'">
             <option [ngValue]="null">Sélectionnez une société</option>
             <option *ngFor="let s of societesList" [ngValue]="s.id">
               {{ s.nom }}

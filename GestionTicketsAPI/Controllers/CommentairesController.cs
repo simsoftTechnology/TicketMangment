@@ -46,8 +46,6 @@ namespace GestionTicketsAPI.Controllers
     public async Task<ActionResult<IEnumerable<CommentDto>>> GetCommentsByTicket(int ticketId)
     {
       var comments = await _commentService.GetCommentsByTicketAsync(ticketId);
-      if (comments == null || !comments.Any())
-        return Ok("Aucun commentaire trouvé pour ce ticket.");
       return Ok(comments);
     }
 

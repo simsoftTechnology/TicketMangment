@@ -3,6 +3,8 @@ using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers
@@ -13,10 +15,12 @@ namespace GestionTicketsAPI.Controllers
   public class ProjetsController : BaseApiController
   {
     private readonly IProjetService _projetService;
+    private readonly EmailService _emailService;
 
-    public ProjetsController(IProjetService projetService)
+    public ProjetsController(IProjetService projetService, EmailService emailService)
     {
       _projetService = projetService;
+      _emailService = emailService;
     }
 
     // Récupérer tous les projets
@@ -54,7 +58,21 @@ namespace GestionTicketsAPI.Controllers
       if (await _projetService.ProjetExists(projetDto.Nom))
         return BadRequest("Le projet existe déjà");
 
+      // Création du projet
       var createdProjetDto = await _projetService.AddProjetAsync(projetDto);
+
+      // Envoi d'un e-mail au chef de projet si défini
+      if (createdProjetDto.ChefProjet != null)
+      {
+        // Le contenu de l'e-mail peut être personnalisé
+        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+            $"{createdProjetDto.ChefProjet.FirstName} {createdProjetDto.ChefProjet.LastName}",
+            createdProjetDto.ChefProjet.Email,
+            "Désignation en tant que Chef de Projet",
+            $"Vous avez été désigné comme chef du projet {createdProjetDto.Nom}."
+        ));
+      }
+
       return CreatedAtAction(nameof(GetProjet), new { id = createdProjetDto.Id }, createdProjetDto);
     }
 

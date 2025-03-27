@@ -85,14 +85,15 @@ namespace GestionTicketsAPI.Services
     // Ajout de la fonctionnalité de mise à jour d'un utilisateur
     public async Task<bool> UpdateUserAsync(UserUpdateDto userUpdateDto)
     {
+      // Récupération complète de l'utilisateur (avec Role et SocieteUsers)
       var userFromRepo = await _userRepository.GetUserByIdAsync(userUpdateDto.Id);
       if (userFromRepo == null)
         return false;
 
-      // Appliquer le mapping des autres propriétés
+      // Mapper les propriétés simples du DTO vers l'entité
       _mapper.Map(userUpdateDto, userFromRepo);
 
-      // Mettre à jour le mot de passe si une nouvelle valeur est fournie
+      // Mise à jour du mot de passe s'il y a une nouvelle valeur
       if (!string.IsNullOrWhiteSpace(userUpdateDto.NouveauPassword))
       {
         CreatePasswordHash(userUpdateDto.NouveauPassword, out byte[] passwordHash, out byte[] passwordSalt);
@@ -100,9 +101,32 @@ namespace GestionTicketsAPI.Services
         userFromRepo.PasswordSalt = passwordSalt;
       }
 
+      // Gestion de la relation Société pour les clients
+      // Assurez-vous que le rôle est bien chargé (par exemple, via l'Include dans le repository)
+      if (userFromRepo.Role != null &&
+          userFromRepo.Role.Name.Equals("Client", StringComparison.OrdinalIgnoreCase))
+      {
+        // Vider la collection existante
+        userFromRepo.SocieteUsers.Clear();
+
+        // Si une nouvelle société est renseignée, l'ajouter
+        if (userUpdateDto.SocieteId.HasValue)
+        {
+          userFromRepo.SocieteUsers.Add(new SocieteUser
+          {
+            SocieteId = userUpdateDto.SocieteId.Value,
+            UserId = userFromRepo.Id
+          });
+        }
+      }
+      // Pour les autres rôles, on ne fait pas de mise à jour de la relation société
+
       _userRepository.Update(userFromRepo);
       return await _userRepository.SaveAllAsync();
     }
+
+
+
 
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
