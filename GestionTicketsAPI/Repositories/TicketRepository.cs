@@ -22,6 +22,8 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
             .ThenInclude(p => p.ChefProjet)
+          .Include(t => t.Projet)
+            .ThenInclude(p => p.Societe)
           .Include(t => t.Responsible)
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
@@ -36,6 +38,8 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
             .ThenInclude(p => p.ChefProjet)
+          .Include(t => t.Projet)
+            .ThenInclude(p => p.Societe)
           .Include(t => t.Responsible)
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
@@ -50,51 +54,60 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
               .ThenInclude(p => p.ChefProjet)
+          .Include(t => t.Projet)
+              .ThenInclude(p => p.Societe)
           .Include(t => t.Responsible)
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
           .Include(t => t.Statut)
-          .OrderByDescending(t => t.CreatedAt) // Tri par date de création
+          .OrderByDescending(t => t.CreatedAt)
           .AsQueryable();
 
       // Si l'utilisateur n'est pas un super admin
-      if (!ticketParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? true)
+      if (!(ticketParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? false))
       {
-        if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase))
+        // Si l'utilisateur est un client : ne voir que ses tickets
+        if (string.Equals(ticketParams.Role, "client", StringComparison.OrdinalIgnoreCase))
         {
-          // Pour un chef de projet : 
-          // - Tickets où il est le chef du projet
-          // - Tickets où il est assigné en tant que responsable
-          // - Tickets où il est associé via ProjetUser
-          query = query.Where(t => t.Projet != null &&
-                                     (t.Projet.ChefProjetId == ticketParams.UserId ||
-                                      t.ResponsibleId == ticketParams.UserId ||
-                                      _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)));
+          query = query.Where(t => t.OwnerId == ticketParams.UserId);
         }
-        else
+        // Si l'utilisateur est un chef de projet ou un collaborateur
+        else if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(ticketParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
         {
-          // Pour les autres rôles, on applique les filtres suivants :
-          if (string.Equals(ticketParams.Role, "client", StringComparison.OrdinalIgnoreCase))
+          if (!string.IsNullOrEmpty(ticketParams.FilterType))
           {
-            // Le client voit uniquement les tickets dont il est le propriétaire.
-            query = query.Where(t => t.Owner != null && t.Owner.Id == ticketParams.UserId);
-          }
-          else if (string.Equals(ticketParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
-          {
-            // Le collaborateur voit les tickets qui lui sont assignés
-            // ou ceux pour lesquels il est associé via ProjetUser.
-            query = query.Where(t => t.ResponsibleId == ticketParams.UserId ||
-                                     _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
+            if (ticketParams.FilterType.Equals("associated", StringComparison.OrdinalIgnoreCase))
+            {
+              // Tickets directement associés (propriétaire, responsable, chef de projet)
+              query = query.Where(t =>
+                  t.OwnerId == ticketParams.UserId ||
+                  t.ResponsibleId == ticketParams.UserId ||
+                  (t.Projet != null && t.Projet.ChefProjetId == ticketParams.UserId)
+              );
+            }
+            else if (ticketParams.FilterType.Equals("projetUser", StringComparison.OrdinalIgnoreCase))
+            {
+              // Tickets associés via ProjetUser
+              query = query.Where(t =>
+                  _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)
+              );
+            }
           }
           else
           {
-            // Pour tout autre rôle, on récupère tous les tickets associés à l'utilisateur via ProjetUser.
-            query = query.Where(t => _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
+            // Par défaut, pour les chefs de projets et collaborateurs, on récupère tous les tickets associés
+            query = query.Where(t =>
+                t.OwnerId == ticketParams.UserId ||
+                t.ResponsibleId == ticketParams.UserId ||
+                (t.Projet != null && t.Projet.ChefProjetId == ticketParams.UserId) ||
+                _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)
+            );
           }
         }
       }
 
-      // Filtrage par terme de recherche
+      // Filtrage par terme de recherche (pour tous les rôles)
       if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
       {
         var lowerSearchTerm = ticketParams.SearchTerm.ToLower();
@@ -104,6 +117,7 @@ namespace GestionTicketsAPI.Repositories
 
       return await PagedList<Ticket>.CreateAsync(query, ticketParams.PageNumber, ticketParams.PageSize);
     }
+
 
 
 

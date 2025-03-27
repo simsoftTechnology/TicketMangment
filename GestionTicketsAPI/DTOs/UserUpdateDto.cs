@@ -12,7 +12,7 @@ namespace GestionTicketsAPI.DTOs
         public required bool Actif { get; set; }
 
         public string? NouveauPassword { get; set; }
-        public ICollection<int>? SocieteIds { get; set; }
+        public int? SocieteId { get; set; }
         
         public ContratDto? Contrat { get; set; }
     }

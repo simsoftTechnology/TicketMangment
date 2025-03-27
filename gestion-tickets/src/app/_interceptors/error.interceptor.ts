@@ -45,7 +45,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             toastr.error(error.error?.message || 'Erreur serveur', 'Erreur 500');
             return throwError(() => error);
           default:
-            toastr.error('Un problème inattendu est survenu.', 'Erreur');
             return throwError(() => ({ message: 'Un problème inattendu est survenu.' }));
         }
       }

@@ -20,25 +20,35 @@ export class TicketService {
     private accountService: AccountService
   ) { }
 
-  getPaginatedTickets(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Ticket[]>> {
+  getPaginatedTickets(
+    pageNumber?: number,
+    pageSize?: number,
+    searchTerm?: string,
+    filterType?: string  // Nouveau paramètre optionnel
+  ): Observable<PaginatedResult<Ticket[]>> {
     let params = new HttpParams();
-    
+
     if (pageNumber != null && pageSize != null) {
       params = params.append('pageNumber', pageNumber.toString());
       params = params.append('pageSize', pageSize.toString());
     }
-    
+
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-    
+
     // Récupération de l'utilisateur courant via AccountService
     const currentUser = this.accountService.currentUser();
     if (currentUser) {
       params = params.append('userId', currentUser.id.toString());
       params = params.append('role', currentUser.role);
     }
-    
+
+    // Ajout du filtre s'il est précisé et si l'utilisateur est un chef de projet ou collaborateur
+    if (filterType && (currentUser?.role.toLowerCase() === 'chef de projet' || currentUser?.role.toLowerCase() === 'collaborateur')) {
+      params = params.append('filterType', filterType);
+    }
+
     return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<any>) => {

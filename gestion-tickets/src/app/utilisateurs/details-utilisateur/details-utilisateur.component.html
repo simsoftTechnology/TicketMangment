@@ -74,7 +74,8 @@
         <div class="form-group">
           <label for="societe">Société</label>
           <select id="societe" formControlName="societe" class="form-control"
-            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid">
+            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid"
+            [disabled]="userForm.get('role')?.value !== 'Client'">
             <option [ngValue]="null">Sélectionnez une société</option>
             <option *ngFor="let s of societesList" [ngValue]="s.id">
               {{ s.nom }}
@@ -191,10 +192,10 @@
   <div *ngIf="activeTab === 'projets'" class="tab-pane">
     <table>
       <colgroup>
-        <col style="width: 33%;">
-        <col style="width: 33%;">
-        <col style="width: 33%;">
-        <col style="width: 1%;">
+        <col style="width: 32%;">
+        <col style="width: 32%;">
+        <col style="width: 32%;">
+        <col style="width: 4%;">
       </colgroup>
       <thead>
         <tr class="filter-row">
@@ -217,7 +218,9 @@
           </td>
         </tr>
         <tr>
-          <th>Nom du projet</th>
+          <th>Projet</th>
+          <th>Chef de Projet</th>
+          <th>Société</th>
           <th>Pays</th>
           <th></th>
         </tr>
@@ -226,6 +229,8 @@
         <ng-container *ngIf="displayedProjects && displayedProjects.length > 0; else noProjects">
           <tr *ngFor="let projet of displayedProjects">
             <td>{{ projet.nom | default:'Aucun' }}</td>
+            <td>{{ projet.chefProjet ? (projet.chefProjet.firstName + ' ' + projet.chefProjet.lastName) : 'Aucun' }}</td>
+            <td>{{ projet.nomSociete | default:'Aucun' }}</td>
             <td>{{ projet.nomPays | default:'Aucun pays' }}</td>
             <td class="actions">
               <button class="view-btn" (click)="viewProjet(projet.id)">

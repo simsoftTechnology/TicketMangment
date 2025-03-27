@@ -12,12 +12,23 @@
           <span class="nav-text">Tableau de bord</span>
         </div>
       </a>
-      <a mat-list-item [routerLink]="['/home', 'Tickets']" routerLinkActive="active-nav-item">
+      <!-- Lien général Tickets (pour tous les rôles) -->
+      <a mat-list-item [routerLink]="['/home/Tickets']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">confirmation_number</mat-icon>
           <span class="nav-text">Tickets</span>
         </div>
       </a>
+      <!-- Affichage conditionnel pour Chef de Projet et Collaborateur -->
+      <ng-container *ngIf="isChefDeProjet() || isCollaborateur()">
+        <a mat-list-item [routerLink]="['/home/MesTickets']" routerLinkActive="active-nav-item">
+          <div class="menu-item">
+            <mat-icon class="nav-icon">assignment</mat-icon>
+            <span class="nav-text">Mes Tickets</span>
+          </div>
+        </a>
+      </ng-container>
+
       <!-- Lien spécifique pour Super Admin -->
       <a mat-list-item *ngIf="isSuperAdmin()" [routerLink]="['/home', 'Categories']" routerLinkActive="active-nav-item">
         <div class="menu-item">
@@ -100,9 +111,7 @@
   <!-- Contenu principal -->
   <mat-sidenav-content>
     <!-- Optionnel : fond cliquable pour fermer le menu principal en mode over -->
-    <div class="sidenav-backdrop" 
-         *ngIf="sidenavMode === 'over' && isSidenavOpen"
-         (click)="isSidenavOpen = false">
+    <div class="sidenav-backdrop" *ngIf="sidenavMode === 'over' && isSidenavOpen" (click)="isSidenavOpen = false">
     </div>
     <div class="content">
       <router-outlet></router-outlet>

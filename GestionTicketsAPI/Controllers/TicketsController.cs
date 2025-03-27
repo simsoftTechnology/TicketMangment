@@ -223,7 +223,7 @@ namespace GestionTicketsAPI.Controllers
                 responsible.Email,
                 "Nouveau ticket assigné",
                 $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-                $"Le ticket '{ticket.Title}' (n°{ticket.Id}) vous a été assigné."
+                $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
             ));
           }
         }
@@ -468,7 +468,7 @@ namespace GestionTicketsAPI.Controllers
           responsible.Email,
           "Ticket mis à jour - Nouveau responsable assigné",
           $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-          $"Le ticket '{ticket.Title}' (n°{ticket.Id}) vous a été assigné en tant que responsable."
+          $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
         ));
       }
 

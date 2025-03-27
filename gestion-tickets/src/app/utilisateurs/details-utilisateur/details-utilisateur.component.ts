@@ -134,8 +134,6 @@ export class DetailsUtilisateurComponent implements OnInit {
 
   openAttachProjectDialog(): void {
     const dialogRef = this.dialog.open(AttachProjectDialogComponent, {
-      // Vous n'avez plus besoin de passer la propriété societeId
-      // data: {} ou bien vous pouvez transmettre d'autres données si nécessaire
       data: {}
     });
 

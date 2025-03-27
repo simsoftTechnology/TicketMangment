@@ -39,72 +39,74 @@ export class ListTicketsComponent implements OnInit {
   jumpPage: number = 1;
   ticketsSearchTerm: string = '';
   newTicketId: number | null = null;
+  
+  // Variable de filtre : si 'associated' on ne montre que les tickets directement associés à l'utilisateur
+  currentFilterType: string = '';
 
-  // Nouveaux tableaux pour qualifications, priorités et statuts
+  // Tableaux pour qualifications, priorités et statuts
   qualifications: { id: number, name: string }[] = [];
   priorities: { id: number, name: string }[] = [];
   statuses: { id: number, name: string }[] = [];
 
   ngOnInit(): void {
+    // Récupérer le filtre passé par la route
+    this.route.data.subscribe(data => {
+      this.currentFilterType = data['filterType'] || '';
+      this.getTickets();
+    });
+
     this.currentUser = this.accountService.currentUser();
     this.loadQualifications();
     this.loadPriorities();
     this.loadStatuses();
 
+    // Si un ticket vient d'être ajouté, gérer l'affichage du nouveau ticket (paramètre newTicket)
     this.route.queryParams.subscribe(params => {
       const newTicket = params['newTicket'];
       if (newTicket) {
         this.newTicketId = +newTicket;
+        // Actualiser la liste
         this.getTickets();
+        // Réinitialiser l'URL pour retirer le paramètre newTicket
         this.router.navigate([], {
           queryParams: { newTicket: null },
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
         setTimeout(() => { this.newTicketId = null; }, 2000);
-      } else {
-        this.getTickets();
       }
     });
   }
 
   loadQualifications(): void {
     this.qualificationService.getQualifications().subscribe({
-      next: (data) => {
-        this.qualifications = data;
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des qualifications', err);
-      }
+      next: (data) => this.qualifications = data,
+      error: (err) => console.error('Erreur lors du chargement des qualifications', err)
     });
   }
 
   loadPriorities(): void {
     this.priorityService.getPriorites().subscribe({
-      next: (data) => {
-        this.priorities = data;
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des priorités', err);
-      }
+      next: (data) => this.priorities = data,
+      error: (err) => console.error('Erreur lors du chargement des priorités', err)
     });
   }
 
   loadStatuses(): void {
     this.statusService.getStatuses().subscribe({
-      next: (data) => {
-        this.statuses = data;
-      },
-      error: (err) => {
-        console.error('Erreur lors du chargement des statuts', err);
-      }
+      next: (data) => this.statuses = data,
+      error: (err) => console.error('Erreur lors du chargement des statuts', err)
     });
   }
 
   getTickets(): void {
-    this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, this.ticketsSearchTerm).subscribe({
+    this.ticketService.getPaginatedTickets(
+      this.pageNumber,
+      this.pageSize,
+      this.ticketsSearchTerm,
+      this.currentFilterType  // Si 'associated', le backend renvoie uniquement les tickets directement associés à l'utilisateur
+    ).subscribe({
       next: (response) => {
-        // console.log('Réponse reçue:', response);
         const updatedItems = (response.items ?? []).map(ticket => {
           ticket.createdAt = new Date(ticket.createdAt);
           if (ticket.updatedAt) {
@@ -118,7 +120,6 @@ export class ListTicketsComponent implements OnInit {
         };
       },
       error: (error) => {
-        console.error('Erreur API:', error);
         console.error('Erreur lors du chargement des tickets paginés', error);
       }
     });
@@ -144,33 +145,31 @@ export class ListTicketsComponent implements OnInit {
 
   selectAll(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
-    const currentItems = this.paginatedResult?.items ?? [];
-    currentItems.forEach(ticket => ticket.selected = checkbox.checked);
+    (this.paginatedResult?.items ?? []).forEach(ticket => ticket.selected = checkbox.checked);
   }
 
   toggleSelection(ticket: Ticket): void {
     ticket.selected = !ticket.selected;
-    const currentItems = this.paginatedResult?.items ?? [];
-    const allSelected = currentItems.every(t => t.selected);
+    const allSelected = (this.paginatedResult?.items ?? []).every(t => t.selected);
     const selectAllCheckbox = document.getElementById('selectAll') as HTMLInputElement;
     if (selectAllCheckbox) {
       selectAllCheckbox.checked = allSelected;
     }
   }
 
-
   deleteSelectedTickets(): void {
-    const items = this.paginatedResult?.items ?? [];
-    const selectedIds = items.filter(ticket => ticket.selected).map(ticket => ticket.id);
-  
+    const selectedIds = (this.paginatedResult?.items ?? [])
+      .filter(ticket => ticket.selected)
+      .map(ticket => ticket.id);
+
     if (selectedIds.length === 0) {
       this.toastr.warning("Aucun ticket sélectionné pour la suppression.");
       return;
     }
-  
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?";
-  
+
     modalInstance.confirmed.subscribe(() => {
       this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
         next: () => {
@@ -184,32 +183,26 @@ export class ListTicketsComponent implements OnInit {
       });
       this.overlayModalService.close();
     });
-  
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
   }
-  
 
+  // Méthode utilitaire pour l'affichage de la pagination
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
 
   getPriorityClass(priorityId: number): string {
     switch (priorityId) {
-      case 1:
-        return 'priority-urgent';
-      case 2:
-        return 'priority-eleve';
-      case 3:
-        return 'priority-moyen';
-      case 4:
-        return 'priority-faible';
-      default:
-        return '';
+      case 1: return 'priority-urgent';
+      case 2: return 'priority-eleve';
+      case 3: return 'priority-moyen';
+      case 4: return 'priority-faible';
+      default: return '';
     }
   }
-
 
   getQualificationLabel(qualificationId: number): string {
     const found = this.qualifications.find(q => q.id === qualificationId);

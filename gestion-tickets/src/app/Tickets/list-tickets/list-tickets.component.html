@@ -41,6 +41,7 @@
         <th>Titre</th>
         <th>Qualification</th>
         <th>Projet</th>
+        <th>Société</th>
         <th *ngIf="(currentUser?.role?.toLowerCase() !== 'client')">Client</th>
         <th>Catégorie</th>
         <th>Priorité</th>
@@ -61,6 +62,7 @@
         <td>{{ ticket.title }}</td>
         <td>{{ getQualificationLabel(ticket.qualificationId) }}</td>
         <td>{{ ticket.projet?.nom || 'Non défini' }}</td>
+        <td>{{ ticket.projet?.nomSociete || 'Non défini' }}</td>
         <td *ngIf="(currentUser?.role?.toLowerCase() !== 'client')">
           {{ ticket.owner?.firstName }} {{ ticket.owner?.lastName || '' }}
         </td>
