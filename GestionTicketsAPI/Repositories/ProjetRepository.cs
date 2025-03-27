@@ -28,7 +28,7 @@ public class ProjetRepository : IProjetRepository
   public async Task<PagedList<Projet>> GetProjetsPagedAsync(UserParams projetParams)
   {
     var query = _context.Projets
-        .Include(p => p.ChefProjet)   
+        .Include(p => p.ChefProjet)
         .Include(p => p.Societe)
             .ThenInclude(s => s.Pays)
         .OrderByDescending(t => t.CreatedAt)
@@ -126,6 +126,18 @@ public class ProjetRepository : IProjetRepository
     return await _context.Projets
       .Where(p => p.ProjetUsers.Any(pu => pu.UserId == userId))
       .ToListAsync();
+  }
+
+  public async Task<bool> ProjetHasTicketsAsync(int projetId)
+  {
+    return await _context.Tickets.AnyAsync(t => t.ProjetId == projetId);
+  }
+
+  public async Task<IEnumerable<Projet>> GetProjetsBySocieteIdAsync(int societeId)
+  {
+    return await _context.Projets
+                         .Where(p => p.SocieteId == societeId)
+                         .ToListAsync();
   }
 
 }

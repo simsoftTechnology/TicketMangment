@@ -162,5 +162,16 @@ namespace GestionTicketsAPI.Controllers
       return Ok(projets);
     }
 
+    [HttpGet("societe/{societeId}")]
+    public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjetsBySocieteId(int societeId)
+    {
+      var projetsDto = await _projetService.GetProjetsBySocieteIdAsync(societeId);
+      if (projetsDto == null || !projetsDto.Any())
+        return NotFound($"Aucun projet trouvé pour la société ID {societeId}.");
+
+      return Ok(projetsDto);
+    }
+
+
   }
 }

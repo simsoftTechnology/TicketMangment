@@ -102,9 +102,18 @@ public class ProjetService : IProjetService
 
   public async Task<bool> DeleteProjetAsync(int id)
   {
-    var projet = await _projetRepository.GetProjetByIdAsync(id);
-    if (projet == null) return false;
+    // Vérifier si le projet possède des tickets associés
+    bool hasTickets = await _projetRepository.ProjetHasTicketsAsync(id);
+    if (hasTickets)
+    {
+      throw new InvalidOperationException("Impossible de supprimer le projet car il contient des tickets associés.");
+    }
 
+    var projet = await _projetRepository.GetProjetByIdAsync(id);
+    if (projet == null)
+      return false;
+
+    // Supprimer les associations ProjetUser s'il y en a
     if (projet.ProjetUsers != null && projet.ProjetUsers.Any())
     {
       foreach (var pu in projet.ProjetUsers)
@@ -112,9 +121,11 @@ public class ProjetService : IProjetService
         _projetRepository.RemoveProjetUser(pu);
       }
     }
+
     _projetRepository.RemoveProjet(projet);
     return await _projetRepository.SaveAllAsync();
   }
+
 
   public async Task<bool> DeleteProjetsAsync(List<int> ids)
   {
@@ -165,12 +176,19 @@ public class ProjetService : IProjetService
   }
 
   public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
-    {
-        return await _projetRepository.GetProjetsForUserAsync(userId);
-    }
+  {
+    return await _projetRepository.GetProjetsForUserAsync(userId);
+  }
   public async Task<bool> ProjetExists(string nom)
   {
     return await _projetRepository.ProjetExists(nom);
   }
+
+  public async Task<IEnumerable<ProjetDto>> GetProjetsBySocieteIdAsync(int societeId)
+  {
+    var projets = await _projetRepository.GetProjetsBySocieteIdAsync(societeId);
+    return _mapper.Map<IEnumerable<ProjetDto>>(projets);
+  }
+
 
 }

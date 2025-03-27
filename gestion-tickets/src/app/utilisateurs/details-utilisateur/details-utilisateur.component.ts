@@ -133,9 +133,15 @@ export class DetailsUtilisateurComponent implements OnInit {
 
 
   openAttachProjectDialog(): void {
+    if (!this.user || !this.user.societeId) {
+      this.toastr.error("La société de l'utilisateur n'est pas définie.");
+      return;
+    }
+  
     const dialogRef = this.dialog.open(AttachProjectDialogComponent, {
+      data: { societeId: this.user.societeId }
     });
-
+  
     dialogRef.afterClosed().subscribe(result => {
       if (result && this.user) {
         this.projetService.ajouterUtilisateurAuProjet(
@@ -154,6 +160,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
+  
 
   loadPays(): void {
     this.paysService.getPays().subscribe({

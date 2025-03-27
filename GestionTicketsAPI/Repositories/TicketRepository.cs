@@ -62,17 +62,18 @@ namespace GestionTicketsAPI.Repositories
       {
         if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase))
         {
-          // Pour un chef de projet, on autorise à la fois les tickets où il est le chef du projet
-          // et ceux qui lui sont assignés en tant que responsable.
+          // Pour un chef de projet : 
+          // - Tickets où il est le chef du projet
+          // - Tickets où il est assigné en tant que responsable
+          // - Tickets où il est associé via ProjetUser
           query = query.Where(t => t.Projet != null &&
-                                   (t.Projet.ChefProjetId == ticketParams.UserId || t.ResponsibleId == ticketParams.UserId));
+                                     (t.Projet.ChefProjetId == ticketParams.UserId ||
+                                      t.ResponsibleId == ticketParams.UserId ||
+                                      _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)));
         }
         else
         {
-          // Pour les autres rôles, on vérifie que le ticket est lié à un projet et que l'utilisateur est associé.
-          query = query.Where(t => t.Projet != null &&
-                                   _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
-
+          // Pour les autres rôles, on applique les filtres suivants :
           if (string.Equals(ticketParams.Role, "client", StringComparison.OrdinalIgnoreCase))
           {
             // Le client voit uniquement les tickets dont il est le propriétaire.
@@ -80,8 +81,15 @@ namespace GestionTicketsAPI.Repositories
           }
           else if (string.Equals(ticketParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
           {
-            // Le collaborateur voit uniquement les tickets qui lui sont assignés.
-            query = query.Where(t => t.ResponsibleId == ticketParams.UserId);
+            // Le collaborateur voit les tickets qui lui sont assignés
+            // ou ceux pour lesquels il est associé via ProjetUser.
+            query = query.Where(t => t.ResponsibleId == ticketParams.UserId ||
+                                     _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
+          }
+          else
+          {
+            // Pour tout autre rôle, on récupère tous les tickets associés à l'utilisateur via ProjetUser.
+            query = query.Where(t => _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId));
           }
         }
       }

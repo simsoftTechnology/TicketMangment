@@ -108,6 +108,7 @@ namespace GestionTicketsAPI.Services
       return await _societeRepository.DeleteSocieteWithAssociationsAsync(id);
     }
 
+
     public async Task<bool> DeleteSocietesAsync(List<int> ids)
     {
       foreach (var id in ids)

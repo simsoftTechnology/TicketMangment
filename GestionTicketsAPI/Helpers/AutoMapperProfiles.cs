@@ -11,12 +11,9 @@ namespace GestionTicketsAPI.Helpers
     {
       CreateMap<User, UserDto>()
           .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role.Name))
-          .ForMember(dest => dest.Societe, opt => opt.MapFrom(src => src.SocieteUsers.Any()
-                                                  ? src.SocieteUsers.First().Societe
-                                                  : null))
-          .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.Contrats != null && src.Contrats.Any()
-                                                  ? src.Contrats.First()
-                                                  : null));
+          .ForMember(dest => dest.SocieteId, opt => opt.MapFrom(src => src.SocieteUsers.Any() ? src.SocieteUsers.First().SocieteId : (int?)null))
+          .ForMember(dest => dest.Societe, opt => opt.MapFrom(src => src.SocieteUsers.Any() ? src.SocieteUsers.First().Societe : null))
+          .ForMember(dest => dest.Contrat, opt => opt.MapFrom(src => src.Contrats != null && src.Contrats.Any() ? src.Contrats.First() : null));
 
       CreateMap<UserUpdateDto, User>()
           .ForMember(dest => dest.Pays, opt => opt.MapFrom(src => int.Parse(src.Pays)))
