@@ -499,6 +499,7 @@ input, select, button {
 
   table {
     font-size: 0.8rem;
+    display: flex;
   }
 
   th, td {

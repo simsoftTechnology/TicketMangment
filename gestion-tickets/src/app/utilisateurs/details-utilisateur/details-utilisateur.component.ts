@@ -331,6 +331,8 @@ export class DetailsUtilisateurComponent implements OnInit {
 
   onCancel(): void {
     // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
+    // console.log('1',this.userForm);
+    
     if (this.user) {
       this.userForm.patchValue({
         lastName: this.user.lastName,
@@ -343,6 +345,8 @@ export class DetailsUtilisateurComponent implements OnInit {
         actif: this.user.actif
         // Les champs de mot de passe restent vides
       });
+      // console.log('2', this.userForm);
+      
     }
   }
 
