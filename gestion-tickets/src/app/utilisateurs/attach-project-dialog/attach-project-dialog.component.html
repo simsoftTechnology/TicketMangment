@@ -10,7 +10,7 @@
       <div class="custom-select">
         <div class="select-box" #dropdownTrigger (click)="openDropdownOverlay(dropdownTrigger)">
           <div class="selected-item">
-            {{ selectedProject?.nom || 'Sélectionner un projet' }}
+            {{ selectedProject?.nom || 'Sélectionner un projet' }} - {{selectedProject?.nomSociete}}
           </div>
           <span class="arrow">▼</span>
         </div>
@@ -36,7 +36,7 @@
     <div class="option-list">
       <ng-container *ngIf="filteredProjects.length > 0; else noResults">
         <div *ngFor="let p of filteredProjects" class="option-item" (click)="selectProject(p)">
-          {{ p.nom }}
+          {{ p.nom }} - {{p.nomSociete}}
         </div>
       </ng-container>
     </div>
