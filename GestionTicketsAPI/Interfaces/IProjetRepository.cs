@@ -23,4 +23,6 @@ public interface IProjetRepository
         Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId);
         Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId);
         Task<bool> ProjetExists(string nom);
+        Task<bool> ProjetHasTicketsAsync(int projetId);
+        Task<IEnumerable<Projet>> GetProjetsBySocieteIdAsync(int societeId);
     }
