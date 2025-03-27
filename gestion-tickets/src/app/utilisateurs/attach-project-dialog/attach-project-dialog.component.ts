@@ -1,21 +1,22 @@
-import { Component, HostListener, OnInit, ViewChild, ElementRef, TemplateRef } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild, TemplateRef } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Projet } from '../../_models/Projet';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatDialogRef } from '@angular/material/dialog';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ProjetService } from '../../_services/projet.service';
-import { NgFor, NgIf } from '@angular/common';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ViewContainerRef } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-attach-project-dialog',
   standalone: true,
   imports: [ReactiveFormsModule, NgFor, NgIf, FormsModule],
   templateUrl: './attach-project-dialog.component.html',
-  styleUrl: './attach-project-dialog.component.css'
+  styleUrls: ['./attach-project-dialog.component.css']
 })
 export class AttachProjectDialogComponent implements OnInit {
+  societeId!: number;
   projets: Projet[] = [];
   filteredProjects: Projet[] = [];
   selectedProject: Projet | null = null;
@@ -30,7 +31,8 @@ export class AttachProjectDialogComponent implements OnInit {
     private viewContainerRef: ViewContainerRef,
     private dialogRef: MatDialogRef<AttachProjectDialogComponent>,
     private projetService: ProjetService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    @Inject(MAT_DIALOG_DATA) public data: any // Injection des données envoyées par le parent
   ) {
     this.form = this.fb.group({
       projetId: ['', Validators.required]
@@ -38,7 +40,10 @@ export class AttachProjectDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.projetService.getProjets().subscribe(projets => {
+    // Récupérer l'id de la société depuis les données injectées
+    this.societeId = this.data.societeId;
+    // Utiliser la méthode getProjetsBySocieteId pour récupérer uniquement les projets de la société
+    this.projetService.getProjetsBySocieteId(this.societeId).subscribe(projets => {
       this.projets = projets;
       this.filteredProjects = [...projets];
     });
@@ -65,7 +70,7 @@ export class AttachProjectDialogComponent implements OnInit {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition(),
       hasBackdrop: true,
-      backdropClass: 'custom-backdrop' // Ajout de la classe personnalisée
+      backdropClass: 'custom-backdrop'
     });
   
     this.overlayRef.backdropClick().subscribe(() => this.closeDropdownOverlay());
@@ -74,7 +79,6 @@ export class AttachProjectDialogComponent implements OnInit {
     this.overlayRef.attach(portal);
   }
   
-
   closeDropdownOverlay(): void {
     if (this.overlayRef) {
       this.overlayRef.detach();

@@ -118,5 +118,9 @@ export class ProjetService {
       body: { projetId, userIds }
     });
   }
+
+  getProjetsBySocieteId(societeId: number): Observable<Projet[]> {
+    return this.http.get<Projet[]>(`${this.baseUrl}/societe/${societeId}`);
+  }
   
 }

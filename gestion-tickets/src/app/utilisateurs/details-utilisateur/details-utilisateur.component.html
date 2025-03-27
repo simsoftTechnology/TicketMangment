@@ -76,11 +76,11 @@
           <select id="societe" formControlName="societe" class="form-control"
             [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid">
             <option [ngValue]="null">Sélectionnez une société</option>
-            <option *ngFor="let s of societesList" [value]="s.id">
+            <option *ngFor="let s of societesList" [ngValue]="s.id">
               {{ s.nom }}
             </option>
           </select>
-        </div>
+        </div>        
       </div>
 
       <div class="form-row">

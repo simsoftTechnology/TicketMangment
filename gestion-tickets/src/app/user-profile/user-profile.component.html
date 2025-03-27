@@ -47,7 +47,7 @@
       <div class="form-group">
         <label for="pays">Pays <span class="required">*</span></label>
         <!-- Champ en lecture seule -->
-        <input id="pays" type="text" [value]="getPaysName(userForm.get('pays')?.value)" class="form-control" readonly />
+        <input id="pays" type="text" [value]="getPaysName(userDetails?.pays)" class="form-control" readonly />
       </div>
     </div>
     

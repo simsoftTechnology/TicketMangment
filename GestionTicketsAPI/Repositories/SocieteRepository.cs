@@ -92,9 +92,9 @@ namespace GestionTicketsAPI.Repositories
       // Charger la société avec ses associations
       var societe = await _context.Societes
           .Include(s => s.SocieteUsers)
-          .ThenInclude(su => su.User)
+              .ThenInclude(su => su.User)
           .Include(s => s.ContratsPartenaire)
-          .Include(s => s.Projets!)
+          .Include(s => s.Projets)
               .ThenInclude(p => p.Pays)
           .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -103,26 +103,28 @@ namespace GestionTicketsAPI.Repositories
         return false;
       }
 
+      // Vérifier si la société possède des projets associés
+      if (await SocieteHasProjectsAsync(id))
+      {
+        throw new InvalidOperationException("Impossible de supprimer la société car elle contient des projets associés.");
+      }
+
       // Supprimer les associations dans la table de jonction
       if (societe.SocieteUsers?.Any() == true)
       {
         _context.RemoveRange(societe.SocieteUsers);
       }
 
-      // Vous pouvez adapter la suppression des contrats si nécessaire
+      // Suppression optionnelle des contrats partenaires
       if (societe.ContratsPartenaire?.Any() == true)
       {
         _context.Contrats.RemoveRange(societe.ContratsPartenaire);
       }
 
-      if (societe.Projets?.Any() == true)
-      {
-        _context.Projets.RemoveRange(societe.Projets);
-      }
+      // Ne pas supprimer les projets ici, car la présence d'au moins un projet empêche la suppression de la société.
 
       // Supprimer la société elle-même
       _context.Societes.Remove(societe);
-
 
       // Utilisation d'une transaction pour garantir l'atomicité
       using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -133,6 +135,7 @@ namespace GestionTicketsAPI.Repositories
 
       return true;
     }
+
 
     public async Task<PagedList<User>> GetSocieteUsersPagedAsync(int societeId, UserParams userParams)
     {
@@ -268,5 +271,11 @@ namespace GestionTicketsAPI.Repositories
     {
       return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<bool> SocieteHasProjectsAsync(int societeId)
+    {
+      return await _context.Projets.AnyAsync(p => p.SocieteId == societeId);
+    }
+
   }
 }

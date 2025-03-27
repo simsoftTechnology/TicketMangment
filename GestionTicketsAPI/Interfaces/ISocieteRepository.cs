@@ -19,6 +19,7 @@ namespace GestionTicketsAPI.Interfaces
         Task UpdateRelatedEntitiesForSocietePaysChangeAsync(int societeId, int newPaysId);
 
         Task<bool> SocieteExists(string nom);
+        Task<bool> SocieteHasProjectsAsync(int societeId);
         Task<bool> SaveAllAsync();
     }
 }

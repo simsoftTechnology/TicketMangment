@@ -83,11 +83,15 @@ export class UserProfileComponent implements OnInit {
   }
 
   // Convertit l'ID d'un pays en son nom
-  getPaysName(paysId: number | string): string {
+  getPaysName(paysId: string | number | undefined): string {
+    if (paysId === undefined) {
+      return '';
+    }
     const id = Number(paysId);
     const pays = this.paysList.find(p => p.idPays === id);
     return pays ? pays.nom : '';
   }
+  
 
   loadUserDetails(): void {
     // Supposons que accountService.currentUser() renvoie un UserDto complet incluant "societe"
@@ -149,7 +153,8 @@ export class UserProfileComponent implements OnInit {
         lastName: this.userDetails.lastName,
         firstName: this.userDetails.firstName,
         email: this.userDetails.email,
-        pays: this.getPaysName(this.userDetails.pays),
+        // Utilisez l'ID original et non le nom du pays :
+        pays: this.userDetails.pays,
         role: this.userDetails.role,
         societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : 'Aucune société',
         numTelephone: this.userDetails.numTelephone,
@@ -157,6 +162,7 @@ export class UserProfileComponent implements OnInit {
       });
     }
   }
+  
 
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;

@@ -147,7 +147,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   }
   
   isChefDeProjet(): boolean {
-    return this.currentUser?.role === 'Chef De Projet';
+    return this.currentUser?.role === 'Chef de Projet';
   }
   
   isCollaborateur(): boolean {
