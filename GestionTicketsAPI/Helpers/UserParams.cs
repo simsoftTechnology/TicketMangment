@@ -20,6 +20,7 @@ namespace GestionTicketsAPI.Helpers
         // Propriétés ajoutées pour le filtrage côté serveur
         public int UserId { get; set; }
         public string? Role { get; set; }
+        public string? FilterType { get; set; }
         public int? SocieteId { get; set; } 
     }
 }

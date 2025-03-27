@@ -39,6 +39,7 @@ export class ListTicketsComponent implements OnInit {
   jumpPage: number = 1;
   ticketsSearchTerm: string = '';
   newTicketId: number | null = null;
+  currentFilterType: string = ''
 
   // Nouveaux tableaux pour qualifications, priorités et statuts
   qualifications: { id: number, name: string }[] = [];
@@ -102,27 +103,35 @@ export class ListTicketsComponent implements OnInit {
   }
 
   getTickets(): void {
-    this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, this.ticketsSearchTerm).subscribe({
-      next: (response) => {
-        console.log('Réponse reçue:', response);
-        const updatedItems = (response.items ?? []).map(ticket => {
-          ticket.createdAt = new Date(ticket.createdAt);
-          if (ticket.updatedAt) {
-            ticket.updatedAt = new Date(ticket.updatedAt);
-          }
-          return { ...ticket, selected: ticket.selected ?? false };
-        });
-        this.paginatedResult = {
-          items: updatedItems,
-          pagination: response.pagination
-        };
-      },
-      error: (error) => {
-        console.error('Erreur API:', error);
-        console.error('Erreur lors du chargement des tickets paginés', error);
-      }
-    });
+    this.ticketService
+      .getPaginatedTickets(
+        this.pageNumber,
+        this.pageSize,
+        this.ticketsSearchTerm,
+        this.currentFilterType  // Transmission du filtre ici
+      )
+      .subscribe({
+        next: (response) => {
+          console.log('Réponse reçue:', response);
+          const updatedItems = (response.items ?? []).map(ticket => {
+            ticket.createdAt = new Date(ticket.createdAt);
+            if (ticket.updatedAt) {
+              ticket.updatedAt = new Date(ticket.updatedAt);
+            }
+            return { ...ticket, selected: ticket.selected ?? false };
+          });
+          this.paginatedResult = {
+            items: updatedItems,
+            pagination: response.pagination
+          };
+        },
+        error: (error) => {
+          console.error('Erreur API:', error);
+          console.error('Erreur lors du chargement des tickets paginés', error);
+        }
+      });
   }
+
 
   onSearchChange(): void {
     this.pageNumber = 1;
@@ -162,15 +171,15 @@ export class ListTicketsComponent implements OnInit {
   deleteSelectedTickets(): void {
     const items = this.paginatedResult?.items ?? [];
     const selectedIds = items.filter(ticket => ticket.selected).map(ticket => ticket.id);
-  
+
     if (selectedIds.length === 0) {
       this.toastr.warning("Aucun ticket sélectionné pour la suppression.");
       return;
     }
-  
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?";
-  
+
     modalInstance.confirmed.subscribe(() => {
       this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
         next: () => {
@@ -184,12 +193,12 @@ export class ListTicketsComponent implements OnInit {
       });
       this.overlayModalService.close();
     });
-  
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
   }
-  
+
 
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
@@ -225,4 +234,26 @@ export class ListTicketsComponent implements OnInit {
     const found = this.statuses.find(s => s.id === statutId);
     return found ? found.name : '';
   }
+
+  // Afficher les tickets directement associés (owner, responsable, chef de projet)
+showDirectTickets(): void {
+  this.currentFilterType = 'associated';
+  this.pageNumber = 1;
+  this.getTickets();
+}
+
+// Afficher les tickets associés via ProjetUser
+showProjetUserTickets(): void {
+  this.currentFilterType = 'projetUser';
+  this.pageNumber = 1;
+  this.getTickets();
+}
+
+// Pour revenir à l'affichage par défaut (aucun filtre spécifique)
+clearFilter(): void {
+  this.currentFilterType = '';
+  this.pageNumber = 1;
+  this.getTickets();
+}
+
 }

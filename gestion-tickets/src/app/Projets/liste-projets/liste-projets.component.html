@@ -38,9 +38,10 @@
             <label for="selectAll" class="checkbox-label"></label>
           </div>
         </th>
-        <th>Nom du projet</th>
-        <th>Nom du pays</th>
-        <th>Nom de la société</th>
+        <th>Projet</th>
+        <th>Chef de projet</th>
+        <th>Société</th>
+        <th>Pays</th>
         <th class="actions">
           <button class="delete-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteSelectedProjects()">
             <span class="material-icons">delete</span>
@@ -59,8 +60,9 @@
           </div>
         </td>
         <td>{{ projet.nom }}</td>
-        <td>{{ projet.nomPays || 'Non défini' }}</td>
+        <td>{{ projet.chefProjet ? (projet.chefProjet.firstName + ' ' + projet.chefProjet.lastName) : 'Aucun' }}</td>
         <td>{{ projet.nomSociete || 'Non défini' }}</td>
+        <td>{{ projet.nomPays || 'Non défini' }}</td>
         <td class="actions">
           <!-- Bouton Voir -->
           <button class="view-btn" [routerLink]="['/home', 'Projets', 'details', projet.id]">
