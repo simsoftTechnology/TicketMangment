@@ -99,6 +99,15 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.loadStatuses();
     this.loadPriorities();
   
+    this.userForm.get('role')?.valueChanges.subscribe(role => {
+      const societeControl = this.userForm.get('societeId');
+      if (role === 'Client') {
+        societeControl?.enable();
+      } else {
+        societeControl?.disable();
+      }
+    });
+    
     // Souscription aux changements du champ 'pays' du formulaire utilisateur
     this.userForm.get('pays')?.valueChanges.subscribe(value => {
       this.selectedCountry = this.paysList.find(p => p.idPays === +value);
@@ -219,7 +228,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       pays: ['', Validators.required],
       role: ['', Validators.required],
-      societe: [''],
+      societeId: [''],
       // Ces champs sont optionnels, à renseigner uniquement si l’utilisateur souhaite changer son mot de passe
       nouveauPassword: ['', [Validators.minLength(8), Validators.maxLength(16)]],
       confirmNouveauPassword: [''],
@@ -271,7 +280,7 @@ export class DetailsUtilisateurComponent implements OnInit {
           email: user.email,
           role: user.role,
           pays: user.pays,
-          societe: user.societe ? user.societe.id : null,
+          societeId: user.societe ? user.societe.id : null,
           numTelephone: numeroLocal,
           actif: user.actif
         });

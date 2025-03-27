@@ -36,7 +36,7 @@ export class DetailsProjetComponent implements OnInit {
   pageNumber: number = 1;
   pageSize: number = 9;
   jumpPage: number = 1;
-  totalPages: number = 1; // Calculé à partir du nombre de membres filtrés
+  totalPages: number = 1; 
 
   // Recherche dans le tableau des membres
   userSearchTerm: string = '';
@@ -66,6 +66,8 @@ export class DetailsProjetComponent implements OnInit {
   totalUsers: number = 0;
   displayedUsers: User[] = [];
   userJumpPage: number = 1;
+
+  availableChefs: User[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -105,6 +107,21 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => {
         console.error('Erreur lors de la récupération du projet', err);
       }
+    });
+  }
+
+  getAvailableChefs(): void {
+    this.accountService.getAllUsers().subscribe({
+      next: (users: User[]) => {
+        // Pour être sûr d'inclure les rôles "Chef de Projet" et "Super Admin",
+        // on normalise la casse avec toLowerCase() et on compare.
+        this.availableChefs = users.filter(user => {
+          const role = user.role.toLowerCase().trim();
+          return role === 'chef de projet' || role === 'collaborateur';
+        });
+        console.log('Chefs disponibles:', this.availableChefs);
+      },
+      error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });
   }
 

@@ -73,15 +73,13 @@
 
         <div class="form-group">
           <label for="societe">Société</label>
-          <select id="societe" formControlName="societe" class="form-control"
-            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid"
-            [disabled]="userForm.get('role')?.value !== 'Client'">
+          <select id="societe" formControlName="societeId" class="form-control">
             <option [ngValue]="null">Sélectionnez une société</option>
             <option *ngFor="let s of societesList" [ngValue]="s.id">
               {{ s.nom }}
             </option>
-          </select>
-        </div>        
+          </select>          
+        </div>                 
       </div>
 
       <div class="form-row">
@@ -192,24 +190,25 @@
   <div *ngIf="activeTab === 'projets'" class="tab-pane">
     <table>
       <colgroup>
-        <col style="width: 32%;">
-        <col style="width: 32%;">
-        <col style="width: 32%;">
-        <col style="width: 4%;">
+        <col style="width: 25%;">
+        <col style="width: 35%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 10%;">
       </colgroup>
       <thead>
         <tr class="filter-row">
           <td colspan="1">
             <h3>Projets associés</h3>
           </td>
-          <td colspan="3">
+          <td colspan="4">
             <div class="search-wrapper">
               <button type="button" class="btn-create" (click)="openAttachProjectDialog()">Attacher</button>
             </div>
           </td>
         </tr>
         <tr class="filter-row">
-          <td colspan="4">
+          <td colspan="5">
             <div class="search-wrapper">
               <input type="text" class="search-input" placeholder="Rechercher un projet..."
                 [(ngModel)]="projectSearchTerm" (ngModelChange)="onProjectSearch()" />

@@ -63,6 +63,16 @@
       <span class="info-value" *ngIf="!editMode && projet && projet.chefProjet">
         {{ projet.chefProjet.firstName }} {{ projet.chefProjet.lastName }}
       </span>
+      <!-- Mode édition : champ Chef de projet -->
+      <div *ngIf="editMode" class="info-item edit-chef-projet-container">
+        <select [(ngModel)]="projet.chefProjetId" class="edit-field">
+          <option [ngValue]="null">Sélectionnez un chef de projet</option>
+          <option *ngFor="let chef of availableChefs" [ngValue]="chef.id">
+            {{ chef.firstName }} {{ chef.lastName }}
+          </option>
+        </select>
+      </div>      
+
     </div>
 
   </div>
