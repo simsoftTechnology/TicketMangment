@@ -40,13 +40,10 @@ export class AttachProjectDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Récupérer l'id de la société depuis les données injectées
-    this.societeId = this.data.societeId;
-    // Utiliser la méthode getProjetsBySocieteId pour récupérer uniquement les projets de la société
-    this.projetService.getProjetsBySocieteId(this.societeId).subscribe(projets => {
+    this.projetService.getProjets().subscribe(projets => {
       this.projets = projets;
       this.filteredProjects = [...projets];
-    });
+    });    
   }
 
   openDropdownOverlay(triggerElement: HTMLElement): void {

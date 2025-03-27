@@ -98,12 +98,12 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.loadRoles();
     this.loadStatuses();
     this.loadPriorities();
-  
+
     // Souscription aux changements du champ 'pays' du formulaire utilisateur
     this.userForm.get('pays')?.valueChanges.subscribe(value => {
       this.selectedCountry = this.paysList.find(p => p.idPays === +value);
     });
-  
+
     // Souscription à la recherche sur les tickets avec débounce
     this.ticketSearchSubject.pipe(
       debounceTime(300),
@@ -113,7 +113,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.ticketPageNumber = 1;
       this.loadTickets();
     });
-  
+
     // Écouter les changements dans les paramètres de la route
     this.route.params.subscribe(params => {
       const userId = params['id'];
@@ -122,26 +122,23 @@ export class DetailsUtilisateurComponent implements OnInit {
         this.loadUserDetails(+userId);
       }
     });
-  
+
     // (Optionnel) Écouter également les queryParams
     this.route.queryParams.subscribe(queryParams => {
       // console.log("QueryParams mis à jour :", queryParams);
       // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
     });
   }
-  
+
 
 
   openAttachProjectDialog(): void {
-    if (!this.user || !this.user.societeId) {
-      this.toastr.error("La société de l'utilisateur n'est pas définie.");
-      return;
-    }
-  
     const dialogRef = this.dialog.open(AttachProjectDialogComponent, {
-      data: { societeId: this.user.societeId }
+      // Vous n'avez plus besoin de passer la propriété societeId
+      // data: {} ou bien vous pouvez transmettre d'autres données si nécessaire
+      data: {}
     });
-  
+
     dialogRef.afterClosed().subscribe(result => {
       if (result && this.user) {
         this.projetService.ajouterUtilisateurAuProjet(
@@ -160,7 +157,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
-  
+
 
   loadPays(): void {
     this.paysService.getPays().subscribe({
