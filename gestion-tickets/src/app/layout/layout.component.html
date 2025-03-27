@@ -13,16 +13,15 @@
         </div>
       </a>
       <!-- Lien général Tickets (pour tous les rôles) -->
-      <a mat-list-item [routerLink]="['/home', 'Tickets']" routerLinkActive="active-nav-item">
+      <a mat-list-item [routerLink]="['/home/Tickets']" routerLinkActive="active-nav-item">
         <div class="menu-item">
           <mat-icon class="nav-icon">confirmation_number</mat-icon>
           <span class="nav-text">Tickets</span>
         </div>
       </a>
-
-      <!-- Lien pour "Mes Tickets" (affiché uniquement pour Chef de Projet et Collaborateur) -->
+      <!-- Affichage conditionnel pour Chef de Projet et Collaborateur -->
       <ng-container *ngIf="isChefDeProjet() || isCollaborateur()">
-        <a mat-list-item [routerLink]="['/home', 'MesTickets']" routerLinkActive="active-nav-item">
+        <a mat-list-item [routerLink]="['/home/MesTickets']" routerLinkActive="active-nav-item">
           <div class="menu-item">
             <mat-icon class="nav-icon">assignment</mat-icon>
             <span class="nav-text">Mes Tickets</span>

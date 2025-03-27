@@ -9,7 +9,7 @@ import { MesTicketsComponent } from './mes-tickets/mes-tickets.component';
 
 const routes: Routes = [
   { path: '', component: ListTicketsComponent },
-  { path: 'MesTickets', component: MesTicketsComponent },
+  
   { path: 'ajouterTicket', component: AjouterTicketComponent },
   { path: 'details/:id', component: TicketDetailsComponent }
 ];
