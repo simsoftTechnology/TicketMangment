@@ -79,15 +79,17 @@ namespace GestionTicketsAPI.Controllers
 
     // Mettre à jour un projet
     [HttpPut("modifierProjet/{id}")]
-    public async Task<IActionResult> PutProjet(int id, [FromBody] ProjetDto projetDto)
+    public async Task<IActionResult> PutProjet(int id, [FromBody] ProjetUpdateDto projetUpdateDto)
     {
-      if (id != projetDto.Id)
+      if (id != projetUpdateDto.Id)
         return BadRequest("L'ID du projet ne correspond pas.");
-      var result = await _projetService.UpdateProjetAsync(id, projetDto);
+
+      var result = await _projetService.UpdateProjetAsync(id, projetUpdateDto);
       if (!result)
         return NotFound();
       return NoContent();
     }
+
 
     // Supprimer un projet
     [HttpDelete("supprimerProjet/{id}")]

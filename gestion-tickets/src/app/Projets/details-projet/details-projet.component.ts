@@ -22,10 +22,10 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 
 @Component({
-    selector: 'app-details-projet',
-    imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule],
-    templateUrl: './details-projet.component.html',
-    styleUrls: ['./details-projet.component.css']
+  selector: 'app-details-projet',
+  imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule],
+  templateUrl: './details-projet.component.html',
+  styleUrls: ['./details-projet.component.css']
 })
 export class DetailsProjetComponent implements OnInit {
   // --- Données du projet et membres ---
@@ -36,7 +36,7 @@ export class DetailsProjetComponent implements OnInit {
   pageNumber: number = 1;
   pageSize: number = 9;
   jumpPage: number = 1;
-  totalPages: number = 1; 
+  totalPages: number = 1;
 
   // Recherche dans le tableau des membres
   userSearchTerm: string = '';
@@ -58,7 +58,7 @@ export class DetailsProjetComponent implements OnInit {
 
   // --- Gestion des utilisateurs (pour la boîte modale) ---
   availableUsers: Partial<User>[] = [];
-  
+
   // (Optionnel) Pagination & recherche côté serveur pour les utilisateurs
   userPageNumber: number = 1;
   userPageSize: number = 1;
@@ -67,7 +67,10 @@ export class DetailsProjetComponent implements OnInit {
   displayedUsers: User[] = [];
   userJumpPage: number = 1;
 
-  availableChefs: User[] = [];
+  isChefDropdownOpen: boolean = false;
+  searchChef: string = '';
+  availableChefs: User[] = []; 
+  filteredChefs: User[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -81,17 +84,18 @@ export class DetailsProjetComponent implements OnInit {
     private location: Location,
     private elementRef: ElementRef,
     private overlayModalService: OverlayModalService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     // S'abonner aux paramètres de la route pour détecter les changements de l'ID du projet
-  this.route.params.subscribe(params => {
-    const id = Number(params['id']);
-    if (id) {
-      this.getProjetDetails(id);
-    }
-  });
+    this.route.params.subscribe(params => {
+      const id = Number(params['id']);
+      if (id) {
+        this.getProjetDetails(id);
+      }
+    });
     this.getAvailableUsers();
+    this.getAvailableChefs();
     this.loadPays();
     this.loadSocietes();
     this.loadUsers(); // Pour la recherche/pagination côté serveur (si nécessaire)
@@ -113,17 +117,19 @@ export class DetailsProjetComponent implements OnInit {
   getAvailableChefs(): void {
     this.accountService.getAllUsers().subscribe({
       next: (users: User[]) => {
-        // Pour être sûr d'inclure les rôles "Chef de Projet" et "Super Admin",
-        // on normalise la casse avec toLowerCase() et on compare.
+        // Vous pouvez appliquer ici un filtre sur les rôles si nécessaire.
         this.availableChefs = users.filter(user => {
           const role = user.role.toLowerCase().trim();
+          // Par exemple, pour inclure les utilisateurs avec le rôle "chef de projet" ou "collaborateur"
           return role === 'chef de projet' || role === 'collaborateur';
         });
+        this.filteredChefs = [...this.availableChefs];
         console.log('Chefs disponibles:', this.availableChefs);
       },
       error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });
   }
+  
 
   getMembres(): void {
     if (this.projet && this.projet.id) {
@@ -142,13 +148,13 @@ export class DetailsProjetComponent implements OnInit {
               selected: false
             };
             this.membres.unshift(chefMember);
-          }          
+          }
         },
         error: (err) => { console.error('Erreur lors du chargement des membres', err); }
       });
     }
   }
-  
+
 
   // --- Filtrage et pagination des membres (client-side) ---
   get displayedMembres(): ProjetMember[] {
@@ -184,7 +190,7 @@ export class DetailsProjetComponent implements OnInit {
   selectAll(event: any): void {
     const checked = event.target.checked;
     this.membres.forEach(m => m.selected = checked);
-  }  
+  }
 
   toggleSelection(membre: ProjetMember): void {
     console.log('Membre sélectionné/désélectionné :', membre);
@@ -231,7 +237,7 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => { console.error('Erreur lors de la récupération des sociétés', err); }
     });
   }
-  
+
   onSocieteSearch(): void {
     this.loadSocietes();
   }
@@ -242,13 +248,21 @@ export class DetailsProjetComponent implements OnInit {
       this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
       if (this.isPaysDropdownOpen) {
         this.isSocieteDropdownOpen = false;
+        this.isChefDropdownOpen = false;
       }
     } else if (type === 'societe') {
       this.isSocieteDropdownOpen = !this.isSocieteDropdownOpen;
       if (this.isSocieteDropdownOpen) {
         this.isPaysDropdownOpen = false;
+        this.isChefDropdownOpen = false;
       }
-    }
+    } else if  (type === 'chef') {
+      this.isChefDropdownOpen = !this.isChefDropdownOpen;
+      if (this.isChefDropdownOpen) {
+        this.isPaysDropdownOpen = false;
+        this.isSocieteDropdownOpen = false;
+      }
+    } 
   }
 
 
@@ -265,8 +279,8 @@ export class DetailsProjetComponent implements OnInit {
     }
     return this.societes.find(s => s.id === idSociete || s.id === idSociete)?.nom || '';
   }
-  
-  
+
+
   // Méthode de sélection d'une société dans le dropdown
   selectSociete(societe: any): void {
     // Affecte l'identifiant de la société
@@ -279,7 +293,7 @@ export class DetailsProjetComponent implements OnInit {
     this.searchSociete = '';
     this.loadSocietes();
   }
-  
+
 
   // --- Sauvegarde, annulation et suppression du projet ---
   saveProjet(): void {
@@ -301,13 +315,13 @@ export class DetailsProjetComponent implements OnInit {
       this.overlayModalService.close();
     });
   }
-  
+
   cancelEdit(): void {
     this.editMode = false;
     // Recharger les détails du projet en passant l'ID du projet
     this.getProjetDetails(this.projet.id);
   }
-  
+
 
 
   // --- Gestion des utilisateurs dans la modale ---
@@ -337,7 +351,7 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });
   }
-  
+
 
   addUserToProjet(user: User): void {
     if (this.projet && this.projet.id && user.id) {
@@ -360,7 +374,7 @@ export class DetailsProjetComponent implements OnInit {
       this.toastr.warning("Veuillez sélectionner un utilisateur valide.");
     }
   }
-  
+
 
   removeUser(userId: number): void {
     if (this.projet && this.projet.id) {
@@ -393,12 +407,12 @@ export class DetailsProjetComponent implements OnInit {
     const selectedUserIds = this.membres
       .filter(m => m.selected)
       .map(m => m.userId);
-    
+
     if (selectedUserIds.length === 0) {
       this.toastr.warning("Aucun membre sélectionné pour la suppression.");
       return;
     }
-    
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?";
     modalInstance.confirmed.subscribe(() => {
@@ -415,7 +429,38 @@ export class DetailsProjetComponent implements OnInit {
       this.overlayModalService.close();
     });
   }
-    
+
+  onChefSearch(): void {
+    if (this.searchChef && this.searchChef.trim() !== '') {
+      const term = this.searchChef.toLowerCase();
+      this.filteredChefs = this.availableChefs.filter(chef =>
+        (chef.firstName + ' ' + chef.lastName).toLowerCase().includes(term)
+      );
+    } else {
+      this.filteredChefs = [...this.availableChefs];
+    }
+  }
+
+  selectChef(chef: User): void {
+    // Met à jour l'identifiant du chef dans le projet
+    this.projet.chefProjetId = chef.id;
+    // Optionnel : Mettre à jour l'objet complet du chef
+    this.projet.chefProjet = chef;
+    // Fermer le dropdown
+    this.isChefDropdownOpen = false;
+    // Réinitialiser le champ de recherche si besoin
+    this.searchChef = '';
+    this.filteredChefs = [...this.availableChefs];
+  }
+
+  getChefName(chefId: number | undefined): string {
+    if (chefId === undefined) return '';
+    const chef = this.availableChefs.find(c => c.id === chefId);
+    return chef ? `${chef.firstName} ${chef.lastName}` : '';
+  }
+  
+  
+
   // Gestionnaire de clic global pour fermer les dropdowns
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -424,6 +469,7 @@ export class DetailsProjetComponent implements OnInit {
     if (!target.closest('.custom-select')) {
       this.isPaysDropdownOpen = false;
       this.isSocieteDropdownOpen = false;
+      this.isChefDropdownOpen = false;
     }
   }
 

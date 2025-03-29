@@ -46,6 +46,47 @@
         </div>
       </div>
     </div>
+
+    <!-- Chef de projet -->
+    <div class="info-item societe">
+      <div class="info-item">
+        <span class="info-label">Chef de projet</span>
+        <span class="info-value" *ngIf="!editMode && projet && projet.chefProjet">
+          {{ projet.chefProjet.firstName }} {{ projet.chefProjet.lastName }}
+        </span>
+        <div *ngIf="editMode">
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('chef')">
+              <div class="selected-item">
+                {{ getChefName(projet.chefProjetId) || 'Sélectionner un chef de projet' }}
+              </div>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="dropdown-content" [class.show]="isChefDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher un chef de projet..." [(ngModel)]="searchChef"
+                  (ngModelChange)="onChefSearch()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredChefs.length > 0; else noChefResults">
+                  <div *ngFor="let chef of filteredChefs" class="option-item" (click)="selectChef(chef)">
+                    {{ chef.firstName }} {{ chef.lastName }}
+                  </div>
+                </ng-container>
+                <ng-template #noChefResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucun chef de projet trouvé</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Pays -->
     <div class="info-item pays">
       <div class="info-item">
@@ -57,23 +98,6 @@
       </div>
     </div>
 
-    <!-- Chef de projet -->
-    <div class="info-item chef-projet">
-      <span class="info-label">Chef de projet</span>
-      <span class="info-value" *ngIf="!editMode && projet && projet.chefProjet">
-        {{ projet.chefProjet.firstName }} {{ projet.chefProjet.lastName }}
-      </span>
-      <!-- Mode édition : champ Chef de projet -->
-      <div *ngIf="editMode" class="info-item edit-chef-projet-container">
-        <select [(ngModel)]="projet.chefProjetId" class="edit-field">
-          <option [ngValue]="null">Sélectionnez un chef de projet</option>
-          <option *ngFor="let chef of availableChefs" [ngValue]="chef.id">
-            {{ chef.firstName }} {{ chef.lastName }}
-          </option>
-        </select>
-      </div>      
-
-    </div>
 
   </div>
 

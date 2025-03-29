@@ -141,6 +141,7 @@ h1::after {
 
 .info-item:hover {
   transform: translateY(-2px);
+  z-index: 10;
 }
 
 .info-label {
@@ -511,6 +512,7 @@ th.checkbox-column, td.checkbox-column {
 .custom-select {
   position: relative;
   width: 100%;
+  z-index: 1000;
   margin-bottom: 15px;
 }
 
@@ -552,7 +554,7 @@ th.checkbox-column, td.checkbox-column {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 1001;
   max-height: 300px;
   overflow-y: auto;
   margin-top: 5px;
@@ -569,7 +571,7 @@ th.checkbox-column, td.checkbox-column {
   background: white;
   padding: 12px;
   border-bottom: 1px solid #e5e7eb;
-  z-index: 1;
+  z-index: 10;
 }
 
 .search-box input {

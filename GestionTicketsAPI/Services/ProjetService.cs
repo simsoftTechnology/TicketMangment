@@ -76,7 +76,7 @@ public class ProjetService : IProjetService
 
 
 
-  public async Task<bool> UpdateProjetAsync(int id, ProjetDto projetDto)
+  public async Task<bool> UpdateProjetAsync(int id, ProjetUpdateDto projetDto)
   {
     if (id != projetDto.Id)
       return false;
