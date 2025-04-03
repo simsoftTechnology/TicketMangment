@@ -27,7 +27,6 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               });
               return throwError(() => flatErrors);
             } else {
-              toastr.error(error.error, 'Erreur 400');
               return throwError(() => error.error);
             }
           case 401:

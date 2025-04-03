@@ -8,7 +8,7 @@ body {
   display: flex;
   align-items: center;
   background-color: white;
-  padding: 20px;
+  padding: 5px 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-bottom: 2px solid #f0f0f0;
   width: 100%;
@@ -63,7 +63,7 @@ body {
   width: 2px;
   height: 70px;
   background-color: #f0f0f0;
-  margin: 0 61px;
+  margin: 0 30px;
   flex-shrink: 0;
 }
 

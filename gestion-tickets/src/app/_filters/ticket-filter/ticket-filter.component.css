@@ -22,6 +22,7 @@
 /* Style du sélecteur personnalisé */
 .custom-select {
   position: relative;
+  overflow: visible;
   width: 100%;
 }
 
@@ -78,23 +79,22 @@
   top: 100%;
   left: 0;
   width: 100%;
-  max-height: 0;
-  overflow: hidden;
+  max-height: 280px;
+  overflow-y: auto;
   background-color: #fff;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-  transition: all 0.3s ease;
-  margin-top: 4px;
+  z-index: 9999; /* Assurez-vous qu'il soit supérieur */
   opacity: 0;
   visibility: hidden;
+  transition: all 0.3s ease;
 }
 
 .dropdown-content.show {
-  max-height: 280px;
   opacity: 1;
   visibility: visible;
 }
+
 
 /* Style de la boîte de recherche */
 .search-box {

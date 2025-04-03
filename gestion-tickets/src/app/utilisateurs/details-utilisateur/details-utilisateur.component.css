@@ -2,7 +2,7 @@
 /*detail-utilisateur*/
 .form-container {
   padding: 2rem;
-  width: 100%;
+  width: 90%;
   height: 100%;
   margin: 0 auto;
   font-weight: 500;
@@ -14,7 +14,7 @@ h1 {
   font-size: 2.5rem;
   color: #2d3748;
   margin: 0.7rem;
-  margin-left: 0.01rem;
+  margin-left: 3.8rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   position: relative;
@@ -278,13 +278,12 @@ input:checked + .toggle-label:before {
 
 /* Styles pour le tableau dans l’onglet */
 .tab-pane table {
-  width: 100%;
+  width: 90%;
   border-collapse: collapse;
   background: white;
   border-radius: 10px;
   overflow: hidden;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 20px auto;
 }
 
 .tab-pane thead {
@@ -293,7 +292,7 @@ input:checked + .toggle-label:before {
 
 .tab-pane th,
 .tab-pane td {
-  padding: 12px 10px;
+  padding: 10px 10px;
   border-bottom: 1px solid #eee;
   color: #333;
   vertical-align: middle;
@@ -505,7 +504,7 @@ h3 {
 
 /* Styles pour le formulaire de contrat */
 .contract-form-container {
-  width: 100%;
+  width: 90%;
   max-width: 1300px;
   margin: 1rem auto;
   padding: 2rem;
@@ -658,7 +657,7 @@ h3 {
 @media (max-width: 1199px) {
   .form-container {
     padding: 1.5rem;
-    max-width: 90%; /* Réduction de la largeur */
+    max-width: 80%; /* Réduction de la largeur */
   }
 
   .form-row {
@@ -680,7 +679,7 @@ h3 {
 @media (max-width: 1460px) {
   .form-container {
     padding: 1rem;
-    max-width: 95%;
+    max-width: 85%;
   }
 
 
@@ -713,7 +712,7 @@ h3 {
 
   .form-container {
     padding: 1rem;
-    max-width: 95%;
+    max-width: 85%;
   }
 
   .form-row {

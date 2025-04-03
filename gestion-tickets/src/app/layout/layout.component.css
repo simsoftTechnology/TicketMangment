@@ -30,7 +30,7 @@
 
 /* Barre latérale */
 mat-sidenav {
-  width: 400px;
+  width: 370px;
   background: white;
   border-right: 1px solid #f0f0f0;
   display: flex;

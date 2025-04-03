@@ -26,7 +26,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
   imports: [CommonModule, FormsModule, RouterLink, TicketFilterComponent,
     MatMenuModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
   ],
   templateUrl: './list-tickets.component.html',
   styleUrls: ['./list-tickets.component.css']
