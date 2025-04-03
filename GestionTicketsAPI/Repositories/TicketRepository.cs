@@ -47,7 +47,8 @@ namespace GestionTicketsAPI.Repositories
           .ToListAsync();
     }
 
-    public async Task<PagedList<Ticket>> GetTicketsPagedAsync(UserParams ticketParams)
+
+    public async Task<PagedList<Ticket>> GetTicketsPagedAsync(TicketFilterParams filterParams)
     {
       var query = _context.Tickets
           .Include(t => t.Owner)
@@ -63,62 +64,89 @@ namespace GestionTicketsAPI.Repositories
           .OrderByDescending(t => t.CreatedAt)
           .AsQueryable();
 
-      // Si l'utilisateur n'est pas un super admin
-      if (!(ticketParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? false))
+      // Filtrage par rôle et utilisateur (la logique existante reste inchangée)
+      if (!(filterParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? false))
       {
-        // Si l'utilisateur est un client : ne voir que ses tickets
-        if (string.Equals(ticketParams.Role, "client", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(filterParams.Role, "client", StringComparison.OrdinalIgnoreCase))
         {
-          query = query.Where(t => t.OwnerId == ticketParams.UserId);
+          query = query.Where(t => t.OwnerId == filterParams.UserId);
         }
-        // Si l'utilisateur est un chef de projet ou un collaborateur
-        else if (string.Equals(ticketParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(ticketParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
+        else if (string.Equals(filterParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase) ||
+                 string.Equals(filterParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
         {
-          if (!string.IsNullOrEmpty(ticketParams.FilterType))
+          if (!string.IsNullOrEmpty(filterParams.FilterType))
           {
-            if (ticketParams.FilterType.Equals("associated", StringComparison.OrdinalIgnoreCase))
+            if (filterParams.FilterType.Equals("associated", StringComparison.OrdinalIgnoreCase))
             {
-              // Tickets directement associés (propriétaire, responsable, chef de projet)
-              query = query.Where(t =>
-                  t.OwnerId == ticketParams.UserId ||
-                  t.ResponsibleId == ticketParams.UserId ||
-                  (t.Projet != null && t.Projet.ChefProjetId == ticketParams.UserId)
-              );
+              query = query.Where(t => t.OwnerId == filterParams.UserId ||
+                                       t.ResponsibleId == filterParams.UserId ||
+                                       (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId));
             }
-            else if (ticketParams.FilterType.Equals("projetUser", StringComparison.OrdinalIgnoreCase))
+            else if (filterParams.FilterType.Equals("projetUser", StringComparison.OrdinalIgnoreCase))
             {
-              // Tickets associés via ProjetUser
-              query = query.Where(t =>
-                  _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)
-              );
+              query = query.Where(t => _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
             }
           }
           else
           {
-            // Par défaut, pour les chefs de projets et collaborateurs, on récupère tous les tickets associés
             query = query.Where(t =>
-                t.OwnerId == ticketParams.UserId ||
-                t.ResponsibleId == ticketParams.UserId ||
-                (t.Projet != null && t.Projet.ChefProjetId == ticketParams.UserId) ||
-                _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == ticketParams.UserId)
-            );
+                t.OwnerId == filterParams.UserId ||
+                t.ResponsibleId == filterParams.UserId ||
+                (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId) ||
+                _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
           }
         }
       }
 
-      // Filtrage par terme de recherche (pour tous les rôles)
-      if (!string.IsNullOrEmpty(ticketParams.SearchTerm))
+      // Filtres avancés avec les nouveaux champs
+      if (!string.IsNullOrEmpty(filterParams.Client))
       {
-        var lowerSearchTerm = ticketParams.SearchTerm.ToLower();
+        var lowerClient = filterParams.Client.ToLower();
+        query = query.Where(t => (t.Owner.FirstName + " " + t.Owner.LastName).ToLower().Contains(lowerClient));
+      }
+
+      if (!string.IsNullOrEmpty(filterParams.Categorie))
+      {
+        var lowerCategorie = filterParams.Categorie.ToLower();
+        // Supposons que le nom de la catégorie se trouve dans t.ProblemCategory.Name
+        query = query.Where(t => t.ProblemCategory.Nom.ToLower().Contains(lowerCategorie));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Priorite))
+      {
+        var lowerPriorite = filterParams.Priorite.ToLower();
+        // Supposons que le nom de la priorité se trouve dans t.Priority.Name
+        query = query.Where(t => t.Priority.Name.ToLower().Contains(lowerPriorite));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Statut))
+      {
+        var lowerStatut = filterParams.Statut.ToLower();
+        // Supposons que le nom du statut se trouve dans t.Statut.Name
+        query = query.Where(t => t.Statut.Name.ToLower().Contains(lowerStatut));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Qualification))
+      {
+        var lowerQualif = filterParams.Qualification.ToLower();
+        query = query.Where(t => t.Qualification.Name.ToLower().Contains(lowerQualif));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Projet))
+      {
+        var lowerProjet = filterParams.Projet.ToLower();
+        query = query.Where(t => t.Projet.Nom.ToLower().Contains(lowerProjet));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Societe))
+      {
+        var lowerSociete = filterParams.Societe.ToLower();
+        query = query.Where(t => t.Projet.Societe.Nom.ToLower().Contains(lowerSociete));
+      }
+      if (!string.IsNullOrEmpty(filterParams.SearchTerm))
+      {
+        var lowerSearchTerm = filterParams.SearchTerm.ToLower();
         query = query.Where(t => t.Title.ToLower().Contains(lowerSearchTerm) ||
                                  t.Description.ToLower().Contains(lowerSearchTerm));
       }
 
-      return await PagedList<Ticket>.CreateAsync(query, ticketParams.PageNumber, ticketParams.PageSize);
+      return await PagedList<Ticket>.CreateAsync(query, filterParams.PageNumber, filterParams.PageSize);
     }
-
-
 
 
     public async Task AddTicketAsync(Ticket ticket)
@@ -198,6 +226,76 @@ namespace GestionTicketsAPI.Repositories
 
       return results.Cast<object>().ToList();
     }
+    public async Task<IEnumerable<Ticket>> GetTicketsFilteredAsync(TicketFilterParams filterParams)
+    {
+      var query = _context.Tickets
+          .Include(t => t.Owner)
+          .Include(t => t.ProblemCategory)
+          .Include(t => t.Projet).ThenInclude(p => p.Societe)
+          .Include(t => t.Responsible)
+          .Include(t => t.Priority)
+          .Include(t => t.Qualification)
+          .Include(t => t.Statut)
+          .OrderByDescending(t => t.CreatedAt)
+          .AsQueryable();
+
+      // Filtres existants
+      if (!string.IsNullOrEmpty(filterParams.Id) && int.TryParse(filterParams.Id, out int ticketId))
+      {
+        query = query.Where(t => t.Id == ticketId);
+      }
+      if (!string.IsNullOrEmpty(filterParams.Titre))
+      {
+        var lowerTitre = filterParams.Titre.ToLower();
+        query = query.Where(t => t.Title.ToLower().Contains(lowerTitre));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Qualification))
+      {
+        var lowerQualif = filterParams.Qualification.ToLower();
+        query = query.Where(t => t.Qualification.Name.ToLower().Contains(lowerQualif));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Projet))
+      {
+        var lowerProjet = filterParams.Projet.ToLower();
+        query = query.Where(t => t.Projet.Nom.ToLower().Contains(lowerProjet));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Societe))
+      {
+        var lowerSociete = filterParams.Societe.ToLower();
+        query = query.Where(t => t.Projet.Societe.Nom.ToLower().Contains(lowerSociete));
+      }
+      if (!string.IsNullOrEmpty(filterParams.SearchTerm))
+      {
+        var lowerSearchTerm = filterParams.SearchTerm.ToLower();
+        query = query.Where(t => t.Title.ToLower().Contains(lowerSearchTerm) ||
+                                 t.Description.ToLower().Contains(lowerSearchTerm));
+      }
+
+      // Nouveaux filtres
+      if (!string.IsNullOrEmpty(filterParams.Client))
+      {
+        var lowerClient = filterParams.Client.ToLower();
+        query = query.Where(t => (t.Owner.FirstName + " " + t.Owner.LastName).ToLower().Contains(lowerClient));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Categorie))
+      {
+        var lowerCategorie = filterParams.Categorie.ToLower();
+        query = query.Where(t => t.ProblemCategory.Nom.ToLower().Contains(lowerCategorie));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Priorite))
+      {
+        var lowerPriorite = filterParams.Priorite.ToLower();
+        query = query.Where(t => t.Priority.Name.ToLower().Contains(lowerPriorite));
+      }
+      if (!string.IsNullOrEmpty(filterParams.Statut))
+      {
+        var lowerStatut = filterParams.Statut.ToLower();
+        query = query.Where(t => t.Statut.Name.ToLower().Contains(lowerStatut));
+      }
+
+      return await query.ToListAsync();
+    }
+
 
   }
 }

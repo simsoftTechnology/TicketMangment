@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using AutoMapper;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
@@ -7,38 +8,65 @@ using GestionTicketsAPI.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
   [ApiController]
   [Authorize]
   public class ProjetsController : BaseApiController
   {
     private readonly IProjetService _projetService;
     private readonly EmailService _emailService;
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IMapper _mapper;
 
-    public ProjetsController(IProjetService projetService, EmailService emailService)
+    public ProjetsController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, IProjetService projetService, EmailService emailService)
     {
       _projetService = projetService;
       _emailService = emailService;
+      _mapper = mapper;
+      _excelExportService = excelExportService;
     }
 
     // Récupérer tous les projets
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjets()
+    public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjects([FromQuery] ProjectFilterParams filterParams)
     {
-      var projetsDto = await _projetService.GetProjetsAsync();
-      return Ok(projetsDto);
+      // Extraction des infos de l'utilisateur connecté
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+      if (userIdClaim != null && roleClaim != null)
+      {
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        // Normalisation du rôle
+        filterParams.Role = roleClaim.Value.ToLower().Trim();
+      }
+
+      // Appel du service de projets avec les paramètres complets
+      var pagedProjects = await _projetService.GetProjetsPagedAsync(filterParams);
+
+      var pagination = new
+      {
+        currentPage = pagedProjects.CurrentPage,
+        pageSize = pagedProjects.PageSize,
+        totalItems = pagedProjects.TotalCount,
+        totalPages = pagedProjects.TotalPages
+      };
+      Response.Headers["Pagination"] = JsonConvert.SerializeObject(pagination);
+      return Ok(pagedProjects);
     }
+
 
     // Récupérer les projets paginés
     [HttpGet("paged")]
-    public async Task<ActionResult<PagedList<ProjetDto>>> GetProjetsPaged([FromQuery] UserParams projetParams)
+    public async Task<ActionResult<PagedList<ProjetDto>>> GetProjetsPaged([FromQuery] ProjectFilterParams filterParams)
     {
-      var projetsPaged = await _projetService.GetProjetsPagedAsync(projetParams);
+      Console.WriteLine($"Role: {filterParams.Role}, UserId: {filterParams.UserId}");
+      var projetsPaged = await _projetService.GetProjetsPagedAsync(filterParams);
       Response.AddPaginationHeader(projetsPaged);
       return Ok(projetsPaged);
     }
+
 
     // Récupérer un projet par ID
     [HttpGet("{id}")]
@@ -192,6 +220,28 @@ namespace GestionTicketsAPI.Controllers
       return Ok(projetsDto);
     }
 
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportProjects([FromQuery] ProjectFilterParams filterParams)
+    {
+      // Extraction des infos de l'utilisateur connecté
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+      if (userIdClaim != null && roleClaim != null)
+      {
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        filterParams.Role = roleClaim.Value;
+      }
+
+      // Récupérer les projets filtrés (non paginés)
+      var projects = await _projetService.GetProjetsFilteredAsync(filterParams);
+      // Mapper vers le DTO d’export
+      var projectExportDtos = _mapper.Map<IEnumerable<ProjectExportDto>>(projects);
+      // Générer le fichier Excel
+      var content = _excelExportService.ExportToExcel(projectExportDtos, "Projects");
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"ProjectsExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+    }
 
   }
 }

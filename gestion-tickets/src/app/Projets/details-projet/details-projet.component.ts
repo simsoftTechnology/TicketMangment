@@ -124,7 +124,6 @@ export class DetailsProjetComponent implements OnInit {
           return role === 'chef de projet' || role === 'collaborateur';
         });
         this.filteredChefs = [...this.availableChefs];
-        console.log('Chefs disponibles:', this.availableChefs);
       },
       error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });

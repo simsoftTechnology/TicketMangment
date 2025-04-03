@@ -1,0 +1,43 @@
+<div class="filter-panel">
+  <form [formGroup]="filterForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="pays">Pays</label>
+      <div id="pays" class="custom-select">
+        <div class="select-box" (click)="toggleDropdown($event)">
+          <div class="selected-item">
+            {{ selectedPays || 'Sélectionnez un pays' }}
+          </div>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
+          <div class="search-box">
+            <input type="text"
+                   placeholder="Rechercher un pays..."
+                   [(ngModel)]="paysSearchTerm"
+                   [ngModelOptions]="{standalone: true}"
+                   (ngModelChange)="filterPays()"
+                   (click)="$event.stopPropagation()">
+          </div>
+          <div class="option-list">
+            <ng-container *ngIf="filteredPays.length > 0; else noPaysResults">
+              <div *ngFor="let pays of filteredPays"
+                   class="option-item"
+                   (click)="selectPays(pays); $event.stopPropagation()">
+                {{ pays }}
+              </div>
+            </ng-container>
+            <ng-template #noPaysResults>
+              <div class="no-results">Aucun pays trouvé</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="form-group action-buttons">
+      <button type="submit" class="btn btn-primary">Appliquer</button>
+      <button type="button" class="btn btn-secondary" (click)="onReset()">Réinitialiser</button>
+    </div>
+  </form>
+</div>

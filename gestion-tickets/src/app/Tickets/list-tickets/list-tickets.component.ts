@@ -13,11 +13,19 @@ import { StatusService } from '../../_services/status.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { TicketFilterComponent } from '../../_filters/ticket-filter/ticket-filter.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-list-tickets',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, TicketFilterComponent,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule
+  ],
   templateUrl: './list-tickets.component.html',
   styleUrls: ['./list-tickets.component.css']
 })
@@ -40,20 +48,22 @@ export class ListTicketsComponent implements OnInit {
   ticketsSearchTerm: string = '';
   newTicketId: number | null = null;
   
-  // Variable de filtre : si 'associated' on ne montre que les tickets directement associés à l'utilisateur
-  currentFilterType: string = '';
+  currentFilters: any = { filterType: '' };
 
   // Tableaux pour qualifications, priorités et statuts
   qualifications: { id: number, name: string }[] = [];
   priorities: { id: number, name: string }[] = [];
   statuses: { id: number, name: string }[] = [];
 
+  filterVisible: boolean = false;
+
   ngOnInit(): void {
     // Récupérer le filtre passé par la route
     this.route.data.subscribe(data => {
-      this.currentFilterType = data['filterType'] || '';
+      this.currentFilters.filterType = data['filterType'] || '';
       this.getTickets();
     });
+    
 
     this.currentUser = this.accountService.currentUser();
     this.loadQualifications();
@@ -100,11 +110,15 @@ export class ListTicketsComponent implements OnInit {
   }
 
   getTickets(): void {
+    const filters = {
+      ...this.currentFilters,
+      searchTerm: this.ticketsSearchTerm
+    };
+  
     this.ticketService.getPaginatedTickets(
       this.pageNumber,
       this.pageSize,
-      this.ticketsSearchTerm,
-      this.currentFilterType  // Si 'associated', le backend renvoie uniquement les tickets directement associés à l'utilisateur
+      filters
     ).subscribe({
       next: (response) => {
         const updatedItems = (response.items ?? []).map(ticket => {
@@ -120,10 +134,13 @@ export class ListTicketsComponent implements OnInit {
         };
       },
       error: (error) => {
-        console.error('Erreur lors du chargement des tickets paginés', error);
+        console.error("Erreur lors du chargement des tickets", error);
+        this.toastr.error("Erreur lors du chargement des tickets");
       }
     });
   }
+  
+
 
   onSearchChange(): void {
     this.pageNumber = 1;
@@ -217,5 +234,32 @@ export class ListTicketsComponent implements OnInit {
   getStatusLabel(statutId: number): string {
     const found = this.statuses.find(s => s.id === statutId);
     return found ? found.name : '';
+  }
+
+  toggleFilterPanel() {
+    this.filterVisible = !this.filterVisible;
+  }
+
+  onApplyFilter(filterValues: any) {
+    this.currentFilters = filterValues;
+    this.pageNumber = 1;
+    this.getTickets();
+  }
+  
+
+  exportTickets(): void {
+    this.ticketService.exportTickets(this.currentFilters).subscribe({
+      next: (fileBlob: Blob) => {
+        const objectUrl = URL.createObjectURL(fileBlob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = `TicketsExport_${new Date().getTime()}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+      },
+      error: (err) => {
+        console.error("Erreur lors de l'export des tickets", err);
+      }
+    });
   }
 }

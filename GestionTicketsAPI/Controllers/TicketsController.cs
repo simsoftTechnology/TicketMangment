@@ -9,12 +9,12 @@ using GestionTicketsAPI.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using ClosedXML.Excel;
 
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  public class TicketsController : ControllerBase
+  public class TicketsController : BaseApiController
   {
     private readonly ITicketService _ticketService;
     private readonly IMapper _mapper;
@@ -23,8 +23,9 @@ namespace GestionTicketsAPI.Controllers
 
     private readonly IUserService _userService;
     private readonly ICommentService _commentService;
-
-    public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService)
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    
+    public TicketsController(ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService)
     {
       _ticketService = ticketService;
       _mapper = mapper;
@@ -32,22 +33,25 @@ namespace GestionTicketsAPI.Controllers
       _userService = userService;
       _emailService = emailService;
       _commentService = commentService;
+      _excelExportService = excelExportService;
     }
 
     // GET api/tickets?...
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromQuery] UserParams ticketParams)
+    public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromQuery] TicketFilterParams filterParams)
     {
-      // Extraction des informations de l'utilisateur connecté via les claims
+      // Extraction des infos de l'utilisateur connecté
       var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
       var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
       if (userIdClaim != null && roleClaim != null)
       {
-        ticketParams.UserId = int.Parse(userIdClaim.Value);
-        ticketParams.Role = roleClaim.Value;
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        filterParams.Role = roleClaim.Value;
       }
 
-      var pagedTickets = await _ticketService.GetTicketsPagedAsync(ticketParams);
+      // Appel direct du service en passant TicketFilterParams complet
+      var pagedTickets = await _ticketService.GetTicketsPagedAsync(filterParams);
+
       var pagination = new
       {
         currentPage = pagedTickets.CurrentPage,
@@ -58,6 +62,7 @@ namespace GestionTicketsAPI.Controllers
       Response.Headers["Pagination"] = JsonConvert.SerializeObject(pagination);
       return Ok(pagedTickets);
     }
+
 
     // GET api/tickets/{id}
     [HttpGet("{id}")]
@@ -493,6 +498,29 @@ namespace GestionTicketsAPI.Controllers
       return Ok(result);
     }
 
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportTickets([FromQuery] TicketFilterParams filterParams)
+    {
+      // Extraction des infos de l'utilisateur connecté si nécessaire
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+      if (userIdClaim != null && roleClaim != null)
+      {
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        filterParams.Role = roleClaim.Value;
+      }
+
+      // Récupérer les tickets filtrés (non paginés)
+      var tickets = await _ticketService.GetTicketsFilteredAsync(filterParams);
+      // Mapper vers le DTO d’export
+      var ticketExportDtos = _mapper.Map<IEnumerable<TicketExportDto>>(tickets);
+      // Générer le fichier Excel
+      var content = _excelExportService.ExportToExcel(ticketExportDtos, "Tickets");
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"TicketsExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+    }
 
 
   }

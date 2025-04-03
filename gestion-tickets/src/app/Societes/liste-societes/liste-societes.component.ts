@@ -11,10 +11,19 @@ import { ToastrService } from 'ngx-toastr';
 // Importations pour le modal de confirmation
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { SocieteFilterComponent } from '../../_filters/societe-filter/societe-filter.component';
 
 @Component({
     selector: 'app-liste-societes',
-    imports: [NgFor, FormsModule, RouterLink, NgIf],
+    imports: [NgFor, FormsModule, RouterLink, NgIf,
+      MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    SocieteFilterComponent
+    ],
     templateUrl: './liste-societes.component.html',
     styleUrls: ['./liste-societes.component.css']
 })
@@ -27,6 +36,8 @@ export class ListeSocietesComponent implements OnInit {
   jumpPage!: number;
   // Terme de recherche (sera transmis au service)
   societesSearchTerm: string = '';
+
+  filterParams: any = {};
 
   constructor(
     private societeService: SocieteService,
@@ -47,18 +58,25 @@ export class ListeSocietesComponent implements OnInit {
   }
 
   loadSocietes(): void {
+    // Ici, on transmet la recherche et les filtres (notamment le pays) au service
     this.societeService
-      .getPaginatedSocietes(this.pageNumber, this.pageSize, this.societesSearchTerm)
+      .getPaginatedSocietes(this.pageNumber, this.pageSize, this.societesSearchTerm, this.filterParams)
       .subscribe({
         next: (result) => {
           this.paginatedResult = result;
-          // Utiliser directement le tableau retourné par l'API
           this.societes = result.items || [];
         },
         error: (error) => {
           console.error('Erreur lors du chargement des sociétés paginées', error);
         }
       });
+  }
+
+  // Réception du filtre émis par le composant de filtre
+  onFilter(filterValues: any): void {
+    this.filterParams = filterValues;
+    this.pageNumber = 1;
+    this.loadSocietes();
   }
 
   // Pour la pagination, on travaille toujours avec l'API
@@ -144,5 +162,23 @@ export class ListeSocietesComponent implements OnInit {
 
   range(start: number, end: number): number[] {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  }
+
+  exportSocietes(): void {
+    // On passe également les filtres et la recherche pour l'export
+    this.societeService.exportSocietes(this.societesSearchTerm, this.filterParams)
+      .subscribe({
+        next: (blob: Blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `SocietesExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          console.error("Erreur lors de l'export Excel des sociétés", error);
+        }
+      });
   }
 }

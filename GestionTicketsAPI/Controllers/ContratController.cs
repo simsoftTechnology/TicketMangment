@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class ContratController : ControllerBase
+    public class ContratController : BaseApiController
     {
         private readonly IContratService _contratService;
         public ContratController(IContratService contratService)

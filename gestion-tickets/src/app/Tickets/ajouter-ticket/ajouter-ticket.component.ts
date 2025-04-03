@@ -145,7 +145,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
 
   // Méthode pour charger la liste des projets depuis la base
   loadProjets(): void {
-    this.projetService.getUserProjets().subscribe({
+    this.projetService.getProjets().subscribe({
       next: (projets) => {
         this.projets = projets;
         this.filteredProjets = [...this.projets];

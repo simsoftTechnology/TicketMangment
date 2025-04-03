@@ -209,6 +209,20 @@ export class CategoriesComponent implements OnInit {
     cat.editing = false;
   }
   
-
+  exportCategories(): void {
+    this.categorieService.exportCategories().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CategoriesExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error("Erreur lors de l'export Excel des catégories", error);
+      }
+    });
+  }
 
 }

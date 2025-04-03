@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Mvc;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using Newtonsoft.Json;
+using GestionTicketsAPI.Services;
+using AutoMapper;
+using GestionTicketsAPI.Helpers;
 
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  public class CategorieProblemeController : ControllerBase
+  public class CategorieProblemeController : BaseApiController
   {
     private readonly ICategorieProblemeService _categorieService;
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IMapper _mapper;
 
-    public CategorieProblemeController(ICategorieProblemeService categorieService)
+    public CategorieProblemeController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ICategorieProblemeService categorieService)
     {
       _categorieService = categorieService;
+      _mapper = mapper;
+      _excelExportService = excelExportService;
     }
 
     // GET : api/CategorieProbleme
@@ -113,5 +119,20 @@ namespace GestionTicketsAPI.Controllers
         return Ok("Catégories supprimées avec succès.");
       return BadRequest("Erreur lors de la suppression des catégories.");
     }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportCategories()
+    {
+      // Récupérer toutes les catégories directement via l'entité
+      var categories = await _categorieService.GetCategoriesAsync();
+
+      // Générer le fichier Excel en utilisant directement la collection d'entités
+      var content = _excelExportService.ExportToExcel(categories, "Categories");
+
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"CategoriesExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+    }
+
   }
 }

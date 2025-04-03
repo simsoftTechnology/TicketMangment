@@ -12,10 +12,10 @@ export class SocieteService {
   getSocieteById(societeId: number) {
     throw new Error('Method not implemented.');
   }
-  private apiUrl = 'https://localhost:5001/api/societe'; 
+  private apiUrl = 'https://localhost:5001/api/societe';
   paginatedResult: PaginatedResult<Societe[]> | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getSocietes(searchTerm?: string): Observable<Societe[]> {
     let params = new HttpParams();
@@ -26,14 +26,23 @@ export class SocieteService {
   }
 
   // Méthode pour récupérer les projets paginés
-  getPaginatedSocietes(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<Societe[]>> {
-    let params = new HttpParams();
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
-    }
+  getPaginatedSocietes(
+    pageNumber: number, 
+    pageSize: number, 
+    searchTerm?: string, 
+    extraFilters?: any
+  ): Observable<PaginatedResult<Societe[]>> {
+    let params = new HttpParams()
+      .append('pageNumber', pageNumber.toString())
+      .append('pageSize', pageSize.toString());
+    
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
+    }
+    
+    // Ajout des filtres supplémentaires si disponibles
+    if (extraFilters && extraFilters.pays) {
+      params = params.append('pays', extraFilters.pays);
     }
   
     return this.http.get<Societe[]>(this.apiUrl + '/paged', { observe: 'response', params })
@@ -41,14 +50,15 @@ export class SocieteService {
         map((response: HttpResponse<Societe[]>) => {
           const paginatedResult: PaginatedResult<Societe[]> = {
             items: response.body || [],
-            pagination: response.headers.get('Pagination') ? JSON.parse(response.headers.get('Pagination')!) : null!
+            pagination: response.headers.get('Pagination') 
+                          ? JSON.parse(response.headers.get('Pagination')!) 
+                          : null!
           };
           this.paginatedResult = paginatedResult;
           return paginatedResult;
         })
       );
   }
-  
   
 
   getSociete(id: number): Observable<Societe> {
@@ -84,16 +94,16 @@ export class SocieteService {
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
-    
-    return this.http.get<User[]>(`${this.apiUrl}/${societeId}/users/paged`, { 
-      observe: 'response', 
-      params 
+
+    return this.http.get<User[]>(`${this.apiUrl}/${societeId}/users/paged`, {
+      observe: 'response',
+      params
     }).pipe(
       map((response: HttpResponse<User[]>) => {
         const paginatedResult: PaginatedResult<User[]> = {
           items: response.body || [],
-          pagination: response.headers.get('Pagination') 
-            ? JSON.parse(response.headers.get('Pagination')!) 
+          pagination: response.headers.get('Pagination')
+            ? JSON.parse(response.headers.get('Pagination')!)
             : null
         };
         return paginatedResult;
@@ -106,12 +116,23 @@ export class SocieteService {
       `${this.apiUrl}/${societeId}/users/${userId}`,
       null,
       { responseType: 'text' }  // Précise que la réponse sera du texte
-    ); 
+    );
   }
-  
-  
+
+
   detachUser(societeId: number, userId: number): Observable<any> {
-  return this.http.delete(`${this.apiUrl}/${societeId}/users/${userId}`, { responseType: 'text' });
-}  
-  
+    return this.http.delete(`${this.apiUrl}/${societeId}/users/${userId}`, { responseType: 'text' });
+  }
+
+  exportSocietes(searchTerm: string, extraFilters: any): Observable<Blob> {
+    let params = new HttpParams();
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+    if (extraFilters && extraFilters.pays) {
+      params = params.append('pays', extraFilters.pays);
+    }
+    return this.http.get(this.apiUrl + '/export', { params, responseType: 'blob' });
+  }
+
 }

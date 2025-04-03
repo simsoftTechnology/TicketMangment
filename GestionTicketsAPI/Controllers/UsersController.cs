@@ -1,25 +1,28 @@
+using AutoMapper;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
   [Authorize]
   public class UsersController : BaseApiController
   {
     private readonly IUserService _userService;
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IMapper _mapper;
 
-    public UsersController(IUserService userService)
+    public UsersController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, IUserService userService)
     {
       _userService = userService;
+      _mapper = mapper;
+      _excelExportService = excelExportService;
     }
 
     // Récupérer les utilisateurs paginés
@@ -95,6 +98,22 @@ namespace GestionTicketsAPI.Controllers
     {
       var users = await _userService.GetUsersByRoleAsync(roleName);
       return Ok(users);
+    }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportUsers([FromQuery] UserParams userParams)
+    {
+      // Récupérer les utilisateurs filtrés (sans pagination)
+      var users = await _userService.GetUsersFilteredAsync(userParams);
+
+      // Mapper vers le DTO d'export avec AutoMapper
+      var userExportDtos = _mapper.Map<IEnumerable<UserExportDto>>(users);
+
+      // Générer le fichier Excel
+      var content = _excelExportService.ExportToExcel(userExportDtos, "Users");
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"UsersExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
     }
 
 

@@ -64,4 +64,8 @@ export class CategorieProblemeService {
     // Utilisation de la méthode http.request afin d'envoyer un body avec la requête DELETE
     return this.http.request('delete', `${this.baseUrl}/deleteMultiple`, { body: ids });
   }
+
+  exportCategories(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/export`, { responseType: 'blob' });
+  }
 }

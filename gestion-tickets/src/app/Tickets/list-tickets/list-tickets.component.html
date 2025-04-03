@@ -10,7 +10,7 @@
       <!-- Ligne de filtre avec barre de recherche -->
       <tr class="filter-row">
         <td class="checkbox-column"></td>
-        <td colspan="5">
+        <td colspan="6">
           <div class="search-wrapper">
             <input type="text" class="search-input" placeholder="Rechercher un ticket..."
               [(ngModel)]="ticketsSearchTerm" (ngModelChange)="onSearchChange()" />
@@ -18,15 +18,19 @@
           </div>
         </td>
         <td colspan="4" class="filter-actions">
-          <button class="filter-btn">
+          <button class="export-btn" (click)="exportTickets()">
+            <span class="material-icons">download</span> Export Excel
+          </button>
+          <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>
-          <button class="view-btn">
-            <span class="material-icons">grid_view</span>
-          </button>
-          <button class="view-btn active">
-            <span class="material-icons">view_list</span>
-          </button>
+          
+          <!-- Définition du matMenu contenant le composant de filtre -->
+          <mat-menu #filterMenu="matMenu" class="ticket-filter-menu" disableClose>
+            <div>
+              <app-ticket-filter (applyFilter)="onApplyFilter($event)"></app-ticket-filter>
+            </div>
+          </mat-menu>                    
         </td>
       </tr>
       <!-- En-tête des colonnes -->
@@ -87,7 +91,7 @@
       <!-- Message si aucune donnée -->
       <ng-container *ngIf="paginatedResult?.items?.length === 0">
         <tr>
-          <td colspan="10">
+          <td colspan="11">
             <div class="no-content">
               <span class="icon">✕</span>
               <p>Aucun ticket trouvé</p>
@@ -98,7 +102,7 @@
 
       <!-- Pagination -->
       <tr>
-        <td colspan="10">
+        <td colspan="11">
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de

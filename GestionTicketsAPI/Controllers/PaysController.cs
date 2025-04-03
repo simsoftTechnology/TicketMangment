@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
+
   [ApiController]
   public class PaysController : BaseApiController
   {

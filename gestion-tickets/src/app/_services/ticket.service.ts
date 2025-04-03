@@ -19,52 +19,59 @@ export class TicketService {
     private accountService: AccountService
   ) { }
 
-  getPaginatedTickets(
-    pageNumber?: number,
-    pageSize?: number,
-    searchTerm?: string,
-    filterType?: string  // Nouveau paramètre optionnel
-  ): Observable<PaginatedResult<Ticket[]>> {
-    let params = new HttpParams();
-
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
+  getPaginatedTickets(pageNumber: number, pageSize: number, filters: any): Observable<PaginatedResult<Ticket[]>> {
+    let params = new HttpParams()
+      .set('PageNumber', pageNumber.toString())
+      .set('PageSize', pageSize.toString());
+    
+      if (filters.filterType) {
+        params = params.append('FilterType', filters.filterType);
+      }
+      
+    if (filters) {
+      // Ajoutez les nouveaux filtres
+      if (filters.client) {
+        params = params.append('Client', filters.client);
+      }
+      if (filters.categorie) {
+        params = params.append('Categorie', filters.categorie);
+      }
+      if (filters.priorite) {
+        params = params.append('Priorite', filters.priorite);
+      }
+      if (filters.statut) {
+        params = params.append('Statut', filters.statut);
+      }
+      if (filters.qualification) {
+        params = params.append('Qualification', filters.qualification);
+      }
+      if (filters.projet) {
+        params = params.append('Projet', filters.projet);
+      }
+      if (filters.societe) {
+        params = params.append('Societe', filters.societe);
+      }
+      // Transmettre le terme de recherche global si présent
+      if (filters.searchTerm) {
+        params = params.append('SearchTerm', filters.searchTerm);
+      }
     }
-
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-
-    // Récupération de l'utilisateur courant via AccountService
-    const currentUser = this.accountService.currentUser();
-    if (currentUser) {
-      params = params.append('userId', currentUser.id.toString());
-      params = params.append('role', currentUser.role);
-    }
-
-    // Ajout du filtre s'il est précisé et si l'utilisateur est un chef de projet ou collaborateur
-    if (filterType && (currentUser?.role.toLowerCase() === 'chef de projet' || currentUser?.role.toLowerCase() === 'collaborateur')) {
-      params = params.append('filterType', filterType);
-    }
-
+    
     return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
       .pipe(
-        map((response: HttpResponse<any>) => {
-          const body = response.body;
-          const items = Array.isArray(body) ? body : body?.items ?? [];
-          const pagination = response.headers.get('Pagination')
-            ? JSON.parse(response.headers.get('Pagination')!)
-            : { currentPage: 1, pageSize: items.length, totalCount: items.length, totalPages: 1 };
+        map(response => {
           const paginatedResult: PaginatedResult<Ticket[]> = {
-            items: items,
-            pagination: pagination
+            items: response.body || [],
+            pagination: undefined
           };
+          const paginationHeader = response.headers.get('Pagination');
+          if (paginationHeader) {
+            paginatedResult.pagination = JSON.parse(paginationHeader);
+          }
           return paginatedResult;
         })
       );
-  }
-
+  }  
 
   getTicket(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
@@ -108,4 +115,35 @@ export class TicketService {
     return this.http.get<any[]>(`${this.baseUrl}/status-count`);
   }
 
+  exportTickets(filters: any): Observable<Blob> {
+    let params = new HttpParams();
+    if (filters) {
+      if (filters.client) {
+        params = params.append('Client', filters.client);
+      }
+      if (filters.categorie) {
+        params = params.append('Categorie', filters.categorie);
+      }
+      if (filters.priorite) {
+        params = params.append('Priorite', filters.priorite);
+      }
+      if (filters.statut) {
+        params = params.append('Statut', filters.statut);
+      }
+      if (filters.qualification) {
+        params = params.append('Qualification', filters.qualification);
+      }
+      if (filters.projet) {
+        params = params.append('Projet', filters.projet);
+      }
+      if (filters.societe) {
+        params = params.append('Societe', filters.societe);
+      }
+      if (filters.searchTerm) {
+        params = params.append('SearchTerm', filters.searchTerm);
+      }
+    }
+    return this.http.get(`${this.baseUrl}/export`, { params, responseType: 'blob' });
+  }
+  
 }

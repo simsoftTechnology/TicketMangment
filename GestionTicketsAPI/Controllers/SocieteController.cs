@@ -1,25 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
   [ApiController]
   [Authorize]
-  public class SocieteController : ControllerBase
+  public class SocieteController : BaseApiController
   {
     private readonly ISocieteService _societeService;
-
-    public SocieteController(ISocieteService societeService)
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IMapper _mapper;
+    
+    public SocieteController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ISocieteService societeService)
     {
       _societeService = societeService;
+      _mapper = mapper;
+      _excelExportService = excelExportService;
     }
 
     // GET: api/Societe?searchTerm=...
@@ -134,6 +139,23 @@ namespace GestionTicketsAPI.Controllers
       if (await _societeService.DetachUserFromSocieteAsync(societeId, userId))
         return Ok("Utilisateur détaché de la société avec succès.");
       return BadRequest("Aucune association trouvée ou une erreur est survenue.");
+    }
+
+    [HttpGet("export")]
+    public async Task<IActionResult> ExportSocietes([FromQuery] string? searchTerm, [FromQuery] string? pays)
+    {
+      // Récupérer les sociétés filtrées
+      var societes = await _societeService.GetAllSocietesAsync(searchTerm, pays);
+
+      // Mapper vers le DTO d'export
+      var societesExportDto = _mapper.Map<IEnumerable<SocieteExportDto>>(societes);
+
+      // Générer le fichier Excel
+      var content = _excelExportService.ExportToExcel(societesExportDto, "Societes");
+
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"SocietesExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
     }
   }
 }

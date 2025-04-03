@@ -7,7 +7,6 @@ import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
 import { authGuard } from './_guards/auth.guard';
 import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
-import { MesTicketsComponent } from './Tickets/mes-tickets/mes-tickets.component';
 import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
 
 export const routes: Routes = [

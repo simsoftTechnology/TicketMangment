@@ -19,25 +19,44 @@ export class ProjetService {
     return this.http.get<Projet[]>(`${this.baseUrl}`);
   }
 
-   // Méthode pour récupérer les projets paginés
-   getPaginatedProjets(
-    pageNumber?: number,
-    pageSize?: number,
+  // Méthode pour récupérer les projets paginés
+  getPaginatedProjets(
+    pageNumber: number,
+    pageSize: number,
     searchTerm?: string,
-    societeId?: number
+    societeId?: number,
+    role?: string,
+    userId?: number,
+    chefProjet?: string,
+    societe?: string,
+    pays?: string
   ): Observable<PaginatedResult<Projet[]>> {
     let params = new HttpParams();
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
-    }
+    params = params.append('pageNumber', pageNumber.toString());
+    params = params.append('pageSize', pageSize.toString());
+
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
     if (societeId) {
       params = params.append('societeId', societeId.toString());
     }
-  
+    if (role) {
+      params = params.append('role', role);
+    }
+    if (userId != null) {
+      params = params.append('userId', userId.toString());
+    }
+    if (chefProjet && chefProjet.trim() !== '') {
+      params = params.append('chefProjet', chefProjet);
+    }
+    if (societe && societe.trim() !== '') {
+      params = params.append('societe', societe);
+    }
+    if (pays && pays.trim() !== '') {
+      params = params.append('pays', pays);
+    }
+
     return this.http.get<Projet[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<Projet[]>) => {
@@ -52,8 +71,6 @@ export class ProjetService {
       );
   }
   
-  
-
   // Récupérer un projet par ID
   getProjetById(id: number): Observable<Projet> {
     return this.http.get<Projet>(`${this.baseUrl}/${id}`);
@@ -94,7 +111,7 @@ export class ProjetService {
   getUserProjets(): Observable<Projet[]> {
     return this.http.get<Projet[]>(`${this.baseUrl}/user`);
   }
-  
+
   // Assigner ou mettre à jour le rôle d'un utilisateur dans un projet
   assignerRole(projetId: number, userId: number, role: string): Observable<any> {
     // Ici, selon votre API, vous pouvez soit utiliser un endpoint dédié (par exemple assigner-role)
@@ -109,7 +126,7 @@ export class ProjetService {
   supprimerUtilisateurDuProjet(projetId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${projetId}/utilisateurs/${userId}`);
   }
-  
+
 
   deleteSelectedProjectMembers(projetId: number, userIds: number[]): Observable<any> {
     // On utilise http.request('delete') pour envoyer un body avec la méthode DELETE.
@@ -121,5 +138,15 @@ export class ProjetService {
   getProjetsBySocieteId(societeId: number): Observable<Projet[]> {
     return this.http.get<Projet[]>(`${this.baseUrl}/societe/${societeId}`);
   }
-  
+
+  exportProjets(filters: any): Observable<Blob> {
+    let params = new HttpParams();
+    Object.keys(filters).forEach(key => {
+      if (filters[key]) {
+        params = params.append(key, filters[key]);
+      }
+    });
+    return this.http.get(`${this.baseUrl}/export`, { params, responseType: 'blob' });
+  }
+
 }

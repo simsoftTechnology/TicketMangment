@@ -9,7 +9,7 @@
     <thead>
       <!-- Ligne de filtres -->
       <tr class="filter-row">
-        <td class="filter-cell" colspan="5">
+        <td class="filter-cell" colspan="6">
           <div class="filter-container">
             <div class="search-wrapper">
               <input type="text" class="search-input" placeholder="Rechercher un projet..."
@@ -17,15 +17,18 @@
               <span class="material-icons search-icon">search</span>
             </div>
             <div class="filter-actions">
-              <button class="filter-btn">
+              <button class="export-btn" (click)="exportProjets()">
+                <span class="material-icons">download</span> Export Excel
+              </button>
+              <button mat-icon-button [matMenuTriggerFor]="filterMenu">
                 <span class="material-icons">filter_list</span>
               </button>
-              <button class="view-btn">
-                <span class="material-icons">grid_view</span>
-              </button>
-              <button class="view-btn active">
-                <span class="material-icons">view_list</span>
-              </button>
+              <!-- Menu contenant le composant de filtre -->
+              <mat-menu #filterMenu="matMenu" class="projet-filter-menu" disableClose>
+                <div>
+                  <app-projet-filter (applyFilter)="onApplyFilter($event)"></app-projet-filter>
+                </div>
+              </mat-menu>
             </div>
           </div>
         </td>

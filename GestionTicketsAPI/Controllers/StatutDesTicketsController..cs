@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
   [ApiController]
-  public class StatutDesTicketsController : ControllerBase
+  public class StatutDesTicketsController : BaseApiController
   {
     private readonly IStatutDesTicketService _service;
     public StatutDesTicketsController(IStatutDesTicketService service)

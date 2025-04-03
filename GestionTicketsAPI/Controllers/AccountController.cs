@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
 public class AccountController : BaseApiController
 {
   private readonly IAccountService _accountService;

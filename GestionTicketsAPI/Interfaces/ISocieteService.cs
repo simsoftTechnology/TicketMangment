@@ -6,7 +6,7 @@ namespace GestionTicketsAPI.Interfaces;
 
  public interface ISocieteService
     {
-        Task<IEnumerable<SocieteDto>> GetAllSocietesAsync(string? searchTerm = null);
+        Task<IEnumerable<SocieteDto>> GetAllSocietesAsync(string? searchTerm = null, string? pays = null);
         Task<PagedList<SocieteDto>> GetSocietesPagedAsync(UserParams userParams);
         Task<SocieteDto?> GetSocieteByIdAsync(int id);
         Task<SocieteDetailsDto?> GetSocieteWithDetailsByIdAsync(int id);

@@ -36,9 +36,9 @@ namespace GestionTicketsAPI.Services
       return _mapper.Map<IEnumerable<TicketDto>>(tickets);
     }
 
-    public async Task<PagedList<TicketDto>> GetTicketsPagedAsync(UserParams ticketParams)
+    public async Task<PagedList<TicketDto>> GetTicketsPagedAsync(TicketFilterParams filterParams)
     {
-      var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(ticketParams);
+      var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(filterParams);
       var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
       // Utilisation du constructeur de PagedList<T> pour créer un PagedList<TicketDto>
       return new PagedList<TicketDto>(
@@ -90,6 +90,17 @@ namespace GestionTicketsAPI.Services
     {
       return _ticketRepository.GetTicketCountByStatus(userId, role);
     }
+
+    public async Task<IEnumerable<Ticket>> GetTicketsAsync(TicketFilterParams filterParams)
+    {
+      return await _ticketRepository.GetTicketsFilteredAsync(filterParams);
+    }
+
+    public async Task<IEnumerable<Ticket>> GetTicketsFilteredAsync(TicketFilterParams filterParams)
+    {
+      return await _ticketRepository.GetTicketsFilteredAsync(filterParams);
+    }
+
 
 
   }

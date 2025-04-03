@@ -56,15 +56,33 @@ export class AccountService {
     return this.http.get<User[]>(this.baseUrl + 'users');
   }
 
-  getUsers(pageNumber?: number, pageSize?: number, searchTerm?: string): Observable<PaginatedResult<User[]>> {
-    let params = new HttpParams();
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
-    }
+  getUsers(
+    pageNumber: number, 
+    pageSize: number, 
+    searchTerm?: string, 
+    extraFilters?: any
+  ): Observable<PaginatedResult<User[]>> {
+    let params = new HttpParams()
+      .append('pageNumber', pageNumber.toString())
+      .append('pageSize', pageSize.toString());
+  
     if (searchTerm && searchTerm.trim() !== '') {
       params = params.append('searchTerm', searchTerm);
     }
+    
+    if (extraFilters) {
+      if (extraFilters.role) {
+        params = params.append('role', extraFilters.role);
+      }
+      if (extraFilters.actif != null) {
+        // Pour les booléens, convertissez en chaîne
+        params = params.append('actif', extraFilters.actif.toString());
+      }
+      if (extraFilters.hasContract != null) {
+        params = params.append('hasContract', extraFilters.hasContract.toString());
+      }
+    }
+    
     return this.http.get<User[]>(this.baseUrl + 'users/paged', { observe: 'response', params })
       .pipe(
         map((response: HttpResponse<User[]>) => {
@@ -78,6 +96,7 @@ export class AccountService {
         })
       );
   }
+  
 
   getUser(id: number): Observable<User> {
     return this.http.get<User>(this.baseUrl + 'users/' + id);
@@ -146,5 +165,25 @@ export class AccountService {
   getUsersByRole(roleName: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.baseUrl}users/role/${roleName}`);
   }
+
+  exportUsers(searchTerm: string, extraFilters: any): Observable<Blob> {
+    let params = new HttpParams();
+    if (searchTerm && searchTerm.trim() !== '') {
+      params = params.append('searchTerm', searchTerm);
+    }
+    if (extraFilters) {
+      if (extraFilters.role) {
+        params = params.append('role', extraFilters.role);
+      }
+      if (extraFilters.actif != null) {
+        params = params.append('actif', extraFilters.actif.toString());
+      }
+      if (extraFilters.hasContract != null) {
+        params = params.append('hasContract', extraFilters.hasContract.toString());
+      }
+    }
+    return this.http.get(this.baseUrl + 'users/export', { params, responseType: 'blob' });
+  }
+  
   
 }

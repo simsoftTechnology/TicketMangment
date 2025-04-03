@@ -21,6 +21,9 @@ namespace GestionTicketsAPI.Helpers
         public int UserId { get; set; }
         public string? Role { get; set; }
         public string? FilterType { get; set; }
+        public bool? Actif { get; set; }
+        public bool? HasContract { get; set; }
         public int? SocieteId { get; set; } 
+        public string? Pays { get; set; }
     }
 }

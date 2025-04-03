@@ -144,5 +144,13 @@ namespace GestionTicketsAPI.Services
       var users = await _userRepository.GetUsersByRoleAsync(roleName);
       return _mapper.Map<IEnumerable<UserDto>>(users);
     }
+
+    public async Task<IEnumerable<UserDto>> GetUsersFilteredAsync(UserParams userParams)
+    {
+      var users = await _userRepository.GetUsersFilteredAsync(userParams);
+      return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
+
+
   }
 }

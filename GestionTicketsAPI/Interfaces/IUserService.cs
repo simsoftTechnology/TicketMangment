@@ -23,4 +23,6 @@ public interface IUserService
 
         Task<bool> UpdateUserAsync(UserUpdateDto userUpdateDto);
         Task<IEnumerable<UserDto>> GetUsersByRoleAsync(string roleName);
+        Task<IEnumerable<UserDto>> GetUsersFilteredAsync(UserParams userParams);
+
     }

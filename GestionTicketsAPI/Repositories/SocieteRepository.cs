@@ -20,14 +20,24 @@ namespace GestionTicketsAPI.Repositories
     }
 
     // Récupérer toutes les sociétés
-    public async Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null)
+    public async Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null, string? pays = null)
     {
-      var query = _context.Societes.AsQueryable();
+      var query = _context.Societes
+                  .Include(s => s.Pays) // Inclure l'entité Pays
+                  .AsQueryable();
 
+      // Filtrage par nom de société
       if (!string.IsNullOrEmpty(searchTerm))
       {
         var lowerSearchTerm = searchTerm.ToLower();
         query = query.Where(s => s.Nom.ToLower().Contains(lowerSearchTerm));
+      }
+
+      // Filtrage par nom de pays
+      if (!string.IsNullOrEmpty(pays))
+      {
+        var lowerPays = pays.ToLower();
+        query = query.Where(s => s.Pays != null && s.Pays.Nom.ToLower().Contains(lowerPays));
       }
 
       return await query.ToListAsync();
@@ -36,17 +46,26 @@ namespace GestionTicketsAPI.Repositories
     public async Task<PagedList<Societe>> GetSocietesPagedAsync(UserParams userParams)
     {
       var query = _context.Societes
-          .Include(s => s.Pays) // Inclure l'entité Pays
-          .AsQueryable();
+                  .Include(s => s.Pays)
+                  .AsQueryable();
 
+      // Filtrage par nom de société
       if (!string.IsNullOrEmpty(userParams.SearchTerm))
       {
         var lowerSearchTerm = userParams.SearchTerm.ToLower();
         query = query.Where(s => s.Nom.ToLower().Contains(lowerSearchTerm));
       }
 
+      // Filtrage par nom de pays (assurez-vous que UserParams contient une propriété "Pays")
+      if (!string.IsNullOrEmpty(userParams.Pays))
+      {
+        var lowerPays = userParams.Pays.ToLower();
+        query = query.Where(s => s.Pays != null && s.Pays.Nom.ToLower().Contains(lowerPays));
+      }
+
       return await PagedList<Societe>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
     }
+
 
     // Récupérer une société par ID (simple)
     public async Task<Societe?> GetSocieteByIdAsync(int id)
