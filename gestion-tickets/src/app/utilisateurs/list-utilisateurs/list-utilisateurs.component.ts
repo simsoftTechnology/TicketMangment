@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserFilterComponent } from '../../_filters/user-filter/user-filter.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-list-utilisateurs',
@@ -45,7 +46,8 @@ export class ListUtilisateursComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService,
     private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService 
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -79,6 +81,7 @@ export class ListUtilisateursComponent implements OnInit {
   }
 
   getUsers(): void {
+    this.globalLoaderService.showGlobalLoader();
     // Combinez la recherche globale et les filtres avancés
     const searchTerm = this.usersSearchTerm || '';
     this.accountService.getUsers(this.pageNumber, this.pageSize, searchTerm, this.filterParams)
@@ -102,6 +105,9 @@ export class ListUtilisateursComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors du chargement des utilisateurs paginés', error);
+        },
+        complete: () => {
+          this.globalLoaderService.hideGlobalLoader();
         }
       });
   }

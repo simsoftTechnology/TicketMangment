@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { SocieteFilterComponent } from '../../_filters/societe-filter/societe-filter.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-liste-societes',
@@ -46,7 +47,8 @@ export class ListeSocietesComponent implements OnInit {
     public route: ActivatedRoute,
     private toastr: ToastrService,
     private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe(loading => {
       this.isLoading = loading;
@@ -65,7 +67,7 @@ export class ListeSocietesComponent implements OnInit {
   }
 
   loadSocietes(): void {
-    // Ici, on transmet la recherche et les filtres (notamment le pays) au service
+    this.globalLoaderService.showGlobalLoader();
     this.societeService
       .getPaginatedSocietes(this.pageNumber, this.pageSize, this.societesSearchTerm, this.filterParams)
       .subscribe({
@@ -75,6 +77,9 @@ export class ListeSocietesComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors du chargement des sociétés paginées', error);
+        },
+        complete: () => {
+          this.globalLoaderService.hideGlobalLoader();
         }
       });
   }

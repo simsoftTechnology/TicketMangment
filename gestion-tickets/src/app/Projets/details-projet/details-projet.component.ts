@@ -21,6 +21,7 @@ import { ToastrService } from 'ngx-toastr';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-details-projet',
@@ -87,7 +88,8 @@ export class DetailsProjetComponent implements OnInit {
     private location: Location,
     private elementRef: ElementRef,
     private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService 
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -111,6 +113,7 @@ export class DetailsProjetComponent implements OnInit {
 
   // --- Chargement du projet et de ses membres ---
   getProjetDetails(id: number): void {
+    this.globalLoaderService.showGlobalLoader();
     this.projetService.getProjetById(id).subscribe({
       next: (data) => {
         this.projet = data;
@@ -118,9 +121,13 @@ export class DetailsProjetComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erreur lors de la récupération du projet', err);
+        this.toastr.error('Erreur lors de la récupération du projet');
+      },
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
-  }
+  }  
 
   getAvailableChefs(): void {
     this.accountService.getAllUsers().subscribe({

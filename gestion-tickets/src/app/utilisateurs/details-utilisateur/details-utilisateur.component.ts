@@ -29,6 +29,7 @@ import { AttachProjectDialogComponent } from '../attach-project-dialog/attach-pr
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-details-utilisateur',
@@ -83,7 +84,8 @@ export class DetailsUtilisateurComponent implements OnInit {
     private prioriteService: PrioriteService,
     private dialog: MatDialog,
     private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService 
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -263,24 +265,17 @@ export class DetailsUtilisateurComponent implements OnInit {
 
 
   loadUserDetails(userId: number): void {
+    this.globalLoaderService.showGlobalLoader();
     this.accountService.getUser(userId).subscribe({
       next: (user) => {
         this.user = user;
-
-        // 1. Récupérer le code pays à partir de la liste des pays
-        const codeTel = user.pays
-          ? this.paysList.find(p => p.idPays === +user.pays)?.codeTel
-          : '';
-
-        // 2. Retirer le code pays du numéro de téléphone si présent
+        // Traitement du numéro de téléphone et mise à jour du formulaire
+        const codeTel = user.pays ? this.paysList.find(p => p.idPays === +user.pays)?.codeTel : '';
         let numeroLocal = user.numTelephone || '';
         if (codeTel && numeroLocal.startsWith(codeTel)) {
           numeroLocal = numeroLocal.substring(codeTel.length).trim();
         }
-        // 4. Mémoriser le pays sélectionné (pour l’affichage du drapeau et du code)
         this.selectedCountry = this.paysList.find(p => p.idPays === +user.pays);
-
-        // 3. Mettre à jour le formulaire de l'utilisateur
         this.userForm.patchValue({
           id: user.id,
           firstName: user.firstName,
@@ -292,31 +287,26 @@ export class DetailsUtilisateurComponent implements OnInit {
           numTelephone: numeroLocal,
           actif: user.actif
         });
-
-
-
-        // 5. Si l'utilisateur a un contrat, on met à jour le formulaire du contrat
         if (user.contrat) {
           this.contratForm.patchValue({
             id: user.contrat.id,
-            dateDebut: user.contrat.dateDebut
-              ? new Date(user.contrat.dateDebut + 'Z').toISOString().substring(0, 10)
-              : '',
-            dateFin: user.contrat.dateFin
-              ? new Date(user.contrat.dateFin + 'Z').toISOString().substring(0, 10)
-              : '',
+            dateDebut: user.contrat.dateDebut ? new Date(user.contrat.dateDebut + 'Z').toISOString().substring(0, 10) : '',
+            dateFin: user.contrat.dateFin ? new Date(user.contrat.dateFin + 'Z').toISOString().substring(0, 10) : '',
           });
         }
-
-        // 6. Charger les projets et tickets associés à l’utilisateur
+        // Chargement des projets et tickets associés
         this.loadProjects();
         this.loadTickets();
       },
       error: (error) => {
         console.error('Erreur lors du chargement de l’utilisateur', error);
+      },
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
   }
+  
 
 
 

@@ -21,6 +21,7 @@ import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-pro
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-modifier-societe',
@@ -74,7 +75,8 @@ export class ModifierSocieteComponent implements OnInit {
     private dialog: MatDialog,
     private router: Router,
     private toastr: ToastrService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -115,38 +117,47 @@ export class ModifierSocieteComponent implements OnInit {
   }
 
   private loadSocieteDetails(): void {
-    // Récupération des détails de la société, incluant éventuellement le contrat
+    // Active le loader global
+    this.globalLoaderService.showGlobalLoader();
+  
     this.societeService.getSocieteDetails(this.societeId).subscribe(
       (details: Societe) => {
         this.societeDetails = details;
-        // Mise à jour du formulaire de la société
+        // Mettez à jour vos formulaires avec les valeurs récupérées
         this.societeForm.patchValue({
           nom: details.nom,
           adresse: details.adresse,
           telephone: details.telephone,
           paysId: details.paysId 
         });
-        // Mise à jour du formulaire du contrat si celui-ci existe
         if (details.contrat) {
           this.contratForm.patchValue({
             id: details.contrat.id,
-            dateDebut: details.contrat.dateDebut 
-              ? new Date(details.contrat.dateDebut+ 'Z').toISOString().substring(0, 10)
+            dateDebut: details.contrat.dateDebut
+              ? new Date(details.contrat.dateDebut + 'Z').toISOString().substring(0, 10)
               : '',
-            dateFin: details.contrat.dateFin 
-              ? new Date(details.contrat.dateFin+ 'Z').toISOString().substring(0, 10)
+            dateFin: details.contrat.dateFin
+              ? new Date(details.contrat.dateFin + 'Z').toISOString().substring(0, 10)
               : '',
             type: details.contrat.type,
             typeContrat: details.contrat.typeContrat
           });
         }
-        // Chargement des projets et utilisateurs
+        // Chargement des projets et utilisateurs associés
         this.loadProjects();
         this.loadSocieteUsers();
       },
-      error => { console.error('Erreur lors de la récupération des détails', error); }
+      error => {
+        console.error('Erreur lors de la récupération des détails', error);
+        this.toastr.error('Erreur lors de la récupération des détails');
+      },
+      () => {
+        // Masque le loader global lorsque l'opération est terminée
+        this.globalLoaderService.hideGlobalLoader();
+      }
     );
   }
+  
 
   onSubmit(): void {
     if (!this.societeForm.dirty) {

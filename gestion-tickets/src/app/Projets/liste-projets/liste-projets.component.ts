@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ProjetFilterComponent } from '../../_filters/projet-filter/projet-filter.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-liste-projets',
@@ -45,7 +46,8 @@ export class ListeProjetsComponent implements OnInit {
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -66,6 +68,7 @@ export class ListeProjetsComponent implements OnInit {
   }
 
   getProjets(): void {
+    this.globalLoaderService.showGlobalLoader();
     // Fusionne le terme de recherche global avec les filtres avancés
     const filters = { ...this.currentFilters, searchTerm: this.projetsSearchTerm };
 
@@ -84,8 +87,10 @@ export class ListeProjetsComponent implements OnInit {
       ).subscribe({
         next: (response) => {
           this.paginatedResult = response;
+          this.globalLoaderService.hideGlobalLoader();
         },
         error: (error) => {
+          this.globalLoaderService.hideGlobalLoader();
           console.error('Erreur lors du chargement des projets paginés', error);
           this.toastr.error('Erreur lors du chargement des projets paginés');
         }

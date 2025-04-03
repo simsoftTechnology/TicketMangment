@@ -9,6 +9,7 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-categories',
@@ -33,7 +34,8 @@ export class CategoriesComponent implements OnInit {
   constructor(private categorieService: CategorieProblemeService,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -46,6 +48,9 @@ export class CategoriesComponent implements OnInit {
 
   // Chargement paginé des catégories selon le terme de recherche
   loadCategories(): void {
+    // Affiche le loader global
+    this.globalLoaderService.showGlobalLoader();
+  
     this.categorieService.getCategoriesPaginated(this.pageNumber, this.pageSize, this.searchTerm)
       .subscribe({
         next: (response) => {
@@ -56,9 +61,17 @@ export class CategoriesComponent implements OnInit {
             this.totalPages = response.pagination.totalPages;
           }
         },
-        error: (err) => console.error('Erreur lors du chargement des catégories :', err)
+        error: (err) => {
+          console.error('Erreur lors du chargement des catégories :', err);
+          this.toastr.error("Erreur lors du chargement des catégories.");
+        },
+        complete: () => {
+          // Masque le loader global lorsque l'opération est terminée
+          this.globalLoaderService.hideGlobalLoader();
+        }
       });
   }
+  
 
   // Actualisation lors du changement du terme de recherche
   onSearchChange(): void {

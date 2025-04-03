@@ -18,6 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-list-tickets',
@@ -59,7 +60,8 @@ export class ListTicketsComponent implements OnInit {
     private statusService: StatusService,
     private toastr: ToastrService,
     private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -122,7 +124,10 @@ export class ListTicketsComponent implements OnInit {
       ...this.currentFilters,
       searchTerm: this.ticketsSearchTerm
     };
-  
+    
+    // Afficher le loader global avant le début de la requête
+    this.globalLoaderService.showGlobalLoader();
+    
     this.ticketService.getPaginatedTickets(
       this.pageNumber,
       this.pageSize,
@@ -144,11 +149,14 @@ export class ListTicketsComponent implements OnInit {
       error: (error) => {
         console.error("Erreur lors du chargement des tickets", error);
         this.toastr.error("Erreur lors du chargement des tickets");
+      },
+      complete: () => {
+        // Masquer le loader global une fois l'opération terminée
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
   }
   
-
 
   onSearchChange(): void {
     this.pageNumber = 1;

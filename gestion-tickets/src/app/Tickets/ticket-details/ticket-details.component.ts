@@ -17,6 +17,7 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { CommentService } from '../../_services/comment.service';
 import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 registerLocaleData(localeFr);
 
 @Component({
@@ -54,6 +55,7 @@ export class TicketDetailsComponent implements OnInit {
     private toastr: ToastrService,
     private commentService: CommentService,
     private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService,
   ) {
     this.loaderService.isLoading$.subscribe(loading => {
       this.isLoading = loading;
@@ -77,6 +79,7 @@ export class TicketDetailsComponent implements OnInit {
   
 
   loadTicket(): void {
+    this.globalLoaderService.showGlobalLoader();
     this.ticketService.getTicket(this.ticketId).subscribe({
       next: (ticket) => {
         this.ticket = ticket;
@@ -87,9 +90,12 @@ export class TicketDetailsComponent implements OnInit {
         console.error('Erreur lors de la récupération du ticket', err);
         const message = err.error || 'Erreur lors de la récupération du ticket';
         this.toastr.error(message, 'Erreur');
+      },
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
-  }
+  }  
 
   loadDevelopers(): void {
     forkJoin([
