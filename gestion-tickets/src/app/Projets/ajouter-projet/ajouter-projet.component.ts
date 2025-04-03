@@ -15,6 +15,7 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { DropdownService } from './../../_services/dropdown.service';
 import { ToastrService } from 'ngx-toastr';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-ajouter-projet',
@@ -57,6 +58,7 @@ export class AjouterProjetComponent implements OnInit {
 
   // Par défaut, le projet est de type Société
   isSocieteProjet: boolean = true;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -68,8 +70,13 @@ export class AjouterProjetComponent implements OnInit {
     private dropdownService: DropdownService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
-    private toastr: ToastrService
-  ) { }
+    private toastr: ToastrService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.initForm();
@@ -124,7 +131,6 @@ export class AjouterProjetComponent implements OnInit {
 
   ajouterProjet(): void {
     if (this.projetForm.invalid) {
-      // Forcer la mise à jour de la validation pour tous les contrôles
       this.projetForm.updateValueAndValidity();
       this.toastr.error("Veuillez remplir tous les champs obligatoires.");
       return;
@@ -135,18 +141,20 @@ export class AjouterProjetComponent implements OnInit {
     this.projet.description = formValue.description;
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;
-    // ASSIGNATION MANQUANTE : affecter chefProjetId au projet
     this.projet.chefProjetId = formValue.chefProjetId;
   
-    // Appel au service pour ajouter le projet
+    // Active le loader avant l'appel
+    this.loaderService.showLoader();
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
         this.toastr.success('Projet créé avec succès');
         this.router.navigate(['/home/Projets']);
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error('Erreur ajout projet', error);
         let errMsg = "Erreur lors de l'ajout du projet.";
+        // Gestion de l'erreur (formatage du message)
         if (Array.isArray(error)) {
           errMsg = error.join(' ');
         } else if (typeof error === 'string') {
@@ -163,6 +171,7 @@ export class AjouterProjetComponent implements OnInit {
           errMsg = error.message;
         }
         this.toastr.error(errMsg);
+        this.loaderService.hideLoader();
       }
     });
   }

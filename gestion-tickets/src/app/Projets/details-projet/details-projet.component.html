@@ -108,7 +108,14 @@
       class="edit-btn" (click)="editMode = true">
       Modifier
     </button>
-    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()">Enregistrer</button>
+    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading; else loadingSaveTpl">
+        Enregistrer
+      </ng-container>
+      <ng-template #loadingSaveTpl>
+        <span class="spinner"></span> Enregistrer
+      </ng-template>
+    </button>
     <button *ngIf="editMode" class="delete-btn" (click)="cancelEdit()">Annuler</button>
   </div>
 
@@ -175,9 +182,14 @@
           <td><span class="role">{{ membre.role }}</span></td>
           <td class="actions">
             <button class="delet-btn"
-              *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
-              (click)="removeUser(membre.userId)">
-              <span class="material-icons">delete</span>
+              *ngIf="(accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet')"
+              (click)="removeUser(membre.userId)" [disabled]="isLoading">
+              <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+                <span class="material-icons">delete</span>
+              </ng-container>
+              <ng-template #loadingDeleteTpl>
+                <span class="spinner"></span>
+              </ng-template>
             </button>
           </td>
         </tr>

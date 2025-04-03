@@ -20,6 +20,7 @@ import { PaginatedResult } from '../../_models/pagination';
 import { ToastrService } from 'ngx-toastr';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-details-projet',
@@ -72,6 +73,8 @@ export class DetailsProjetComponent implements OnInit {
   availableChefs: User[] = []; 
   filteredChefs: User[] = [];
 
+  isLoading: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private projetService: ProjetService,
@@ -83,8 +86,13 @@ export class DetailsProjetComponent implements OnInit {
     private dialog: MatDialog,
     private location: Location,
     private elementRef: ElementRef,
-    private overlayModalService: OverlayModalService
-  ) { }
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     // S'abonner aux paramètres de la route pour détecter les changements de l'ID du projet
@@ -299,14 +307,19 @@ export class DetailsProjetComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Confirmez-vous la modification du projet ?";
     modalInstance.confirmed.subscribe(() => {
+      this.loaderService.showLoader();
       this.projetService.updateProjet(this.projet).subscribe({
         next: () => {
           this.toastr.success('Projet mis à jour avec succès');
           this.editMode = false;
-          // Passer l'ID du projet pour recharger ses détails
           this.getProjetDetails(this.projet.id);
+          this.loaderService.hideLoader();
         },
-        error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour du projet', err);
+          this.toastr.error('Erreur lors de la mise à jour du projet');
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
@@ -314,6 +327,7 @@ export class DetailsProjetComponent implements OnInit {
       this.overlayModalService.close();
     });
   }
+
 
   cancelEdit(): void {
     this.editMode = false;
@@ -380,13 +394,18 @@ export class DetailsProjetComponent implements OnInit {
       const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
       modalInstance.message = 'Confirmer la suppression de cet utilisateur du projet ?';
       modalInstance.confirmed.subscribe(() => {
+        this.loaderService.showLoader();
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
             next: () => {
               this.toastr.success('Utilisateur retiré avec succès');
               this.getMembres();
+              this.loaderService.hideLoader();
             },
-            error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }
+            error: (err) => {
+              console.error('Erreur lors du retrait de l’utilisateur', err);
+              this.loaderService.hideLoader();
+            }
           });
         this.overlayModalService.close();
       });
@@ -396,6 +415,7 @@ export class DetailsProjetComponent implements OnInit {
     }
   }
 
+
   // --- Utilitaire pour générer une plage de nombres pour la pagination ---
   range(start: number, end: number): number[] {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
@@ -403,18 +423,15 @@ export class DetailsProjetComponent implements OnInit {
 
 
   deleteSelectedMembers(): void {
-    const selectedUserIds = this.membres
-      .filter(m => m.selected)
-      .map(m => m.userId);
-
+    const selectedUserIds = this.membres.filter(m => m.selected).map(m => m.userId);
     if (selectedUserIds.length === 0) {
       this.toastr.warning("Aucun membre sélectionné pour la suppression.");
       return;
     }
-
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?";
     modalInstance.confirmed.subscribe(() => {
+      this.loaderService.showLoader();
       selectedUserIds.forEach(userId => {
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
@@ -422,6 +439,7 @@ export class DetailsProjetComponent implements OnInit {
             error: err => console.error("Erreur lors du retrait de l’utilisateur", err)
           });
       });
+      this.loaderService.hideLoader();
       this.overlayModalService.close();
     });
     modalInstance.cancelled.subscribe(() => {

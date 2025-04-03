@@ -211,9 +211,16 @@
           </div>
 
           <div class="button-group">
-            <button type="submit" class="btn-create">Créer</button>
+            <button type="submit" class="btn-create" [disabled]="registerForm.invalid || isLoading">
+              <ng-container *ngIf="!isLoading; else loadingTpl">
+                Créer
+              </ng-container>
+              <ng-template #loadingTpl>
+                <span class="spinner"></span> Créer
+              </ng-template>
+            </button>
             <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
-          </div>
+          </div>          
         </form>
       </div>
     </div>

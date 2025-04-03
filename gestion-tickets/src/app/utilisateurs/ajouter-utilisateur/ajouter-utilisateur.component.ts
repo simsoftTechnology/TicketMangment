@@ -43,7 +43,7 @@ export class AjouterUtilisateurComponent implements OnInit {
     private toastr: ToastrService,
     private router: Router,
     private loaderService: LoaderService,
-    private overlayModalService: OverlayModalService
+    private overlayModalService: OverlayModalService,
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;

@@ -17,6 +17,7 @@ import { TicketFilterComponent } from '../../_filters/ticket-filter/ticket-filte
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-list-tickets',
@@ -30,15 +31,6 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./list-tickets.component.css']
 })
 export class ListTicketsComponent implements OnInit {
-  private ticketService = inject(TicketService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  accountService = inject(AccountService);
-  private qualificationService = inject(QualificationService);
-  private priorityService = inject(PrioriteService);
-  private statusService = inject(StatusService);
-  private toastr = inject(ToastrService);
-  private overlayModalService = inject(OverlayModalService);
 
   currentUser: User | null = null;
   pageNumber: number = 1;
@@ -56,7 +48,23 @@ export class ListTicketsComponent implements OnInit {
   statuses: { id: number, name: string }[] = [];
 
   filterVisible: boolean = false;
-
+  isLoading: boolean = false;
+  constructor(
+    private ticketService: TicketService,
+    private route: ActivatedRoute,
+    private router: Router,
+    public accountService: AccountService,
+    private qualificationService: QualificationService,
+    private priorityService: PrioriteService,
+    private statusService: StatusService,
+    private toastr: ToastrService,
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
   ngOnInit(): void {
     // Récupérer le filtre passé par la route
     this.route.data.subscribe(data => {
@@ -248,6 +256,8 @@ export class ListTicketsComponent implements OnInit {
   
 
   exportTickets(): void {
+    // Active le loader
+    this.loaderService.showLoader();
     this.ticketService.exportTickets(this.currentFilters).subscribe({
       next: (fileBlob: Blob) => {
         const objectUrl = URL.createObjectURL(fileBlob);
@@ -256,9 +266,14 @@ export class ListTicketsComponent implements OnInit {
         a.download = `TicketsExport_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(objectUrl);
+        // Désactive le loader après l'export
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error("Erreur lors de l'export des tickets", err);
+        this.toastr.error("Erreur lors de l'export des tickets");
+        // Désactive le loader même en cas d'erreur
+        this.loaderService.hideLoader();
       }
     });
   }

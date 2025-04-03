@@ -7,6 +7,7 @@ import { SocieteService } from '../_services/societe.service';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { LoaderService } from '../_services/loader.service';
 
 // Validateur personnalisé pour vérifier que 'nouveauPassword' et 'confirmNouveauPassword' correspondent
 export const newPasswordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -37,13 +38,19 @@ export class UserProfileComponent implements OnInit {
   paysList: any[] = [];
   // Propriété pour afficher le drapeau et le code téléphone
   selectedCountry: any = null;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private accountService: AccountService,
     private paysService: PaysService,
     private toastr: ToastrService,
-  ) {}
+    private loaderService: LoaderService 
+  ) {
+    this.loaderService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     this.initForm();
@@ -132,19 +139,25 @@ export class UserProfileComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
+  
+    // Affiche le loader
+    this.loaderService.showLoader();
+  
     // Récupérer toutes les valeurs (même celles désactivées)
     const updatedUser: User = this.userForm.getRawValue();
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         this.userDetails = { ...this.userDetails, ...updatedUser };
         this.toastr.success("Mise à jour effectuée avec succès.");
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour", error);
         this.toastr.error("Erreur lors de la mise à jour", error);
+        this.loaderService.hideLoader();
       }
     });
-  }
+  }  
 
   onCancel(): void {
     if (this.userDetails) {

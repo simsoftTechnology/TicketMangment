@@ -28,6 +28,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AttachProjectDialogComponent } from '../attach-project-dialog/attach-project-dialog.component';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-details-utilisateur',
@@ -65,6 +66,8 @@ export class DetailsUtilisateurComponent implements OnInit {
   priorities: Priorite[] = [];
   selectedCountry: Pays | undefined;
 
+  isLoading: boolean = false;
+
   constructor(
     private paysService: PaysService,
     private societeService: SocieteService,
@@ -80,7 +83,12 @@ export class DetailsUtilisateurComponent implements OnInit {
     private prioriteService: PrioriteService,
     private dialog: MatDialog,
     private overlayModalService: OverlayModalService,
-  ) { }
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
   get userDetails(): User | null {
@@ -324,21 +332,26 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
-
+  
     const updatedUser: User = this.userForm.value;
+    
+    // Afficher le loader
+    this.loaderService.showLoader();
+  
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         // Mise à jour locale de la variable utilisateur
         this.user = { ...this.user, ...updatedUser };
         this.toastr.success("Mise à jour effectuée avec succès.");
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour", error);
         this.toastr.error("Erreur lors de la mise à jour de l'utilisateur.");
+        this.loaderService.hideLoader();
       }
     });
-  }
-
+  }  
 
   onCancel(): void {
     // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
@@ -376,43 +389,43 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Aucun contrat trouvé pour cet utilisateur.");
       return;
     }
-
+  
     // Vérifier si au moins un champ du contrat a été modifié
     if (!this.contratForm.dirty) {
       this.toastr.warning("Veuillez modifier au moins un champ du contrat.");
       return;
     }
-
+  
     // Vérifier que le formulaire est valide
     if (this.contratForm.invalid) {
       this.toastr.error("Veuillez corriger les erreurs du formulaire de contrat.");
       return;
     }
-
-    // Fusionner l'objet contrat original avec les valeurs du formulaire pour conserver les valeurs non modifiées
+    
     const originalContrat = this.user.contrat;
     const contratToUpdate = {
-      ...originalContrat,      // Conserve toutes les valeurs actuelles (ClientId, SocietePartenaireId, etc.)
-      ...this.contratForm.value // Écrase uniquement les valeurs modifiées (dateDebut, dateFin, type, etc.)
+      ...originalContrat,
+      ...this.contratForm.value
     };
-
-    // Appel au service en utilisant l'ID du contrat (et non l'ID de l'utilisateur)
+  
+    // Affiche le loader
+    this.loaderService.showLoader();
+  
     this.contratService.updateContract(contratToUpdate.id, contratToUpdate).subscribe({
       next: () => {
         this.toastr.success("Contrat mis à jour avec succès.");
-        // Mettre à jour l'objet contrat de l'utilisateur localement
         if (this.user) {
           this.user.contrat = contratToUpdate;
         }
-
-        console.log("Contrat mis à jour :", contratToUpdate);
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour du contrat", error);
         this.toastr.error("Erreur lors de la mise à jour du contrat.");
+        this.loaderService.hideLoader();
       }
     });
-  }
+  }  
 
 
 

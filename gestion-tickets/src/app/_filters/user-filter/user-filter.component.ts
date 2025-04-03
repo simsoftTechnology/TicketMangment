@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/core';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-user-filter',
@@ -33,7 +34,14 @@ export class UserFilterComponent implements OnInit {
   contractSearchTerm: string = '';
   isContractDropdownOpen: boolean = false;
 
-  constructor(private fb: FormBuilder) {}
+  isLoading: boolean = false;
+
+  constructor(private fb: FormBuilder,
+    private loaderService: LoaderService) {
+      this.loaderService.isLoading$.subscribe((loading) => {
+        this.isLoading = loading;
+      });
+    }
 
   ngOnInit(): void {
     this.filterForm = this.fb.group({
@@ -61,7 +69,9 @@ export class UserFilterComponent implements OnInit {
     } else if (filterValues.hasContract === 'Sans contrat') {
       filterValues.hasContract = false;
     }
-    this.applyFilter.emit(filterValues);
+    this.loaderService.showLoader();
+    this.applyFilter.emit(this.filterForm.value);
+    this.loaderService.hideLoader();
   }
 
   onReset(): void {

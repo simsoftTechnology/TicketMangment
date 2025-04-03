@@ -17,9 +17,14 @@
               <span class="material-icons search-icon">search</span>
             </div>
             <div class="filter-actions">
-              <button class="export-btn" (click)="exportProjets()">
-                <span class="material-icons">download</span> Export Excel
-              </button>
+              <button class="export-btn" (click)="exportProjets()" [disabled]="isLoading">
+                <ng-container *ngIf="!isLoading; else loadingExportTpl">
+                  <span class="material-icons">download</span> Export Excel
+                </ng-container>
+                <ng-template #loadingExportTpl>
+                  <span class="spinner"></span> Export en cours...
+                </ng-template>
+              </button>                           
               <button mat-icon-button [matMenuTriggerFor]="filterMenu">
                 <span class="material-icons">filter_list</span>
               </button>
@@ -72,9 +77,14 @@
             <span class="material-icons">visibility</span>
           </button>
           <!-- Bouton Supprimer -->
-          <button class="delete-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteProjet(projet.id)">
-            <span class="material-icons">delete</span>
-          </button>
+          <button class="delete-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteProjet(projet.id)" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+              <span class="material-icons">delete</span>
+            </ng-container>
+            <ng-template #loadingDeleteTpl>
+              <span class="spinner"></span>
+            </ng-template>
+          </button>                 
         </td>
       </tr>
 

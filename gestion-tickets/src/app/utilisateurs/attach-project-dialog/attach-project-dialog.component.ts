@@ -7,6 +7,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { ViewContainerRef } from '@angular/core';
 import { NgFor, NgIf } from '@angular/common';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-attach-project-dialog',
@@ -26,16 +27,22 @@ export class AttachProjectDialogComponent implements OnInit {
 
   @ViewChild('dropdownTemplate') dropdownTemplate!: TemplateRef<any>;
 
+  isLoading: boolean = false;
+
   constructor(
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
     private dialogRef: MatDialogRef<AttachProjectDialogComponent>,
     private projetService: ProjetService,
     private fb: FormBuilder,
-    @Inject(MAT_DIALOG_DATA) public data: any // Injection des données envoyées par le parent
+    @Inject(MAT_DIALOG_DATA) public data: any, // Injection des données envoyées par le parent
+    private loaderService: LoaderService
   ) {
     this.form = this.fb.group({
       projetId: ['', Validators.required]
+    });
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
     });
   }
 
@@ -97,7 +104,9 @@ export class AttachProjectDialogComponent implements OnInit {
 
   onSubmit() {
     if (this.form.valid) {
+      this.loaderService.showLoader();
       this.dialogRef.close(this.form.value);
+      this.loaderService.hideLoader();
     }
   }
 

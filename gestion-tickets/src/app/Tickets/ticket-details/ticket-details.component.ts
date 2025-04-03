@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { CommentService } from '../../_services/comment.service';
+import { LoaderService } from '../../_services/loader.service';
 registerLocaleData(localeFr);
 
 @Component({
@@ -29,12 +30,7 @@ registerLocaleData(localeFr);
   styleUrls: ['./ticket-details.component.css']
 })
 export class TicketDetailsComponent implements OnInit {
-  private route = inject(ActivatedRoute);
-  private ticketService = inject(TicketService);
-  private accountService = inject(AccountService);
-  private overlayModalService = inject(OverlayModalService);
-  private toastr = inject(ToastrService);
-  private commentService = inject(CommentService);
+  
 
   ticket: Ticket | null = null;
   currentUser: User | null = null;
@@ -48,6 +44,21 @@ export class TicketDetailsComponent implements OnInit {
   // Propriété pour stocker le responsable sélectionné
   selectedResponsibleId: number | null = null;
 
+  isLoading: boolean = false;
+
+  constructor(
+    private route: ActivatedRoute,
+    private ticketService: TicketService,
+    private accountService: AccountService,
+    private overlayModalService: OverlayModalService,
+    private toastr: ToastrService,
+    private commentService: CommentService,
+    private loaderService: LoaderService,
+  ) {
+    this.loaderService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
   ngOnInit(): void {
     // Souscrire aux changements de paramètres
     this.route.paramMap.subscribe(paramMap => {
@@ -111,16 +122,19 @@ export class TicketDetailsComponent implements OnInit {
 
   onAddComment(): void {
     if (!this.newComment || this.newComment.trim() === '') return;
+    this.loaderService.showLoader();
     this.commentService.addComment({ contenu: this.newComment, ticketId: this.ticketId }).subscribe({
       next: (comment) => {
         this.newComment = '';
         this.comments.push(comment);
         this.loadComments();
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error('Erreur lors de l\'ajout du commentaire', err);
         const message = err.error || 'Erreur lors de l\'ajout du commentaire';
         this.toastr.error(message, 'Erreur');
+        this.loaderService.hideLoader();
       }
     });
   }
@@ -218,15 +232,18 @@ export class TicketDetailsComponent implements OnInit {
       this.toastr.error("Ticket ou responsable non défini", 'Erreur');
       return;
     }
+    this.loaderService.showLoader();
     this.ticketService.updateResponsible(this.ticket.id, { responsibleId: this.selectedResponsibleId }).subscribe({
       next: () => {
         this.loadTicket();
         this.toastr.success('Responsable mis à jour avec succès');
+        this.loaderService.hideLoader();
       },
       error: err => {
         console.error('Erreur lors de la mise à jour du responsable', err);
         const message = err.error || 'Erreur lors de la mise à jour du responsable';
         this.toastr.error(message, 'Erreur');
+        this.loaderService.hideLoader();
       }
     });
   }

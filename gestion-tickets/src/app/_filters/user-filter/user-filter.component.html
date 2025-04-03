@@ -107,7 +107,12 @@
 
     <!-- Boutons d'action -->
     <div class="form-group action-buttons">
-      <button type="submit" class="btn btn-primary">Appliquer les filtres</button>
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">Appliquer les filtres</ng-container>
+        <ng-template #loadingTpl>
+          <span class="spinner"></span> Appliquer les filtres
+        </ng-template>
+      </button>
       <button type="button" class="btn btn-secondary" (click)="onReset()">Réinitialiser</button>
     </div>
   </form>

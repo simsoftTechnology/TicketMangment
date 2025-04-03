@@ -18,9 +18,14 @@
           </div>
         </td>
         <td colspan="4" class="filter-actions">
-          <button class="export-btn" (click)="exportTickets()">
-            <span class="material-icons">download</span> Export Excel
-          </button>
+          <button class="export-btn" (click)="exportTickets()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+              <span class="material-icons">download</span> Export Excel
+            </ng-container>
+            <ng-template #loadingExportTpl>
+              <span class="spinner"></span> Export Excel
+            </ng-template>
+          </button>          
           <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>

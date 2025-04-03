@@ -4,6 +4,7 @@ import { AccountService } from '../../_services/account.service';
 import { SocieteService } from '../../_services/societe.service';
 import { PaysService } from '../../_services/pays.service';
 import { CommonModule } from '@angular/common';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-projet-filter',
@@ -36,12 +37,19 @@ export class ProjetFilterComponent implements OnInit {
   paysSearchTerm: string = '';
   isPaysDropdownOpen: boolean = false;
 
+  isLoading: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private accountService: AccountService,
     private societeService: SocieteService,
-    private paysService: PaysService
-  ) {}
+    private paysService: PaysService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     this.filterForm = this.fb.group({
@@ -81,7 +89,9 @@ export class ProjetFilterComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.loaderService.showLoader();
     this.applyFilter.emit(this.filterForm.value);
+    this.loaderService.hideLoader();
   }
 
   onReset(): void {

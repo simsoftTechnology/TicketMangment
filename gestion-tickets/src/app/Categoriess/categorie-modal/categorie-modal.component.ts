@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
     selector: 'app-categorie-modal',
@@ -10,12 +11,22 @@ import { FormsModule } from '@angular/forms';
 })
 export class CategorieModalComponent {
   categoryName: string = '';
+  isLoading: boolean = false;
 
   @Output() categoryAdded = new EventEmitter<string>();
   @Output() close = new EventEmitter<void>();
 
+  constructor(
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
   addCategory(): void {
+    this.loaderService.showLoader();
     this.categoryAdded.emit(this.categoryName.trim());
+    this.loaderService.hideLoader();
     this.categoryName = '';
   }
 

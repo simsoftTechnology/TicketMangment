@@ -3,6 +3,7 @@ import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/
 import { FormGroup, FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaysService } from '../../_services/pays.service';
 import { Pays } from '../../_models/pays';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-societe-filter',
@@ -21,7 +22,14 @@ export class SocieteFilterComponent implements OnInit {
   paysSearchTerm: string = '';
   isPaysDropdownOpen: boolean = false;
 
-  constructor(private fb: FormBuilder, private paysService: PaysService) {}
+  isLoading: boolean = false;
+
+  constructor(private fb: FormBuilder, private paysService: PaysService,
+    private loaderService: LoaderService) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     // Initialisation du formulaire
@@ -49,7 +57,9 @@ export class SocieteFilterComponent implements OnInit {
     const filterValues = this.filterForm.value;
     // Transformation de "Tous" en null pour ne pas appliquer de filtre
     filterValues.pays = filterValues.pays === 'Tous' ? null : filterValues.pays;
-    this.applyFilter.emit(filterValues);
+    this.loaderService.showLoader();
+    this.applyFilter.emit(this.filterForm.value);
+    this.loaderService.hideLoader();
   }
 
   onReset(): void {

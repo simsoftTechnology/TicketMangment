@@ -20,6 +20,7 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
     selector: 'app-modifier-societe',
@@ -59,6 +60,8 @@ export class ModifierSocieteComponent implements OnInit {
   paysSearchTerm: string = '';
   isPaysDropdownOpen: boolean = false;
 
+  isLoading: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private fb: FormBuilder,
@@ -70,8 +73,13 @@ export class ModifierSocieteComponent implements OnInit {
     private overlayModalService: OverlayModalService,
     private dialog: MatDialog,
     private router: Router,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     // Chargez la liste des pays
@@ -154,13 +162,17 @@ export class ModifierSocieteComponent implements OnInit {
           ...this.societeDetails,
           ...this.societeForm.value
         };
+        // Active le loader avant l'appel
+        this.loaderService.showLoader();
         this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
           next: () => {
             this.toastr.success("Société modifiée avec succès");
+            this.loaderService.hideLoader();
           },
           error: error => {
             console.error('Erreur lors de la mise à jour de la société', error);
             this.toastr.error("Erreur lors de la mise à jour de la société");
+            this.loaderService.hideLoader();
           }
         });
         this.overlayModalService.close();
@@ -171,6 +183,7 @@ export class ModifierSocieteComponent implements OnInit {
       });
     }
   }
+
     
   onSubmitContrat(): void {
     if (this.contratForm.valid) {
@@ -392,6 +405,7 @@ export class ModifierSocieteComponent implements OnInit {
   }
   
   attachUser(userId: number): void {
+    this.loaderService.showLoader();
     this.societeService.attachUser(this.societeDetails.id, userId).subscribe({
       next: (result: boolean) => {
         if (result) {
@@ -400,28 +414,16 @@ export class ModifierSocieteComponent implements OnInit {
         } else {
           this.toastr.error("L'utilisateur est déjà associé à cette société");
         }
+        this.loaderService.hideLoader();
       },
       error: error => {
         console.error("Erreur lors de l'attachement de l'utilisateur", error);
-        let message = "Erreur lors de l'attachement de l'utilisateur";
-        if (error.error) {
-          if (typeof error.error === 'string') {
-            try {
-              const parsedError = JSON.parse(error.error);
-              message = parsedError.message || error.error;
-            } catch {
-              message = error.error;
-            }
-          } else if (error.error.message) {
-            message = error.error.message;
-          }
-        } else if (error.message) {
-          message = error.message;
-        }
-        this.toastr.error(message);
+        this.toastr.error("Erreur lors de l'attachement de l'utilisateur");
+        this.loaderService.hideLoader();
       }
     });
-  }  
+  }
+
 
   detachUser(user: User): void {
     const confirmationMessage = `Êtes-vous sûr de vouloir détacher ${user.firstName} ${user.lastName} de ${this.societeDetails.nom} ?`;

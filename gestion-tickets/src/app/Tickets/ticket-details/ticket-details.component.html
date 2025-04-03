@@ -11,7 +11,14 @@
       <button *ngIf="canFinishTicket()" (click)="openCompletionModal()">
         Terminer
       </button>
-      <button *ngIf="canUpdateResponsible()" (click)="updateResponsible()">Enregistrer</button>
+      <button *ngIf="canUpdateResponsible()" (click)="updateResponsible()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingResponsibleTpl">
+          Enregistrer
+        </ng-container>
+        <ng-template #loadingResponsibleTpl>
+          <span class="spinner"></span> Enregistrer
+        </ng-template>
+      </button>      
     </div>
   </div>
 
@@ -158,9 +165,14 @@
     <!-- Champ de saisie pour nouveau commentaire -->
     <div class="comment-input-container">
       <textarea [(ngModel)]="newComment" placeholder="Écrire un commentaire..." class="comment-input" rows="1"></textarea>
-      <button class="send-button" (click)="onAddComment()">
-        <i class="fas fa-paper-plane"></i>
-      </button>
+      <button class="send-button" (click)="onAddComment()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingCommentTpl">
+          <i class="fas fa-paper-plane"></i>
+        </ng-container>
+        <ng-template #loadingCommentTpl>
+          <span class="spinner"></span>
+        </ng-template>
+      </button>      
     </div>
   </div>
 

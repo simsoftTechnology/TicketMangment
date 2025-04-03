@@ -24,6 +24,7 @@ namespace GestionTicketsAPI.Helpers
           .ForMember(dest => dest.PhotoUrl, opt => opt.MapFrom(src => src.paysPhoto != null ? src.paysPhoto.Url : null))
           .ForMember(dest => dest.CodeTel, opt => opt.MapFrom(src => src.CodeTel));
       CreateMap<PaysUpdateDto, Pays>();
+      CreateMap<PaysDto, Pays>();
       CreateMap<Projet, ProjetDto>()
           .ForMember(dest => dest.NomPays, opt => opt.MapFrom(src => src.Societe.Pays.Nom))
           .ForMember(dest => dest.NomSociete, opt => opt.MapFrom(src => src.Societe.Nom))

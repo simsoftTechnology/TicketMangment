@@ -64,9 +64,16 @@
         </div>
         <!-- Boutons -->
         <div class="button-group">
-          <button type="submit" class="btn-create" [disabled]="projetForm.invalid">Ajouter</button>
+          <button type="submit" class="btn-create" [disabled]="projetForm.invalid || isLoading">
+            <ng-container *ngIf="!isLoading; else loadingTpl">
+              Ajouter
+            </ng-container>
+            <ng-template #loadingTpl>
+              <span class="spinner"></span> Ajouter
+            </ng-template>
+          </button>
           <button type="button" class="btn-cancel" (click)="closeModal()">Annuler</button>
-        </div>
+        </div>        
       </form>
     </div>
   </div>

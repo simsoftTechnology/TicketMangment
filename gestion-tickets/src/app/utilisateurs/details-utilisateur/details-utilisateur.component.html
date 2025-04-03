@@ -165,9 +165,16 @@
 
       <!-- Boutons -->
       <div class="button-group">
-        <button type="submit" class="btn-create">Sauvegarder</button>
+        <button type="submit" class="btn-create" [disabled]="userForm.invalid || isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">
+            Sauvegarder
+          </ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Sauvegarder
+          </ng-template>
+        </button>
         <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
-      </div>
+      </div>      
     </form>
   </div>
 
@@ -332,9 +339,16 @@
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-create" [disabled]="contratForm.invalid">Enregistrer</button>
+          <button type="submit" class="btn-create" [disabled]="contratForm.invalid || isLoading">
+            <ng-container *ngIf="!isLoading; else loadingTpl">
+              Enregistrer
+            </ng-container>
+            <ng-template #loadingTpl>
+              <span class="spinner"></span> Enregistrer
+            </ng-template>
+          </button>
           <button type="button" class="btn-cancel" (click)="cancelContrat()">Annuler</button>
-        </div>
+        </div>        
       </form>
     </div>
   </div>

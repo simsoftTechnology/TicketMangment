@@ -15,6 +15,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ProjetFilterComponent } from '../../_filters/projet-filter/projet-filter.component';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-liste-projets',
@@ -36,6 +37,7 @@ export class ListeProjetsComponent implements OnInit {
 
   // Ajout de la propriété currentFilters
   currentFilters: any = {};
+  isLoading: boolean = false;
 
   constructor(
     private projetsService: ProjetService,
@@ -43,7 +45,12 @@ export class ListeProjetsComponent implements OnInit {
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
-  ) { }
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
@@ -124,9 +131,18 @@ export class ListeProjetsComponent implements OnInit {
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer ce projet ?";
 
     modalInstance.confirmed.subscribe(() => {
-      this.projetsService.deleteProjet(id).subscribe(() => {
-        this.toastr.success("Projet suprimé avec succès")
-        this.getProjets();
+      this.loaderService.showLoader();
+      this.projetsService.deleteProjet(id).subscribe({
+        next: () => {
+          this.toastr.success("Projet supprimé avec succès");
+          this.getProjets();
+          this.loaderService.hideLoader();
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression du projet", err);
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
@@ -155,9 +171,7 @@ export class ListeProjetsComponent implements OnInit {
   // Suppression en masse des projets via le modal de confirmation
   deleteSelectedProjects(): void {
     const projets = this.paginatedResult?.items || [];
-    const selectedIds = projets
-      .filter(projet => projet.selected)
-      .map(projet => projet.id);
+    const selectedIds = projets.filter(projet => projet.selected).map(projet => projet.id);
 
     if (selectedIds.length === 0) {
       this.toastr.warning("Aucun projet sélectionné pour suppression.");
@@ -168,12 +182,17 @@ export class ListeProjetsComponent implements OnInit {
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?";
 
     modalInstance.confirmed.subscribe(() => {
+      this.loaderService.showLoader();
       this.projetsService.deleteSelectedProjets(selectedIds).subscribe({
         next: () => {
           this.toastr.success("Les projets sélectionnés ont été supprimés avec succès.");
           this.getProjets();
+          this.loaderService.hideLoader();
         },
-        error: error => this.toastr.error("Erreur lors de la suppression")
+        error: error => {
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
@@ -191,6 +210,7 @@ export class ListeProjetsComponent implements OnInit {
   
 
   exportProjets(): void {
+    this.loaderService.showLoader();
     this.projetsService.exportProjets(this.currentFilters).subscribe({
       next: (fileBlob: Blob) => {
         const objectUrl = URL.createObjectURL(fileBlob);
@@ -199,10 +219,12 @@ export class ListeProjetsComponent implements OnInit {
         a.download = `ProjetsExport_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(objectUrl);
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error("Erreur lors de l'export des projets", err);
         this.toastr.error("Erreur lors de l'export des projets");
+        this.loaderService.hideLoader();
       }
     });
   }

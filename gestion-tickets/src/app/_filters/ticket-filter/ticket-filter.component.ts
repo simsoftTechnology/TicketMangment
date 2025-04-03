@@ -10,6 +10,7 @@ import { SocieteService } from '../../_services/societe.service';
 import { AccountService } from '../../_services/account.service';
 import { StatusService } from '../../_services/status.service';
 import { CommonModule } from '@angular/common';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-ticket-filter',
@@ -72,6 +73,7 @@ export class TicketFilterComponent implements OnInit {
   isSocieteDropdownOpen: boolean = false;
 
   isClient: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -82,8 +84,13 @@ export class TicketFilterComponent implements OnInit {
     private statutService: StatusService,
     private qualificationService: QualificationService,
     private projetService: ProjetService,
-    private societeService: SocieteService
-  ) { }
+    private societeService: SocieteService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     const user = this.accountService.currentUser();
@@ -297,7 +304,9 @@ export class TicketFilterComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.loaderService.showLoader();
     this.applyFilter.emit(this.filterForm.value);
+    this.loaderService.hideLoader();
   }
 
   onReset(): void {

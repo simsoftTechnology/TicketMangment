@@ -12,6 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { UserFilterComponent } from '../../_filters/user-filter/user-filter.component';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
     selector: 'app-list-utilisateurs',
@@ -25,11 +26,6 @@ import { UserFilterComponent } from '../../_filters/user-filter/user-filter.comp
     styleUrls: ['./list-utilisateurs.component.css']
 })
 export class ListUtilisateursComponent implements OnInit {
-  public accountService = inject(AccountService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private toastr = inject(ToastrService);
-  private overlayModalService = inject(OverlayModalService);
 
   // Variables de pagination et recherche
   pageNumber: number = 1;
@@ -42,6 +38,19 @@ export class ListUtilisateursComponent implements OnInit {
   filterParams: any = {};
 
   newUserId: number | null = null;
+  isLoading: boolean = false;
+  constructor(
+    public accountService: AccountService,
+    private route: ActivatedRoute,
+    private router: Router,
+    private toastr: ToastrService,
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService 
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   } 
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -183,9 +192,11 @@ export class ListUtilisateursComponent implements OnInit {
   }
 
   exportUsers(): void {
-    // Vous pouvez transmettre les filtres en cours via this.filterParams et this.usersSearchTerm
     const searchTerm = this.usersSearchTerm || '';
-    // Ici, on suppose que votre AccountService.getUsers() accepte les filtres pour l'export
+    
+    // Afficher le loader
+    this.loaderService.showLoader();
+  
     this.accountService.exportUsers(searchTerm, this.filterParams)
       .subscribe({
         next: (blob: Blob) => {
@@ -195,12 +206,16 @@ export class ListUtilisateursComponent implements OnInit {
           a.download = `UsersExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
           a.click();
           window.URL.revokeObjectURL(url);
+          // Masquer le loader
+          this.loaderService.hideLoader();
         },
         error: error => {
           console.error("Erreur lors de l'export Excel des utilisateurs", error);
+          // Masquer le loader en cas d'erreur
+          this.loaderService.hideLoader();
         }
       });
-  }
+  }  
   
 }
 

@@ -15,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { SocieteFilterComponent } from '../../_filters/societe-filter/societe-filter.component';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
     selector: 'app-liste-societes',
@@ -38,13 +39,19 @@ export class ListeSocietesComponent implements OnInit {
   societesSearchTerm: string = '';
 
   filterParams: any = {};
+  isLoading: boolean = false;
 
   constructor(
     private societeService: SocieteService,
     public route: ActivatedRoute,
     private toastr: ToastrService,
-    private overlayModalService: OverlayModalService // Injection du service d'overlay
-  ) {}
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
@@ -103,8 +110,17 @@ export class ListeSocietesComponent implements OnInit {
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette société ?";
     
     modalInstance.confirmed.subscribe(() => {
-      this.societeService.deleteSociete(id).subscribe(() => {
-        this.loadSocietes();
+      this.loaderService.showLoader();
+      this.societeService.deleteSociete(id).subscribe({
+        next: () => {
+          this.loadSocietes();
+          this.loaderService.hideLoader();
+        },
+        error: (error) => {
+          console.error('Erreur lors de la suppression des sociétés', error);
+          this.toastr.error("Une erreur est survenue lors de la suppression.");
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
@@ -130,7 +146,6 @@ export class ListeSocietesComponent implements OnInit {
    * Méthode pour supprimer en masse les sociétés sélectionnées via modal de confirmation.
    */
   deleteSelectedSocietes(): void {
-    // Filtrer les sociétés marquées comme sélectionnées
     const selectedSocietes = this.societes.filter(societe => societe.selected);
     if (selectedSocietes.length === 0) {
       this.toastr.warning("Aucune société sélectionnée.");
@@ -142,14 +157,17 @@ export class ListeSocietesComponent implements OnInit {
     
     modalInstance.confirmed.subscribe(() => {
       const selectedIds = selectedSocietes.map(s => s.id);
+      this.loaderService.showLoader();
       this.societeService.deleteSelectedSocietes(selectedIds).subscribe({
         next: () => {
           this.toastr.success("Les sociétés sélectionnées ont été supprimées avec succès.");
           this.loadSocietes();
+          this.loaderService.hideLoader();
         },
         error: (error) => {
           console.error("Erreur lors de la suppression des sociétés", error);
           this.toastr.error("Une erreur est survenue lors de la suppression.");
+          this.loaderService.hideLoader();
         }
       });
       this.overlayModalService.close();
@@ -165,7 +183,8 @@ export class ListeSocietesComponent implements OnInit {
   }
 
   exportSocietes(): void {
-    // On passe également les filtres et la recherche pour l'export
+    // Active le loader pour l'export
+    this.loaderService.showLoader();
     this.societeService.exportSocietes(this.societesSearchTerm, this.filterParams)
       .subscribe({
         next: (blob: Blob) => {
@@ -175,9 +194,13 @@ export class ListeSocietesComponent implements OnInit {
           a.download = `SocietesExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
           a.click();
           window.URL.revokeObjectURL(url);
+          // Désactive le loader une fois l'export terminé
+          this.loaderService.hideLoader();
         },
         error: (error) => {
           console.error("Erreur lors de l'export Excel des sociétés", error);
+          this.toastr.error("Erreur lors de l'export Excel des sociétés");
+          this.loaderService.hideLoader();
         }
       });
   }
