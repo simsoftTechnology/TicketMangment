@@ -161,7 +161,11 @@ select {
   background-position: calc(100% - 10px) center;
   padding-right: 30px;
 }
-
+select:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 2px rgba(245, 124, 0, 0.1);
+}
 .date-info {
   font-size: 14px;
   color: #666;
@@ -226,6 +230,10 @@ select {
   font-weight: 550;
   margin-right: 8px;
   font-size: 0.98rem;
+}
+
+.my-comment-icon {
+  background-color: #bdbdbe; /* Par exemple, bleu pour vos messages */
 }
 
 .comment-info {

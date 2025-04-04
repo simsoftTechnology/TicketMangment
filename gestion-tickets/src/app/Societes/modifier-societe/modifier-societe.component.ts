@@ -27,7 +27,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
     selector: 'app-modifier-societe',
     imports: [ReactiveFormsModule, NgIf, NgFor, FormsModule, CommonModule],
     templateUrl: './modifier-societe.component.html',
-    styleUrls: ['./modifier-societe.component.css']
+    styleUrls: ['./modifier-societe.component.scss']
 })
 export class ModifierSocieteComponent implements OnInit {
   societeForm!: FormGroup;

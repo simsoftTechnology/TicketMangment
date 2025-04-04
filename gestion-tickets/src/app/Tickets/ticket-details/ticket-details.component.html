@@ -135,9 +135,9 @@
         <div class="comment-header">
           <!-- Partie gauche : icône et nom -->
           <div class="left-part">
-            <div class="comment-icon">
+            <div class="comment-icon" [ngClass]="{'my-comment-icon': comment.utilisateur?.id !== currentUser?.id}">
               {{ getInitials(comment.utilisateur?.firstName, comment.utilisateur?.lastName) }}
-            </div>
+            </div>            
             <div class="comment-info">
               <span class="comment-author">
                 {{ comment.utilisateur?.id === currentUser?.id 

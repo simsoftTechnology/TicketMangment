@@ -21,7 +21,7 @@ import { LoaderService } from '../../_services/loader.service';
   selector: 'app-project-modal',
   imports: [ ReactiveFormsModule, FormsModule, CommonModule],
   templateUrl: './project-modal.component.html',
-  styleUrl: './project-modal.component.css'
+  styleUrl: './project-modal.component.scss'
 })
 export class ProjectModalComponent {
   @Input() societeId!: number; // Reçu depuis le parent
