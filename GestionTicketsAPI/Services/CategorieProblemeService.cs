@@ -62,31 +62,37 @@ namespace GestionTicketsAPI.Services
 
 
 
-    // Méthode corrigée pour supprimer plusieurs catégories
     public async Task<bool> DeleteMultipleCategoriesAsync(List<int> ids)
     {
       var categories = await _categorieRepository.GetCategoriesByIdsAsync(ids);
       if (categories == null || !categories.Any())
-        return false;
+        throw new Exception("Aucune catégorie trouvée pour les IDs fournis.");
 
-      // Filtrer les catégories qui ne sont pas utilisées par un ticket
-      var categoriesToDelete = new List<CategorieProbleme>();
+      // Vérifier si l'une des catégories est utilisée par un ticket
+      var usedCategoryIds = new List<int>();
       foreach (var categorie in categories)
       {
         var ticketsUsingCategory = await _ticketRepository.GetTicketsByCategoryIdAsync(categorie.Id);
-        if (ticketsUsingCategory == null || !ticketsUsingCategory.Any())
+        if (ticketsUsingCategory != null && ticketsUsingCategory.Any())
         {
-          categoriesToDelete.Add(categorie);
+          usedCategoryIds.Add(categorie.Id);
         }
       }
 
-      // Si aucune catégorie n'est éligible à la suppression, retourner false ou gérer le cas autrement
-      if (!categoriesToDelete.Any())
-        return false;
+      // Si une ou plusieurs catégories sont utilisées, lancer une exception avec un message détaillé
+      if (usedCategoryIds.Any())
+      {
+        throw new Exception($"Les catégories avec l'ID(s) {string.Join(", ", usedCategoryIds)} sont utilisées par un ou plusieurs tickets et ne peuvent pas être supprimées.");
+      }
 
-      _categorieRepository.DeleteCategoriesRange(categoriesToDelete);
-      return await _categorieRepository.SaveAllAsync();
+      // Si toutes les catégories ne sont pas utilisées, procéder à la suppression
+      _categorieRepository.DeleteCategoriesRange(categories);
+      if (!await _categorieRepository.SaveAllAsync())
+        throw new Exception("Une erreur est survenue lors de la suppression des catégories.");
+
+      return true;
     }
+
     public async Task<bool> CategorieExists(string nom)
     {
       return await _categorieRepository.CategorieExists(nom);
