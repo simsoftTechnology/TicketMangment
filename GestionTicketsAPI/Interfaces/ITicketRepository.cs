@@ -18,5 +18,6 @@ namespace GestionTicketsAPI.Interfaces
         Task<StatutDesTicket?> GetStatusByNameAsync(string statusName);
         Task<IEnumerable<Ticket>> GetTicketsFilteredAsync(TicketFilterParams filterParams);
         List<object> GetTicketCountByStatus(int userId, string role);
+        Task<IEnumerable<Ticket>> GetTicketsByCategoryIdAsync(int categoryId);
     }
 }

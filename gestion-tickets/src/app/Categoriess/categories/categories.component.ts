@@ -98,23 +98,28 @@ export class CategoriesComponent implements OnInit {
   deleteCategorie(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";
-    
+  
     modalInstance.confirmed.subscribe(() => {
       this.loaderService.showLoader();
       this.categorieService.deleteCategory(id).subscribe({
-        next: () =>{ this.toastr.success("Catégorie suprimée avec succèss"),
-                  this.loadCategories(),
-                  this.loaderService.hideLoader();},
-        error: (err) => {console.error("Erreur lors de la suppression de la catégorie :", err);
-        this.loaderService.hideLoader();}
+        next: () => {
+          this.toastr.success("Catégorie supprimée avec succès");
+          // Mise à jour locale : suppression de la catégorie du tableau
+          this.categories = this.categories.filter(categorie => categorie.id !== id);
+          this.loaderService.hideLoader();
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression de la catégorie :", err);
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
-    
+  
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
-  }
+  }  
   
 
   // Suppression en masse des catégories sélectionnées

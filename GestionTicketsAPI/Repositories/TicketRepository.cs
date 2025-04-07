@@ -296,6 +296,13 @@ namespace GestionTicketsAPI.Repositories
       return await query.ToListAsync();
     }
 
+    public async Task<IEnumerable<Ticket>> GetTicketsByCategoryIdAsync(int categoryId)
+    {
+      return await _context.Tickets
+          .Where(t => t.ProblemCategoryId == categoryId)
+          .ToListAsync();
+    }
+
 
   }
 }

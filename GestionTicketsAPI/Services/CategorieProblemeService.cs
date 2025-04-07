@@ -1,16 +1,18 @@
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Repositories;
 
 namespace GestionTicketsAPI.Services
 {
   public class CategorieProblemeService : ICategorieProblemeService
   {
     private readonly ICategorieProblemeRepository _categorieRepository;
-
-    public CategorieProblemeService(ICategorieProblemeRepository categorieRepository)
+    private readonly ITicketRepository _ticketRepository;
+    public CategorieProblemeService(ITicketRepository ticketRepository, ICategorieProblemeRepository categorieRepository)
     {
       _categorieRepository = categorieRepository;
+      _ticketRepository = ticketRepository;
     }
 
     public async Task<IEnumerable<CategorieProbleme>> GetCategoriesAsync()
@@ -43,11 +45,22 @@ namespace GestionTicketsAPI.Services
     public async Task<bool> DeleteCategorieAsync(int id)
     {
       var categorie = await _categorieRepository.GetCategorieByIdAsync(id);
-      if (categorie == null) return false;
+      if (categorie == null)
+        throw new Exception("La catégorie n'existe pas.");
+
+      // Vérification si la catégorie est utilisée par des tickets
+      var ticketsUsingCategory = await _ticketRepository.GetTicketsByCategoryIdAsync(id);
+      if (ticketsUsingCategory != null && ticketsUsingCategory.Any())
+        throw new Exception("La catégorie est utilisée par un ou plusieurs tickets et ne peut pas être supprimée.");
 
       _categorieRepository.DeleteCategorie(categorie);
-      return await _categorieRepository.SaveAllAsync();
+      if (!await _categorieRepository.SaveAllAsync())
+        throw new Exception("Une erreur est survenue lors de la suppression de la catégorie.");
+
+      return true;
     }
+
+
 
     // Méthode corrigée pour supprimer plusieurs catégories
     public async Task<bool> DeleteMultipleCategoriesAsync(List<int> ids)
@@ -56,13 +69,27 @@ namespace GestionTicketsAPI.Services
       if (categories == null || !categories.Any())
         return false;
 
-      _categorieRepository.DeleteCategoriesRange(categories);
+      // Filtrer les catégories qui ne sont pas utilisées par un ticket
+      var categoriesToDelete = new List<CategorieProbleme>();
+      foreach (var categorie in categories)
+      {
+        var ticketsUsingCategory = await _ticketRepository.GetTicketsByCategoryIdAsync(categorie.Id);
+        if (ticketsUsingCategory == null || !ticketsUsingCategory.Any())
+        {
+          categoriesToDelete.Add(categorie);
+        }
+      }
+
+      // Si aucune catégorie n'est éligible à la suppression, retourner false ou gérer le cas autrement
+      if (!categoriesToDelete.Any())
+        return false;
+
+      _categorieRepository.DeleteCategoriesRange(categoriesToDelete);
       return await _categorieRepository.SaveAllAsync();
     }
-
     public async Task<bool> CategorieExists(string nom)
     {
-        return await _categorieRepository.CategorieExists(nom);
+      return await _categorieRepository.CategorieExists(nom);
     }
   }
 }
