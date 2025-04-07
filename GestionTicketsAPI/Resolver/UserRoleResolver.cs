@@ -29,7 +29,7 @@ public class UserRoleResolver : IValueResolver<UserUpdateDto, User, Role>
                 roleId = 3;
                 break;
             case "Client":
-                roleId = 3;
+                roleId = 4;
                 break;
             default:
                 // Si aucun match n'est trouvé, vous pouvez décider de conserver la valeur existante

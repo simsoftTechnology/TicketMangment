@@ -97,7 +97,7 @@ export class ListUtilisateursComponent implements OnInit {
             return { ...user, selected: false };
           });
           const result: PaginatedResult<User[]> = {
-            items: updatedItems,
+            items: updatedItems || [],
             pagination: response.pagination
           };
           this.accountService.paginatedResult.set(result);

@@ -55,12 +55,14 @@ export class UserProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.globalLoaderService.showGlobalLoader();
     this.initForm();
     // Charger la liste des pays avant de charger l'utilisateur
     this.paysService.getPays().subscribe({
       next: (pays) => {
         this.paysList = pays;
         this.loadUserDetails();
+        this.globalLoaderService.hideGlobalLoader();
       },
       error: (err) => {
         console.error("Erreur lors du chargement des pays", err);
@@ -146,15 +148,28 @@ export class UserProfileComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
-
+  
     // Affiche le loader
     this.loaderService.showLoader();
-
+  
     // Récupérer toutes les valeurs (même celles désactivées)
     const updatedUser: User = this.userForm.getRawValue();
+    console.log(updatedUser);
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
-        this.userDetails = { ...this.userDetails, ...updatedUser };
+        // Conserver le token de l'utilisateur existant
+        const mergedUser: User = {
+          ...this.userDetails!,
+          ...updatedUser,
+          token: this.userDetails?.token || ''
+        };
+        
+  
+        // Mettre à jour le local storage et le signal
+        this.accountService.setCurrentUser(mergedUser);
+  
+        // Mettre à jour la variable locale
+        this.userDetails = mergedUser;
         this.toastr.success("Mise à jour effectuée avec succès.");
         this.loaderService.hideLoader();
       },
@@ -165,6 +180,7 @@ export class UserProfileComponent implements OnInit {
       }
     });
   }
+  
 
   onCancel(): void {
     if (this.userDetails) {

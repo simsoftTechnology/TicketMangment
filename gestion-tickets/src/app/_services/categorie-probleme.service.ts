@@ -56,7 +56,7 @@ export class CategorieProblemeService {
 
   // Met à jour une catégorie existante
   updateCategory(category: CategorieProbleme): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${category.id}`, category);
+    return this.http.patch(`${this.baseUrl}/${category.id}`, category);
   }
 
   // Supprime une catégorie par ID

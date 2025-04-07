@@ -2,19 +2,21 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, HostListener, OnInit, Output } from '@angular/core';
 import { FormGroup, FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoaderService } from '../../_services/loader.service';
+import { RoleService } from '../../_services/role.service';
+import { Role } from '../../_models/role.model';
 
 @Component({
   selector: 'app-user-filter',
   imports: [ CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './user-filter.component.html',
-  styleUrl: './user-filter.component.css'
+  styleUrls: ['./user-filter.component.css']  // Assurez-vous que le nom du fichier est bien styleUrls (avec un "s")
 })
 export class UserFilterComponent implements OnInit {
   filterForm!: FormGroup;
   @Output() applyFilter = new EventEmitter<any>();
 
-  // Dropdown pour le rôle
-  roleOptions: string[] = ['Tous', 'Super Admin', 'Chef de Projet', 'Développeur', 'Client'];
+  // Dropdown pour le rôle (sera mis à jour via l'API)
+  roleOptions: string[] = [];  // On va récupérer les rôles depuis l'API
   filteredRoles: string[] = [];
   selectedRole: string = 'Tous';
   roleSearchTerm: string = '';
@@ -36,14 +38,18 @@ export class UserFilterComponent implements OnInit {
 
   isLoading: boolean = false;
 
-  constructor(private fb: FormBuilder,
-    private loaderService: LoaderService) {
-      this.loaderService.isLoading$.subscribe((loading) => {
-        this.isLoading = loading;
-      });
-    }
+  constructor(
+    private fb: FormBuilder,
+    private loaderService: LoaderService,
+    private roleService: RoleService  // Injection du service des rôles
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
+    // Initialisation du formulaire de filtre
     this.filterForm = this.fb.group({
       searchTerm: [''],
       role: ['Tous'],
@@ -51,8 +57,18 @@ export class UserFilterComponent implements OnInit {
       hasContract: ['Tous']
     });
 
-    // Initialisation des listes affichées
-    this.filteredRoles = [...this.roleOptions];
+    // Récupérer les rôles depuis l'API
+    this.roleService.getRoles().subscribe({
+      next: (roles: Role[]) => {
+        // On ajoute "Tous" en première position pour permettre l'absence de filtre
+        this.roleOptions = ['Tous', ...roles.map(r => r.name)];
+        // Initialisation de la liste filtrée
+        this.filteredRoles = [...this.roleOptions];
+      },
+      error: (err) => console.error('Erreur lors de la récupération des rôles', err)
+    });
+
+    // Initialisation des listes statiques pour les autres dropdowns
     this.filteredActifs = [...this.actifOptions];
     this.filteredContracts = [...this.contractOptions];
   }
@@ -70,7 +86,7 @@ export class UserFilterComponent implements OnInit {
       filterValues.hasContract = false;
     }
     this.loaderService.showLoader();
-    this.applyFilter.emit(this.filterForm.value);
+    this.applyFilter.emit(filterValues);
     this.loaderService.hideLoader();
   }
 
