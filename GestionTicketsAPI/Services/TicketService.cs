@@ -40,7 +40,6 @@ namespace GestionTicketsAPI.Services
     {
       var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(filterParams);
       var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
-      // Utilisation du constructeur de PagedList<T> pour créer un PagedList<TicketDto>
       return new PagedList<TicketDto>(
           ticketDtos,
           pagedTickets.TotalCount,
@@ -100,8 +99,5 @@ namespace GestionTicketsAPI.Services
     {
       return await _ticketRepository.GetTicketsFilteredAsync(filterParams);
     }
-
-
-
   }
 }

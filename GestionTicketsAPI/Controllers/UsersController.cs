@@ -26,8 +26,8 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Récupérer les utilisateurs paginés
-    [HttpGet("paged")]
-    public async Task<ActionResult<PagedList<UserDto>>> GetUsers([FromQuery] UserParams userParams)
+    [HttpPost("paged")]
+    public async Task<ActionResult<PagedList<UserDto>>> GetUsers([FromBody] UserParams userParams)
     {
       var users = await _userService.GetAllUsersAsync(userParams);
       Response.AddPaginationHeader(users);
@@ -62,16 +62,16 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
-    [HttpGet("{userId:int}/projects/paged")]
-    public async Task<ActionResult<PagedList<ProjetDto>>> GetUserProjectsPaged(int userId, [FromQuery] UserParams userParams)
+    [HttpPost("{userId:int}/projects/paged")]
+    public async Task<ActionResult<PagedList<ProjetDto>>> GetUserProjectsPaged(int userId, [FromBody] UserParams userParams)
     {
       var projets = await _userService.GetUserProjectsPagedAsync(userId, userParams);
       Response.AddPaginationHeader(projets);
       return Ok(projets);
     }
 
-    [HttpGet("{userId:int}/tickets/paged")]
-    public async Task<ActionResult<PagedList<TicketDto>>> GetUserTicketsPaged(int userId, [FromQuery] UserParams userParams)
+    [HttpPost("{userId:int}/tickets/paged")]
+    public async Task<ActionResult<PagedList<TicketDto>>> GetUserTicketsPaged(int userId, [FromBody] UserParams userParams)
     {
       var tickets = await _userService.GetUserTicketsPagedAsync(userId, userParams);
       Response.AddPaginationHeader(tickets);
@@ -80,8 +80,8 @@ namespace GestionTicketsAPI.Controllers
 
 
 
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult> UpdateUser(int id, UserUpdateDto userUpdateDto)
+    [HttpPost("{id:int}")]
+    public async Task<ActionResult> UpdateUser(int id, [FromBody] UserUpdateDto userUpdateDto)
     {
       if (id != userUpdateDto.Id)
         return BadRequest("L'ID de l'URL ne correspond pas à celui du body.");
@@ -93,6 +93,7 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
+
     [HttpGet("role/{roleName}")]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersByRole(string roleName)
     {
@@ -100,8 +101,8 @@ namespace GestionTicketsAPI.Controllers
       return Ok(users);
     }
 
-    [HttpGet("export")]
-    public async Task<IActionResult> ExportUsers([FromQuery] UserParams userParams)
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportUsers([FromBody] UserParams userParams)
     {
       // Récupérer les utilisateurs filtrés (sans pagination)
       var users = await _userService.GetUsersFilteredAsync(userParams);

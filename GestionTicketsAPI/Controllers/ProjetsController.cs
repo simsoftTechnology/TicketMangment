@@ -58,8 +58,8 @@ namespace GestionTicketsAPI.Controllers
 
 
     // Récupérer les projets paginés
-    [HttpGet("paged")]
-    public async Task<ActionResult<PagedList<ProjetDto>>> GetProjetsPaged([FromQuery] ProjectFilterParams filterParams)
+    [HttpPost("paged")]
+    public async Task<ActionResult<PagedList<ProjetDto>>> GetProjetsPaged([FromBody] ProjectFilterParams filterParams)
     {
       Console.WriteLine($"Role: {filterParams.Role}, UserId: {filterParams.UserId}");
       var projetsPaged = await _projetService.GetProjetsPagedAsync(filterParams);

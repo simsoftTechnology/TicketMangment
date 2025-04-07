@@ -32,10 +32,17 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // GET : api/CategorieProbleme/paged?pageNumber=1&pageSize=10&searchTerm=
-    [HttpGet("paged")]
-    public async Task<IActionResult> GetCategoriesPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
+    public class CategoriesPagedRequest
     {
-      var pagedCategories = await _categorieService.GetCategoriesPagedAsync(searchTerm, pageNumber, pageSize);
+      public int PageNumber { get; set; } = 1;
+      public int PageSize { get; set; } = 10;
+      public string SearchTerm { get; set; } = "";
+    }
+
+    [HttpPost("paged")]
+    public async Task<IActionResult> GetCategoriesPaged([FromBody] CategoriesPagedRequest request)
+    {
+      var pagedCategories = await _categorieService.GetCategoriesPagedAsync(request.SearchTerm, request.PageNumber, request.PageSize);
 
       var pagination = new
       {
@@ -48,6 +55,7 @@ namespace GestionTicketsAPI.Controllers
       Response.Headers.Add("Pagination", JsonConvert.SerializeObject(pagination));
       return Ok(pagedCategories);
     }
+
 
     // GET : api/CategorieProbleme/5
     [HttpGet("{id}")]

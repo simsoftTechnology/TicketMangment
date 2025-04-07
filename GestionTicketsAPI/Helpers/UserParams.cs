@@ -1,5 +1,3 @@
-using System;
-
 namespace GestionTicketsAPI.Helpers
 {
     public class UserParams
@@ -17,7 +15,7 @@ namespace GestionTicketsAPI.Helpers
         // Terme de recherche
         public string? SearchTerm { get; set; }
 
-        // Propriétés ajoutées pour le filtrage côté serveur
+        // Autres filtres côté serveur
         public int UserId { get; set; }
         public string? Role { get; set; }
         public string? FilterType { get; set; }

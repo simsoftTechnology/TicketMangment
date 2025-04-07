@@ -1,10 +1,12 @@
 import { Component, OnInit, OnDestroy, HostListener, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Router } from '@angular/router';
 import { NgxEditorModule, Editor, Toolbar } from 'ngx-editor';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, finalize, tap } from 'rxjs/operators';
 
 import { TicketService } from '../../_services/ticket.service';
 import { CategorieProblemeService } from '../../_services/categorie-probleme.service';
@@ -14,10 +16,10 @@ import { PrioriteService } from '../../_services/priorite.service';
 import { QualificationService } from '../../_services/qualification.service';
 import { Qualification } from '../../_models/qualification.model';
 import { Priorite } from '../../_models/priorite.model';
-import { finalize, forkJoin } from 'rxjs';
 import { LoaderService } from '../../_services/loader.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { TicketCreateDto } from '../../_models/ticketCreateDto';
 
 @Component({
   selector: 'app-ajouter-ticket',
@@ -30,43 +32,43 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 export class AjouterTicketComponent implements OnInit, OnDestroy {
   addTicketForm: FormGroup;
 
-  // Listes chargées depuis la base
+  // Lists loaded from backend
   categories: any[] = [];
   projets: any[] = [];
-  usersOptions: any[] = []; // Liste des utilisateurs (responsables)
+  usersOptions: any[] = [];
 
-  // Options pour les selects standards
+  // Options for standard selects
   qualificationOptions: Qualification[] = [];
   prioriteOptions: Priorite[] = [];
 
-  // Variables pour le select custom Qualification
+  // Custom Qualification select
   selectedQualification: Qualification | null = null;
   isQualificationDropdownOpen: boolean = false;
   qualificationSearchTerm: string = '';
   filteredQualifications: Qualification[] = [];
 
-  // Variables pour le select custom Priorité
+  // Custom Priorité select
   selectedPriority: Priorite | null = null;
   isPriorityDropdownOpen: boolean = false;
   prioritySearchTerm: string = '';
   filteredPriorities: Priorite[] = [];
 
-  // Variables pour le dropdown Projet
+  // Dropdown Projet
   selectedProjet: any = null;
   isProjetDropdownOpen: boolean = false;
   searchProjet: string = '';
   filteredProjets: any[] = [];
 
-  // Variables pour le dropdown Catégorie
+  // Dropdown Catégorie
   selectedCategorie: any = null;
   isCategorieDropdownOpen: boolean = false;
   searchCategorie: string = '';
   filteredCategories: any[] = [];
 
-  selectedFile: File | null = null;
+  selectedFile: File | undefined = undefined;
   formSubmitted = false;
 
-  // Instance de l'éditeur et configuration de la toolbar pour ngx-editor
+  // Ngx-editor instance and toolbar configuration
   editor!: Editor;
   toolbar!: Toolbar;
 
@@ -85,11 +87,11 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     private loaderService: LoaderService,
     private overlayModalService: OverlayModalService,
   ) {
-
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
     });
-    // Création du formulaire réactif avec les clés du modèle
+
+    // Create reactive form with keys matching the model
     this.addTicketForm = this.fb.group({
       title: ['', Validators.required],
       description: ['', Validators.required],
@@ -102,6 +104,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Use forkJoin to wait for all data loading observables
     forkJoin([
       this.loadCategories(),
       this.loadProjets(),
@@ -110,10 +113,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       this.loadUsers()
     ]).subscribe();
 
-    // Initialisation de ngx-editor
+    // Initialize ngx-editor and configure toolbar
     this.editor = new Editor();
-
-    // Configuration de la toolbar (personnalisez-la selon vos besoins)
     this.toolbar = [
       ['bold', 'italic', 'underline', 'strike'],
       ['link'],
@@ -125,79 +126,81 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Détruire l'éditeur pour libérer les ressources
+    // Destroy the editor to free resources
     this.editor.destroy();
   }
 
-  // Méthode pour charger la liste des catégories depuis la base
-  loadCategories(): void {
-    this.categorieProblemeService.getCategories().subscribe({
-      next: (categories) => {
+  // Data-loading methods return Observables instead of subscribing internally
+
+  loadCategories(): Observable<any> {
+    return this.categorieProblemeService.getCategories().pipe(
+      tap(categories => {
         this.categories = categories;
-        this.filteredCategories = [...this.categories];
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des catégories", err);
+        this.filteredCategories = [...categories];
+      }),
+      catchError(error => {
+        console.error("Erreur lors du chargement des catégories", error);
         this.toastr.error("Erreur lors du chargement des catégories de problèmes.");
-      }
-    });
+        return of([]);
+      })
+    );
   }
 
-  // Méthode pour charger la liste des projets depuis la base
-  loadProjets(): void {
-    this.projetService.getProjets().subscribe({
-      next: (projets) => {
+  loadProjets(): Observable<any> {
+    return this.projetService.getProjets().pipe(
+      tap(projets => {
         this.projets = projets;
-        this.filteredProjets = [...this.projets];
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des projets", err);
+        this.filteredProjets = [...projets];
+      }),
+      catchError(error => {
+        console.error("Erreur lors du chargement des projets", error);
         this.toastr.error("Erreur lors du chargement des projets.");
-      }
-    });
+        return of([]);
+      })
+    );
   }
 
-  // Méthode pour charger les priorités depuis la base
-  loadPriorites(): void {
-    this.prioriteService.getPriorites().subscribe({
-      next: (priorites) => {
+  loadPriorites(): Observable<any> {
+    return this.prioriteService.getPriorites().pipe(
+      tap(priorites => {
         this.prioriteOptions = priorites;
         this.filteredPriorities = [...priorites];
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des priorités", err);
+      }),
+      catchError(error => {
+        console.error("Erreur lors du chargement des priorités", error);
         this.toastr.error("Erreur lors du chargement des priorités.");
-      }
-    });
+        return of([]);
+      })
+    );
   }
 
-  // Méthode pour charger les qualifications depuis la base
-  loadQualifications(): void {
-    this.qualificationService.getQualifications().subscribe({
-      next: (qualifications) => {
+  loadQualifications(): Observable<any> {
+    return this.qualificationService.getQualifications().pipe(
+      tap(qualifications => {
         this.qualificationOptions = qualifications;
         this.filteredQualifications = [...qualifications];
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des qualifications", err);
+      }),
+      catchError(error => {
+        console.error("Erreur lors du chargement des qualifications", error);
         this.toastr.error("Erreur lors du chargement des qualifications.");
-      }
-    });
+        return of([]);
+      })
+    );
   }
 
-  // Méthode pour charger la liste des utilisateurs (responsables)
-  loadUsers(): void {
-    this.accountService.getUsers(1, 1000).subscribe({
-      next: (result) => {
+  loadUsers(): Observable<any> {
+    return this.accountService.getUsers(1, 1000).pipe(
+      tap(result => {
         this.usersOptions = result.items ?? [];
-      },
-      error: (err) => {
-        console.error("Erreur lors du chargement des utilisateurs", err);
-      }
-    });
+      }),
+      catchError(error => {
+        console.error("Erreur lors du chargement des utilisateurs", error);
+        return of({ items: [] });
+      })
+    );
   }
 
-  // Gestion de l'ouverture/fermeture des dropdowns pour "projet", "catégorie", "qualification" et "priority"
+  // Toggle dropdowns for different selects
   toggleDropdown(type: string): void {
     if (type === 'projet') {
       this.isProjetDropdownOpen = !this.isProjetDropdownOpen;
@@ -226,63 +229,56 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Filtrer les projets en fonction de la saisie
+  // Filter methods for dropdowns
   filterProjets(): void {
     this.filteredProjets = this.projets.filter(p =>
       p.nom.toLowerCase().includes(this.searchProjet.toLowerCase())
     );
   }
 
-  // Lorsque l'utilisateur sélectionne un projet
   selectProjet(projet: any): void {
     this.selectedProjet = projet;
     this.isProjetDropdownOpen = false;
     this.addTicketForm.patchValue({ projetId: projet.id });
   }
 
-  // Filtrer les catégories en fonction de la saisie
   filterCategories(): void {
     this.filteredCategories = this.categories.filter(cat =>
       cat.nom.toLowerCase().includes(this.searchCategorie.toLowerCase())
     );
   }
 
-  // Lorsque l'utilisateur sélectionne une catégorie
   selectCategorie(categorie: any): void {
     this.selectedCategorie = categorie;
     this.isCategorieDropdownOpen = false;
     this.addTicketForm.patchValue({ problemCategoryId: categorie.id });
   }
 
-  // Filtrer les qualifications en fonction de la saisie
   filterQualifications(): void {
     this.filteredQualifications = this.qualificationOptions.filter(q =>
       q.name.toLowerCase().includes(this.qualificationSearchTerm.toLowerCase())
     );
   }
 
-  // Lorsque l'utilisateur sélectionne une qualification
   selectQualification(qualification: Qualification): void {
     this.selectedQualification = qualification;
     this.isQualificationDropdownOpen = false;
     this.addTicketForm.patchValue({ qualificationId: qualification.id });
   }
 
-  // Filtrer les priorités en fonction de la saisie
   filterPriorities(): void {
     this.filteredPriorities = this.prioriteOptions.filter(p =>
       p.name.toLowerCase().includes(this.prioritySearchTerm.toLowerCase())
     );
   }
 
-  // Lorsque l'utilisateur sélectionne une priorité
   selectPriority(priority: Priorite): void {
     this.selectedPriority = priority;
     this.isPriorityDropdownOpen = false;
     this.addTicketForm.patchValue({ priorityId: priority.id });
   }
 
-  // Gestion de la sélection d'un fichier pour l'attachement
+  // File selection handler
   onFileSelected(event: any): void {
     if (event.target.files && event.target.files.length > 0) {
       this.selectedFile = event.target.files[0];
@@ -290,143 +286,126 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Soumission du formulaire pour créer le ticket
+  // Submit the form to create the ticket
   onSubmit(): void {
     this.formSubmitted = true;
-    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
+    if (this.addTicketForm.invalid) {
       Object.values(this.addTicketForm.controls).forEach(control => control.markAsTouched());
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', this.addTicketForm.get('title')?.value);
     const rawDescription = this.addTicketForm.get('description')?.value;
     const cleanedDescription = rawDescription.replace(/<\/?p>/g, '');
-    formData.append('description', cleanedDescription);
-    formData.append('qualificationId', Number(this.addTicketForm.get('qualificationId')?.value).toString());
-    formData.append('priorityId', Number(this.addTicketForm.get('priorityId')?.value).toString());
-    formData.append('problemCategoryId', Number(this.addTicketForm.get('problemCategoryId')?.value).toString());
-    formData.append('projetId', Number(this.addTicketForm.get('projetId')?.value).toString());
 
     const currentUser = this.accountService.currentUser();
-    if (currentUser) {
-      formData.append('ownerId', currentUser.id.toString());
-    }
-    if (this.selectedFile) {
-      formData.append('attachment', this.selectedFile, this.selectedFile.name);
-    }
+    const ticket: TicketCreateDto = {
+      title: this.addTicketForm.get('title')?.value,
+      description: cleanedDescription,
+      qualificationId: +this.addTicketForm.get('qualificationId')?.value,
+      priorityId: +this.addTicketForm.get('priorityId')?.value,
+      problemCategoryId: +this.addTicketForm.get('problemCategoryId')?.value,
+      projetId: +this.addTicketForm.get('projetId')?.value,
+      ownerId: currentUser ? currentUser.id : 0,
+      attachmentBase64: '',
+      attachmentFileName: ''
+    };
 
-    // Active le loader local
     this.loaderService.showLoader();
-    this.ticketService.createTicket(formData)
-      .pipe(finalize(() => this.loaderService.hideLoader()))
+
+    this.ticketService.createTicket(ticket, this.selectedFile)
+      .pipe(
+        // finalize always runs even if there is an error
+        // Hides the loader once the ticket creation is done
+        // You can add additional operators if needed
+        tap((createdTicket: any) => {
+          if (!createdTicket || createdTicket.id == null) {
+            throw new Error("L'identifiant du ticket créé est introuvable.");
+          }
+        }),
+        finalize(() => this.loaderService.hideLoader())
+      )
       .subscribe({
-        next: (ticket) => {
+        next: (createdTicket: any) => {
           this.toastr.success("Ticket créé avec succès.");
-          this.router.navigate(['/home/Tickets/details', ticket.id]);
+          // Ensure you reference the correct property name for the ticket ID
+          this.router.navigate(['/home/Tickets/details', createdTicket.id]);
         },
         error: (error) => {
-          console.error('Erreur lors de la création du ticket', error);
-          let errMsg = "Erreur lors de la création du ticket.";
-          if (Array.isArray(error)) {
-            errMsg = error.join(' ');
-          } else if (typeof error === 'string') {
-            errMsg = error;
-          } else if (error.error) {
-            if (Array.isArray(error.error)) {
-              errMsg = error.error.join(' ');
-            } else if (typeof error.error === 'string') {
-              errMsg = error.error;
-            } else if (typeof error.error === 'object') {
-              errMsg = error.error.message || JSON.stringify(error.error);
-            }
-          } else if (error.message) {
-            errMsg = error.message;
-          }
-          this.toastr.error(errMsg);
+          console.error("Erreur lors de la création du ticket :", error);
+          // Ici, error sera une chaîne « Un ticket avec ce titre existe déjà »
+          this.toastr.error(error, 'Erreur');
         }
       });
   }
 
-  // Créer le ticket et réinitialiser le formulaire pour en ajouter un autre
+  // Create the ticket and reset the form for adding another ticket
   createAndReset(): void {
-    if (this.addTicketForm.invalid || !this.selectedQualification || !this.selectedPriority) {
+    if (this.addTicketForm.invalid) {
       this.toastr.warning("Veuillez remplir correctement le formulaire.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append('title', this.addTicketForm.get('title')?.value);
     const rawDescription = this.addTicketForm.get('description')?.value;
     const cleanedDescription = rawDescription.replace(/<\/?p>/g, '');
-    formData.append('description', cleanedDescription);
-    formData.append('qualificationId', Number(this.addTicketForm.get('qualificationId')?.value).toString());
-    formData.append('priorityId', Number(this.addTicketForm.get('priorityId')?.value).toString());
-    formData.append('problemCategoryId', Number(this.addTicketForm.get('problemCategoryId')?.value).toString());
-    formData.append('projetId', Number(this.addTicketForm.get('projetId')?.value).toString());
 
     const currentUser = this.accountService.currentUser();
-    if (currentUser) {
-      formData.append('ownerId', currentUser.id.toString());
-    }
-    if (this.selectedFile) {
-      formData.append('attachment', this.selectedFile, this.selectedFile.name);
-    }
+    const ticket: TicketCreateDto = {
+      title: this.addTicketForm.get('title')?.value,
+      description: cleanedDescription,
+      qualificationId: +this.addTicketForm.get('qualificationId')?.value,
+      priorityId: +this.addTicketForm.get('priorityId')?.value,
+      problemCategoryId: +this.addTicketForm.get('problemCategoryId')?.value,
+      projetId: +this.addTicketForm.get('projetId')?.value,
+      ownerId: currentUser ? currentUser.id : 0,
+      attachmentBase64: '',
+      attachmentFileName: ''
+    };
 
     this.loaderService.showLoader();
-    this.ticketService.createTicket(formData)
+
+    this.ticketService.createTicket(ticket, this.selectedFile)
       .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
-        next: (ticket) => {
+        next: () => {
           this.toastr.success("Ticket créé avec succès. Vous pouvez en ajouter un autre.");
           this.resetForm();
         },
         error: (error) => {
           console.error('Erreur lors de la création du ticket', error);
           let errMsg = "Erreur lors de la création du ticket.";
-          if (Array.isArray(error)) {
-            errMsg = error.join(' ');
-          } else if (typeof error === 'string') {
-            errMsg = error;
-          } else if (error.error) {
-            if (Array.isArray(error.error)) {
-              errMsg = error.error.join(' ');
-            } else if (typeof error.error === 'string') {
+          if (error.error) {
+            if (typeof error.error === 'string') {
               errMsg = error.error;
-            } else if (typeof error.error === 'object') {
-              errMsg = error.error.message || JSON.stringify(error.error);
+            } else if (error.error.message) {
+              errMsg = error.error.message;
             }
-          } else if (error.message) {
-            errMsg = error.message;
           }
           this.toastr.error(errMsg);
         }
       });
   }
-  
-  // Réinitialisation du formulaire
+
+  // Reset the form and clear file and dropdown selections
   resetForm(): void {
     this.addTicketForm.reset();
-    this.selectedFile = null;
+    this.selectedFile = undefined;
     this.selectedProjet = null;
     this.selectedCategorie = null;
     this.selectedQualification = null;
     this.selectedPriority = null;
   }
 
-
-
-  // Annulation : redirige selon si des modifications ont été effectuées
+  // Cancel: if there are unsaved changes, confirm cancellation; otherwise, navigate away.
   cancel(): void {
     if (this.addTicketForm.dirty) {
       const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
       modalInstance.message = "Vous avez des modifications non sauvegardées. Voulez-vous vraiment annuler ?";
-      
+
       modalInstance.confirmed.subscribe(() => {
         this.router.navigate(['/home/Tickets']);
         this.overlayModalService.close();
       });
-      
+
       modalInstance.cancelled.subscribe(() => {
         this.overlayModalService.close();
       });
@@ -434,9 +413,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       this.router.navigate(['/home/Tickets']);
     }
   }
-  
 
-  // Gestionnaire de clic global pour fermer les dropdowns si le clic se fait en dehors
+  // Global click handler to close dropdowns when clicking outside
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;

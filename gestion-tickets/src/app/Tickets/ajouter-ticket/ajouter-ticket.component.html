@@ -190,14 +190,6 @@
             <span class="spinner"></span> Créer
           </ng-template>
         </button>
-        <button type="button" class="btn-add" (click)="createAndReset()" [disabled]="isLoading">
-          <ng-container *ngIf="!isLoading; else loadingAdd">
-            Créer &amp; Ajouter un autre
-          </ng-container>
-          <ng-template #loadingAdd>
-            <span class="spinner"></span> Création...
-          </ng-template>
-        </button>
         <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isLoading">
           Annuler
         </button>

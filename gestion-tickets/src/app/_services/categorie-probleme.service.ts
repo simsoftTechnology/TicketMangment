@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
-import { PaginatedResult } from '../_models/pagination';
+import { PaginatedResult, Pagination } from '../_models/pagination';
 
 @Injectable({
   providedIn: 'root'
@@ -18,22 +18,27 @@ export class CategorieProblemeService {
   }
 
   // Récupère les catégories paginées
-  getCategoriesPaginated(pageNumber: number, pageSize: number, searchTerm: string = ''): Observable<PaginatedResult<CategorieProbleme[]>> {
-    const paginatedResult: PaginatedResult<CategorieProbleme[]> = new PaginatedResult<CategorieProbleme[]>();
-    
-    let params = new HttpParams()
-      .set('pageNumber', pageNumber.toString())
-      .set('pageSize', pageSize.toString())
-      .set('searchTerm', searchTerm);
-
-    return this.http.get<CategorieProbleme[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
+  getCategoriesPaginated(
+    pageNumber: number,
+    pageSize: number,
+    searchTerm: string = '',
+    extraFilters?: any
+  ): Observable<PaginatedResult<CategorieProbleme[]>> {
+    const params = {
+      pageNumber,
+      pageSize,
+      searchTerm,
+      ...extraFilters
+    };
+  
+    return this.http.post<any>(`${this.baseUrl}/paged`, params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<CategorieProbleme[]>) => {
-          paginatedResult.items = response.body || [];
           const paginationHeader = response.headers.get('Pagination');
-          if (paginationHeader) {
-            paginatedResult.pagination = JSON.parse(paginationHeader);
-          }
+          const paginatedResult: PaginatedResult<CategorieProbleme[]> = {
+            items: response.body || [],
+            pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
+          };
           return paginatedResult;
         })
       );

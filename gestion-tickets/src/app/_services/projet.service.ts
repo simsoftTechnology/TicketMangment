@@ -3,7 +3,7 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Projet } from '../_models/Projet';
 import { ProjetMember } from '../_models/projet-member';
-import { PaginatedResult } from '../_models/pagination';
+import { PaginatedResult, Pagination } from '../_models/pagination';
 
 @Injectable({
   providedIn: 'root'
@@ -24,47 +24,22 @@ export class ProjetService {
     pageNumber: number,
     pageSize: number,
     searchTerm?: string,
-    societeId?: number,
-    role?: string,
-    userId?: number,
-    chefProjet?: string,
-    societe?: string,
-    pays?: string
+    extraFilters?: any
   ): Observable<PaginatedResult<Projet[]>> {
-    let params = new HttpParams();
-    params = params.append('pageNumber', pageNumber.toString());
-    params = params.append('pageSize', pageSize.toString());
-
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-    if (societeId) {
-      params = params.append('societeId', societeId.toString());
-    }
-    if (role) {
-      params = params.append('role', role);
-    }
-    if (userId != null) {
-      params = params.append('userId', userId.toString());
-    }
-    if (chefProjet && chefProjet.trim() !== '') {
-      params = params.append('chefProjet', chefProjet);
-    }
-    if (societe && societe.trim() !== '') {
-      params = params.append('societe', societe);
-    }
-    if (pays && pays.trim() !== '') {
-      params = params.append('pays', pays);
-    }
-
-    return this.http.get<Projet[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
+    const params = {
+      pageNumber,
+      pageSize,
+      searchTerm: searchTerm ? searchTerm : '',
+      ...extraFilters
+    };
+  
+    return this.http.post<any>(this.baseUrl + '/paged', params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<Projet[]>) => {
+          const paginationHeader = response.headers.get('Pagination');
           const paginatedResult: PaginatedResult<Projet[]> = {
             items: response.body || [],
-            pagination: response.headers.get('Pagination')
-              ? JSON.parse(response.headers.get('Pagination')!)
-              : null!
+            pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
           };
           return paginatedResult;
         })

@@ -69,22 +69,16 @@ export class ListeProjetsComponent implements OnInit {
 
   getProjets(): void {
     this.globalLoaderService.showGlobalLoader();
-    // Fusionne le terme de recherche global avec les filtres avancés
-    const filters = { ...this.currentFilters, searchTerm: this.projetsSearchTerm };
-
-    const currentUser = this.accountService.currentUser();
-    if (currentUser) {
-      this.projetsService.getPaginatedProjets(
-        this.pageNumber,
-        this.pageSize,
-        filters.searchTerm,
-        undefined, // Vous pouvez passer ici un societeId si nécessaire
-        currentUser.role,
-        currentUser.id,
-        filters.chefProjet,
-        filters.societe,
-        filters.pays
-      ).subscribe({
+    
+    const filters = { 
+      ...this.currentFilters, 
+      searchTerm: this.projetsSearchTerm,
+      role: this.accountService.currentUser()?.role,
+      userId: this.accountService.currentUser()?.id
+    };
+  
+    this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, filters.searchTerm, filters)
+      .subscribe({
         next: (response) => {
           this.paginatedResult = response;
           this.globalLoaderService.hideGlobalLoader();
@@ -95,10 +89,8 @@ export class ListeProjetsComponent implements OnInit {
           this.toastr.error('Erreur lors du chargement des projets paginés');
         }
       });
-    } else {
-      console.error('Utilisateur non connecté');
-    }
   }
+  
 
   // Getter qui applique le filtre sur la liste des projets de la page actuelle
   get filteredProjets(): Projet[] {

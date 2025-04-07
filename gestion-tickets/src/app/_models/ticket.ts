@@ -23,6 +23,8 @@ export interface Ticket {
   qualificationId: number;
   qualification?: Qualification;
   attachments?: string;
+  attachmentBase64?: string;
+  attachmentFileName?: string;
   projetId: number;
   projet?: Projet;
   selected?: boolean;
