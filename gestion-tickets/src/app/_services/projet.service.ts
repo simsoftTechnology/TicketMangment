@@ -3,7 +3,7 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Projet } from '../_models/Projet';
 import { ProjetMember } from '../_models/projet-member';
-import { PaginatedResult } from '../_models/pagination';
+import { PaginatedResult, Pagination } from '../_models/pagination';
 import { environment } from '../../environment/environment';
 
 @Injectable({
@@ -27,30 +27,25 @@ export class ProjetService {
     searchTerm?: string,
     societeId?: number
   ): Observable<PaginatedResult<Projet[]>> {
-    let params = new HttpParams();
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
-    }
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-    if (societeId) {
-      params = params.append('societeId', societeId.toString());
-    }
-  
-    return this.http.get<Projet[]>(`${this.baseUrl}paged`, { observe: 'response', params })
+    const params = {
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      searchTerm: searchTerm
+    };
+    return this.http.post<any>(environment.URLAPI + 'Projets/paged', params, { observe: 'response' })
       .pipe(
-        map((response: HttpResponse<Projet[]>) => {
+        map((response: HttpResponse<any>) => {
+          // Now response.headers is available
+          const paginationHeader = response.headers.get('Pagination'); 
+          
           const paginatedResult: PaginatedResult<Projet[]> = {
             items: response.body || [],
-            pagination: response.headers.get('Pagination')
-              ? JSON.parse(response.headers.get('Pagination')!)
-              : null!
+            pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
           };
           return paginatedResult;
         })
       );
+ 
   }
   
   

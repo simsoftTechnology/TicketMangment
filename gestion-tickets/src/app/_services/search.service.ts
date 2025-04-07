@@ -13,7 +13,7 @@ export interface SearchResultDTO {
   providedIn: 'root'
 })
 export class SearchService {
-  private apiUrl = 'http://localhost:8055/api/search'; // Assurez-vous que l'URL correspond à celle définie côté backend
+  private apiUrl = 'https://support.simsoft.tn:8055/api/search'; // Assurez-vous que l'URL correspond à celle définie côté backend
 
   constructor(private http: HttpClient) {}
 

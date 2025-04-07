@@ -30,9 +30,9 @@ namespace GestionTicketsAPI.Controllers
       return Ok(societes);
     }
 
-    // GET: api/Societe/paged?PageNumber=1&PageSize=10&SearchTerm=...
-    [HttpGet("paged")]
-    public async Task<ActionResult<PagedList<SocieteDto>>> GetSocietesPaged([FromQuery] UserParams userParams)
+  
+    [HttpPost("paged")]
+    public async Task<ActionResult<PagedList<SocieteDto>>> GetSocietesPaged([FromBody] UserParams userParams)
     {
       var societesPaged = await _societeService.GetSocietesPagedAsync(userParams);
       Response.AddPaginationHeader(societesPaged); // Ajoute les métadonnées de pagination dans l'en-tête HTTP
@@ -104,10 +104,10 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // GET: api/Societe/5/users/paged?PageNumber=1&PageSize=10&SearchTerm=...
-    [HttpGet("{societeId}/users/paged")]
+    [HttpPost("{societeId}/users/paged")]
     public async Task<ActionResult<PagedList<UserDto>>> GetSocieteUsersPaged(
         int societeId,
-        [FromQuery] UserParams userParams)
+        [FromBody] UserParams userParams)
     {
       var usersPaged = await _societeService.GetSocieteUsersPagedAsync(societeId, userParams);
       Response.AddPaginationHeader(usersPaged);

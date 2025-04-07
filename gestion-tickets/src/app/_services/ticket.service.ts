@@ -2,7 +2,7 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { Ticket } from '../_models/ticket';
-import { PaginatedResult } from '../_models/pagination';
+import { PaginatedResult, Pagination } from '../_models/pagination';
 import { TicketUpdateDto } from '../_models/ticketUpdateDto';
 import { TicketValidationDto } from '../_models/ticket-validation.dto';
 import { FinishTicketDto } from '../_models/finish-ticket-dto';
@@ -26,44 +26,63 @@ export class TicketService {
     searchTerm?: string,
     filterType?: string  // Nouveau paramètre optionnel
   ): Observable<PaginatedResult<Ticket[]>> {
-    let params = new HttpParams();
-
-    if (pageNumber != null && pageSize != null) {
-      params = params.append('pageNumber', pageNumber.toString());
-      params = params.append('pageSize', pageSize.toString());
-    }
-
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-
+   
+  
     // Récupération de l'utilisateur courant via AccountService
     const currentUser = this.accountService.currentUser();
-    if (currentUser) {
-      params = params.append('userId', currentUser.id.toString());
-      params = params.append('role', currentUser.role);
-    }
-
+   
+    const params = {
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      searchTerm: searchTerm,
+      userId:currentUser?.id.toString(),
+      role:currentUser?.role
+     };
     // Ajout du filtre s'il est précisé et si l'utilisateur est un chef de projet ou collaborateur
     if (filterType && (currentUser?.role.toLowerCase() === 'chef de projet' || currentUser?.role.toLowerCase() === 'collaborateur')) {
-      params = params.append('filterType', filterType);
+     
+      const params = {
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        searchTerm: searchTerm,
+        userId:currentUser?.id.toString(),
+        role:currentUser?.role,
+        filterType:filterType
+  
+      };
     }
+    return this.http.post<any>(this.baseUrl + '/paged', params, { observe: 'response' })
+    .pipe(
+      map((response: HttpResponse<any>) => {
+        // Now response.headers is available
+        const paginationHeader = response.headers.get('Pagination');
+        console.log('pagination get:', paginationHeader);
+        
+        const paginatedResult: PaginatedResult<Ticket[]> = {
+          items: response.body || [],
+          pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
+        };
+        return paginatedResult;
+      })
+    );
 
-    return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
-      .pipe(
-        map((response: HttpResponse<any>) => {
-          const body = response.body;
-          const items = Array.isArray(body) ? body : body?.items ?? [];
-          const pagination = response.headers.get('Pagination')
-            ? JSON.parse(response.headers.get('Pagination')!)
-            : { currentPage: 1, pageSize: items.length, totalCount: items.length, totalPages: 1 };
-          const paginatedResult: PaginatedResult<Ticket[]> = {
-            items: items,
-            pagination: pagination
-          };
-          return paginatedResult;
-        })
-      );
+   
+
+    // return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
+    //   .pipe(
+    //     map((response: HttpResponse<any>) => {
+    //       const body = response.body;
+    //       const items = Array.isArray(body) ? body : body?.items ?? [];
+    //       const pagination = response.headers.get('Pagination')
+    //         ? JSON.parse(response.headers.get('Pagination')!)
+    //         : { currentPage: 1, pageSize: items.length, totalCount: items.length, totalPages: 1 };
+    //       const paginatedResult: PaginatedResult<Ticket[]> = {
+    //         items: items,
+    //         pagination: pagination
+    //       };
+    //       return paginatedResult;
+    //     })
+    //   );
   }
 
 

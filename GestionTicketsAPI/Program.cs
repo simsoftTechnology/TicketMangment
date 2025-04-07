@@ -16,7 +16,7 @@ builder.Services.AddControllers()
 // Configuration des CORS
 var allowedOrigins = new string[]
 {
-    "https://simsoft.tn:8040"
+    "https://mgmt.simsoft.tn:8040"
 };
 
 builder.Services.AddCors(options =>
@@ -27,7 +27,8 @@ builder.Services.AddCors(options =>
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials();
+                  .AllowCredentials()
+                  .WithExposedHeaders("Pagination");
         });
 });
 
@@ -47,10 +48,12 @@ if (app.Environment.IsDevelopment())
 // 🚀 **Place UseCors ici, avant Authentication et Authorization**
 app.UseCors("AllowSpecificOrigins");
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 

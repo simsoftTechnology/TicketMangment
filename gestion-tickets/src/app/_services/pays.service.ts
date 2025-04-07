@@ -23,7 +23,7 @@ export class PaysService {
         paysList.map((pays) => {
           if (pays.photoUrl) {
             // Remplacer les antislashs par des slashs et ajouter l'URL de base
-            pays.photoUrl = `http://localhost:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
+            pays.photoUrl = `https://support.simsoft.tn:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
           }
           return pays;
         })
@@ -35,7 +35,7 @@ export class PaysService {
     return this.http.get<Pays>(`${this.baseUrl}pays/${idPays}`).pipe(
       map((pays) => {
         if (pays.photoUrl) {
-          pays.photoUrl = `http://localhost:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
+          pays.photoUrl = `https://support.simsoft.tn:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
         }
         return pays;
       })

@@ -5,8 +5,6 @@
 export const environment = {
   production: false,
   //BASE PROD
-  URLAPI: 'http://localhost:8055/api/',
- 
-  
- 
+
+  URLAPI:'https://support.simsoft.tn:8055/api/'
 };

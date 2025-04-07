@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using Newtonsoft.Json;
+using GestionTicketsAPI.Helpers;
 
 namespace GestionTicketsAPI.Controllers
 {
@@ -24,12 +25,11 @@ namespace GestionTicketsAPI.Controllers
       var categories = await _categorieService.GetCategoriesAsync();
       return Ok(categories);
     }
-
-    // GET : api/CategorieProbleme/paged?pageNumber=1&pageSize=10&searchTerm=
-    [HttpGet("paged")]
-    public async Task<IActionResult> GetCategoriesPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = "")
+ 
+    [HttpPost("paged")]
+    public async Task<IActionResult> GetCategoriesPaged([FromBody] UserParams ticketParams)
     {
-      var pagedCategories = await _categorieService.GetCategoriesPagedAsync(searchTerm, pageNumber, pageSize);
+      var pagedCategories = await _categorieService.GetCategoriesPagedAsync(ticketParams.SearchTerm, ticketParams.PageNumber, ticketParams.PageSize);
 
       var pagination = new
       {

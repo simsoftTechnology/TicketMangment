@@ -72,7 +72,7 @@ export class ListUtilisateursComponent implements OnInit {
   getUsers(): void {
     this.accountService.getUsers(this.pageNumber, this.pageSize, this.usersSearchTerm).subscribe({
       next: (response) => {
-        const updatedItems = (response.items ?? []).map(user => {
+        const updatedItems = (response.items ?? []).map((user: any) => {
           if (user.contrat) {
             user.contrat.dateDebut = new Date(user.contrat.dateDebut);
             if (user.contrat.dateFin) {
@@ -86,7 +86,8 @@ export class ListUtilisateursComponent implements OnInit {
           pagination: response.pagination
         };
         this.accountService.paginatedResult.set(result);
-        this.paginatedResult = result;
+        this.paginatedResult = result; 
+        
       },
       error: (error) => {
         console.error('Erreur lors du chargement des utilisateurs paginés', error);

@@ -21,13 +21,12 @@ export class CategorieProblemeService {
   // Récupère les catégories paginées
   getCategoriesPaginated(pageNumber: number, pageSize: number, searchTerm: string = ''): Observable<PaginatedResult<CategorieProbleme[]>> {
     const paginatedResult: PaginatedResult<CategorieProbleme[]> = new PaginatedResult<CategorieProbleme[]>();
-    
-    let params = new HttpParams()
-      .set('pageNumber', pageNumber.toString())
-      .set('pageSize', pageSize.toString())
-      .set('searchTerm', searchTerm);
-
-    return this.http.get<CategorieProbleme[]>(`${this.baseUrl}paged`, { observe: 'response', params })
+    const params = {
+      pageNumber: pageNumber,
+      pageSize: pageSize,
+      searchTerm: searchTerm
+    };
+    return this.http.post<CategorieProbleme[]>(`${this.baseUrl}paged`,params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<CategorieProbleme[]>) => {
           paginatedResult.items = response.body || [];

@@ -40,6 +40,9 @@ public class AccountController : BaseApiController
                  $"Email : {userDto.Email}<br>" +
                  $"Mot de passe : {registerDto.Password}<br>" +
                  $"Rôle : {userDto.Role}<br><br>" +
+                 $"Connectez-vous en cliquant sur le lien suivant<br><br>" +
+                 $"Lien : https://simsoft.tn:8040  <br><br>" +
+
                  "Merci de votre confiance.";
 
       // Envoi de l'e-mail en tâche de fond via Hangfire.

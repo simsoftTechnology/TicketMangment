@@ -34,9 +34,8 @@ namespace GestionTicketsAPI.Controllers
       _commentService = commentService;
     }
 
-    // GET api/tickets?...
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromQuery] UserParams ticketParams)
+  [HttpPost("paged")]
+        public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromBody] UserParams ticketParams)
     {
       // Extraction des informations de l'utilisateur connecté via les claims
       var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);

@@ -11,8 +11,7 @@ using System.Threading.Tasks;
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  [Authorize]
+  [Route("api/[controller]")] 
   public class UsersController : BaseApiController
   {
     private readonly IUserService _userService;
@@ -23,8 +22,8 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Récupérer les utilisateurs paginés
-    [HttpGet("paged")]
-    public async Task<ActionResult<PagedList<UserDto>>> GetUsers([FromQuery] UserParams userParams)
+    [HttpPost("paged")]
+    public async Task<ActionResult<PagedList<UserDto>>> GetUsers([FromBody]   UserParams userParams)
     {
       var users = await _userService.GetAllUsersAsync(userParams);
       Response.AddPaginationHeader(users);
@@ -69,16 +68,16 @@ namespace GestionTicketsAPI.Controllers
             }
     }
 
-    [HttpGet("{userId:int}/projects/paged")]
-    public async Task<ActionResult<PagedList<ProjetDto>>> GetUserProjectsPaged(int userId, [FromQuery] UserParams userParams)
+    [HttpPost("{userId:int}/projects/paged")]
+    public async Task<ActionResult<PagedList<ProjetDto>>> GetUserProjectsPaged(int userId, [FromBody] UserParams userParams)
     {
       var projets = await _userService.GetUserProjectsPagedAsync(userId, userParams);
       Response.AddPaginationHeader(projets);
       return Ok(projets);
     }
 
-    [HttpGet("{userId:int}/tickets/paged")]
-    public async Task<ActionResult<PagedList<TicketDto>>> GetUserTicketsPaged(int userId, [FromQuery] UserParams userParams)
+    [HttpPost("{userId:int}/tickets/paged")]
+    public async Task<ActionResult<PagedList<TicketDto>>> GetUserTicketsPaged(int userId, [FromBody] UserParams userParams)
     {
       var tickets = await _userService.GetUserTicketsPagedAsync(userId, userParams);
       Response.AddPaginationHeader(tickets);
