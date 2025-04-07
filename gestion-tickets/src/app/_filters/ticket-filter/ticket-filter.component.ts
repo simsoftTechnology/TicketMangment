@@ -155,7 +155,7 @@ export class TicketFilterComponent implements OnInit {
   }
 
   loadProjets(): void {
-    this.projetService.getProjets().subscribe(projets => {
+    this.projetService.getProjets({}).subscribe(projets => {
       this.projetOptions = projets;
       this.filteredProjets = [...projets];
     });

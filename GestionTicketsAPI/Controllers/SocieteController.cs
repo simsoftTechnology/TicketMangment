@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using GestionTicketsAPI.DTOs;
@@ -19,7 +20,7 @@ namespace GestionTicketsAPI.Controllers
     private readonly ISocieteService _societeService;
     private readonly ExcelExportServiceClosedXML _excelExportService;
     private readonly IMapper _mapper;
-    
+
     public SocieteController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ISocieteService societeService)
     {
       _societeService = societeService;
@@ -28,9 +29,14 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // GET: api/Societe?searchTerm=...
-    [HttpGet]
-    public async Task<IActionResult> GetSocietes([FromQuery] string? searchTerm)
+    [HttpPost("search")]
+    public async Task<IActionResult> GetSocietes([FromBody] JsonElement body)
     {
+      // Tente de récupérer la propriété "searchTerm" depuis le corps JSON
+      string? searchTerm = body.TryGetProperty("searchTerm", out JsonElement searchTermProp)
+                           ? searchTermProp.GetString()
+                           : null;
+
       var societes = await _societeService.GetAllSocietesAsync(searchTerm);
       return Ok(societes);
     }
@@ -141,9 +147,17 @@ namespace GestionTicketsAPI.Controllers
       return BadRequest("Aucune association trouvée ou une erreur est survenue.");
     }
 
-    [HttpGet("export")]
-    public async Task<IActionResult> ExportSocietes([FromQuery] string? searchTerm, [FromQuery] string? pays)
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportSocietes([FromBody] JsonElement body)
     {
+      // Récupérer les propriétés "searchTerm" et "pays" depuis le corps JSON
+      string? searchTerm = body.TryGetProperty("searchTerm", out JsonElement searchTermProp)
+                           ? searchTermProp.GetString()
+                           : null;
+      string? pays = body.TryGetProperty("pays", out JsonElement paysProp)
+                     ? paysProp.GetString()
+                     : null;
+
       // Récupérer les sociétés filtrées
       var societes = await _societeService.GetAllSocietesAsync(searchTerm, pays);
 

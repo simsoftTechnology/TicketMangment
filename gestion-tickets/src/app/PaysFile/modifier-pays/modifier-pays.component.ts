@@ -60,22 +60,19 @@ export class ModifierPaysComponent implements OnInit {
     this.paysForm.get('file')?.setValue(this.selectedFile);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.paysId === null || !this.originalPays) return;
   
-    // Détecter les changements sur le nom et le code téléphonique
     const hasNomChanged = this.paysForm.value.nom.trim() !== this.originalPays.nom.trim();
     const hasCodeTelChanged = this.paysForm.value.codeTel.trim() !== this.originalPays.codeTel.trim();
     const hasFileChanged = !!this.selectedFile;
   
-    // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
     if (!hasNomChanged && !hasCodeTelChanged && !hasFileChanged) {
       this.toastr.error("Erreur lors de la mis à jour du pays");
       this.router.navigate(['/home/Pays']);
       return;
     }
   
-    // Toujours inclure le nom et le code téléphonique, même s'ils n'ont pas changé
     const paysUpdateDto: any = {
       nom: this.paysForm.value.nom || this.originalPays.nom,
       codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
@@ -83,10 +80,14 @@ export class ModifierPaysComponent implements OnInit {
   
     const fileToSend = hasFileChanged ? this.selectedFile : undefined;
     this.loaderService.showLoader();
-    this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
+  
+    // Utiliser await pour récupérer l'observable
+    const updateObservable = await this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend);
+    updateObservable.subscribe(() => {
       this.loaderService.hideLoader();
       this.toastr.success("Pays mis à jour avec succéss");
       this.router.navigate(['/home/Pays']);
     });
   }
+  
 }

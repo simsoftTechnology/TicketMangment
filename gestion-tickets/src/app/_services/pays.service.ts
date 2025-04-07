@@ -13,15 +13,11 @@ export class PaysService {
 
   // Méthode pour récupérer les pays, avec possibilité de recherche
   getPays(searchTerm?: string): Observable<Pays[]> {
-    let params = new HttpParams();
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-    return this.http.get<Pays[]>(`${this.baseUrl}/pays/getPays`, { params }).pipe(
-      map((paysList) =>
-        paysList.map((pays) => {
+    const body = { searchTerm: searchTerm || '' };
+    return this.http.post<Pays[]>(`${this.baseUrl}/pays/getPays`, body).pipe(
+      map(paysList =>
+        paysList.map(pays => {
           if (pays.photoUrl) {
-            // Remplacer les antislashs par des slashs et ajouter l'URL de base
             pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
           }
           return pays;
@@ -29,6 +25,7 @@ export class PaysService {
       )
     );
   }
+  
 
   getPaysById(idPays: number): Observable<Pays> {
     return this.http.get<Pays>(`${this.baseUrl}/pays/${idPays}`).pipe(
@@ -43,28 +40,36 @@ export class PaysService {
   
   
 
-  addPays(nom: string, codeTel: string, file: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('nom', nom);
-    formData.append('codeTel', codeTel);
-    formData.append('file', file);
+  private toBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  }
   
-    return this.http.post(`${this.baseUrl}/pays/ajouterPays`, formData);
+  async addPays(nom: string, codeTel: string, file: File): Promise<Observable<any>> {
+    const fileBase64 = await this.toBase64(file);
+    const body = { nom, codeTel, file: fileBase64 };
+    return this.http.post(`${this.baseUrl}/pays/ajouterPays`, body);
   }
   
   
 
-  updatePays(idPays: number, paysUpdateDto: { nom: string; codeTel: string }, file?: File): Observable<any> {
-    const formData = new FormData();
-    formData.append('nom', paysUpdateDto.nom);
-    formData.append('codeTel', paysUpdateDto.codeTel);
-  
+  async updatePays(idPays: number, paysUpdateDto: { nom: string; codeTel: string }, file?: File): Promise<Observable<any>> {
+    let fileBase64: string | undefined;
     if (file) {
-      formData.append('file', file); // Ajouter le fichier si fourni
+      fileBase64 = await this.toBase64(file);
     }
-  
-    return this.http.put(`${this.baseUrl}/pays/ModifierPays/${idPays}`, formData);
+    const body: any = { 
+      nom: paysUpdateDto.nom, 
+      codeTel: paysUpdateDto.codeTel,
+      file: fileBase64 
+    };
+    return this.http.put(`${this.baseUrl}/pays/ModifierPays/${idPays}`, body);
   }
+  
   
 
   deletePays(idPays: number): Observable<any> {

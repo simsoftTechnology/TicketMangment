@@ -78,13 +78,38 @@ public class PaysService : IPaysService
   }
 
 
-  public async Task<PaysDto> AddPaysAsync(string nom, string? codeTel, IFormFile file)
+  public async Task<PaysDto> AddPaysAsync(string nom, string? codeTel, string? fileBase64)
   {
     if (string.IsNullOrWhiteSpace(nom))
       throw new Exception("Le nom du pays est requis.");
-    if (file == null || file.Length == 0)
+    if (string.IsNullOrWhiteSpace(fileBase64))
       throw new Exception("Veuillez fournir une photo valide.");
 
+    IFormFile file;
+    try
+    {
+      // On suppose que fileBase64 est au format "data:<mimeType>;base64,<data>"
+      var commaIndex = fileBase64.IndexOf(',');
+      if (commaIndex < 0)
+        throw new Exception("Le format de la chaîne base64 est invalide.");
+
+      var base64Data = fileBase64.Substring(commaIndex + 1);
+      var bytes = Convert.FromBase64String(base64Data);
+      var stream = new MemoryStream(bytes);
+      // Vous pouvez ajuster le nom et le type MIME selon vos besoins
+      file = new FormFile(stream, 0, stream.Length, "file", "uploadedFile.jpg");
+    }
+    catch (Exception ex)
+    {
+      throw new Exception("Erreur lors de la conversion du fichier : " + ex.Message);
+    }
+
+    // Déléguer à la méthode interne qui accepte un IFormFile
+    return await AddPaysFromFileAsync(nom, codeTel, file);
+  }
+
+  private async Task<PaysDto> AddPaysFromFileAsync(string nom, string? codeTel, IFormFile file)
+  {
     // 1. Sauvegarder le fichier localement
     var localPath = await SaveFileLocally(file);
 

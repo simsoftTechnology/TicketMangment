@@ -147,7 +147,7 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   }
 
   loadProjets(): Observable<any> {
-    return this.projetService.getProjets().pipe(
+    return this.projetService.getProjets({}).pipe(
       tap(projets => {
         this.projets = projets;
         this.filteredProjets = [...projets];

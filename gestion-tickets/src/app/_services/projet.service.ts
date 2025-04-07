@@ -15,8 +15,8 @@ export class ProjetService {
   constructor(private http: HttpClient) { }
 
   // Récupérer tous les projets
-  getProjets(): Observable<Projet[]> {
-    return this.http.get<Projet[]>(`${this.baseUrl}`);
+  getProjets(filters: any): Observable<Projet[]> {
+    return this.http.post<Projet[]>(`${this.baseUrl}/search`, filters);
   }
 
   // Méthode pour récupérer les projets paginés
@@ -115,13 +115,7 @@ export class ProjetService {
   }
 
   exportProjets(filters: any): Observable<Blob> {
-    let params = new HttpParams();
-    Object.keys(filters).forEach(key => {
-      if (filters[key]) {
-        params = params.append(key, filters[key]);
-      }
-    });
-    return this.http.get(`${this.baseUrl}/export`, { params, responseType: 'blob' });
+    return this.http.post(`${this.baseUrl}/export`, filters, { responseType: 'blob' });
   }
 
 }

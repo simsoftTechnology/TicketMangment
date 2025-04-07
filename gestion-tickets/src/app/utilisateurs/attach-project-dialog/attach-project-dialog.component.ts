@@ -47,7 +47,7 @@ export class AttachProjectDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.projetService.getProjets().subscribe(projets => {
+    this.projetService.getProjets({}).subscribe(projets => {
       this.projets = projets;
       this.filteredProjects = [...projets];
     });    

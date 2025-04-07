@@ -18,11 +18,8 @@ export class SocieteService {
   constructor(private http: HttpClient) { }
 
   getSocietes(searchTerm?: string): Observable<Societe[]> {
-    let params = new HttpParams();
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
-    return this.http.get<Societe[]>(this.apiUrl, { params });
+    const body = { searchTerm: searchTerm || '' };
+    return this.http.post<Societe[]>(`${this.apiUrl}/search`, body);
   }
 
   // Méthode pour récupérer les projets paginés
@@ -118,14 +115,11 @@ export class SocieteService {
   }
 
   exportSocietes(searchTerm: string, extraFilters: any): Observable<Blob> {
-    let params = new HttpParams();
-    if (searchTerm && searchTerm.trim() !== '') {
-      params = params.append('searchTerm', searchTerm);
-    }
+    const body: any = { searchTerm };
     if (extraFilters && extraFilters.pays) {
-      params = params.append('pays', extraFilters.pays);
+      body.pays = extraFilters.pays;
     }
-    return this.http.get(this.apiUrl + '/export', { params, responseType: 'blob' });
+    return this.http.post(`${this.apiUrl}/export`, body, { responseType: 'blob' });
   }
 
 }

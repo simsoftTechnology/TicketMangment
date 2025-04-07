@@ -48,6 +48,8 @@ export class ListTicketsComponent implements OnInit {
   priorities: { id: number, name: string }[] = [];
   statuses: { id: number, name: string }[] = [];
 
+  baseRoute: string = '/home/Tickets'; 
+
   filterVisible: boolean = false;
   isLoading: boolean = false;
   constructor(
@@ -71,6 +73,11 @@ export class ListTicketsComponent implements OnInit {
     // Récupérer le filtre passé par la route
     this.route.data.subscribe(data => {
       this.currentFilters.filterType = data['filterType'] || '';
+      if (this.currentFilters.filterType === 'associated') {
+        this.baseRoute = '/home/MesTickets';
+      } else {
+        this.baseRoute = '/home/Tickets';
+      }
       this.getTickets();
     });
     

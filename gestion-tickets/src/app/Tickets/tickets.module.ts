@@ -7,11 +7,13 @@ import { AjouterTicketComponent } from './ajouter-ticket/ajouter-ticket.componen
 import { TicketDetailsComponent } from './ticket-details/ticket-details.component';
 
 const routes: Routes = [
+  // Par défaut, la liste des tickets
   { path: '', component: ListTicketsComponent },
-  
-  { path: 'ajouterTicket', component: AjouterTicketComponent },
-  { path: 'details/:id', component: TicketDetailsComponent }
+  { path: 'details/:id', component: TicketDetailsComponent },
+  { path: 'ajouterTicket', component: AjouterTicketComponent }
 ];
+
+
 
 @NgModule({
   imports: [

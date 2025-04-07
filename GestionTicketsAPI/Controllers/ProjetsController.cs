@@ -29,8 +29,8 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Récupérer tous les projets
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjects([FromQuery] ProjectFilterParams filterParams)
+    [HttpPost("search")]
+    public async Task<ActionResult<IEnumerable<ProjetDto>>> GetProjects([FromBody] ProjectFilterParams filterParams)
     {
       // Extraction des infos de l'utilisateur connecté
       var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -38,11 +38,9 @@ namespace GestionTicketsAPI.Controllers
       if (userIdClaim != null && roleClaim != null)
       {
         filterParams.UserId = int.Parse(userIdClaim.Value);
-        // Normalisation du rôle
         filterParams.Role = roleClaim.Value.ToLower().Trim();
       }
 
-      // Appel du service de projets avec les paramètres complets
       var pagedProjects = await _projetService.GetProjetsPagedAsync(filterParams);
 
       var pagination = new
@@ -55,7 +53,6 @@ namespace GestionTicketsAPI.Controllers
       Response.Headers["Pagination"] = JsonConvert.SerializeObject(pagination);
       return Ok(pagedProjects);
     }
-
 
     // Récupérer les projets paginés
     [HttpPost("paged")]
@@ -220,8 +217,8 @@ namespace GestionTicketsAPI.Controllers
       return Ok(projetsDto);
     }
 
-    [HttpGet("export")]
-    public async Task<IActionResult> ExportProjects([FromQuery] ProjectFilterParams filterParams)
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportProjects([FromBody] ProjectFilterParams filterParams)
     {
       // Extraction des infos de l'utilisateur connecté
       var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -232,11 +229,8 @@ namespace GestionTicketsAPI.Controllers
         filterParams.Role = roleClaim.Value;
       }
 
-      // Récupérer les projets filtrés (non paginés)
       var projects = await _projetService.GetProjetsFilteredAsync(filterParams);
-      // Mapper vers le DTO d’export
       var projectExportDtos = _mapper.Map<IEnumerable<ProjectExportDto>>(projects);
-      // Générer le fichier Excel
       var content = _excelExportService.ExportToExcel(projectExportDtos, "Projects");
       return File(content,
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
