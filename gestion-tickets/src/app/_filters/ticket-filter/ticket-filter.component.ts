@@ -1,7 +1,5 @@
 import { Component, EventEmitter, OnInit, Output, HostListener, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
-
-
 import { CategorieProblemeService } from '../../_services/categorie-probleme.service';
 import { PrioriteService } from '../../_services/priorite.service';
 import { QualificationService } from '../../_services/qualification.service';

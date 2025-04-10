@@ -68,9 +68,7 @@ export class ModifierPaysComponent implements OnInit {
     const hasFileChanged = !!this.selectedFile;
   
     if (!hasNomChanged && !hasCodeTelChanged && !hasFileChanged) {
-      this.toastr.error("Erreur lors de la mis à jour du pays");
-      this.router.navigate(['/home/Pays']);
-      return;
+      this.toastr.warning("Veuillez modifier au moins un champ.");
     }
   
     const paysUpdateDto: any = {
@@ -88,6 +86,17 @@ export class ModifierPaysComponent implements OnInit {
       this.toastr.success("Pays mis à jour avec succéss");
       this.router.navigate(['/home/Pays']);
     });
+  }
+  onCancel(): void {
+    if (this.originalPays) {
+      // Réinitialise le formulaire avec les valeurs originales
+      this.paysForm.reset({
+        nom: this.originalPays.nom,
+        codeTel: this.originalPays.codeTel,
+        file: null 
+      });
+      this.selectedFile = undefined;
+    }
   }
   
 }

@@ -86,6 +86,7 @@ export const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { 
+      useHash: true,
       anchorScrolling: 'enabled',
       scrollOffset: [0, 1000],
       onSameUrlNavigation: 'reload'

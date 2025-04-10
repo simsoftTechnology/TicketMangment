@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core'; 
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
 import { PaginatedResult, Pagination } from '../_models/pagination';

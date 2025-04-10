@@ -3,7 +3,6 @@
  import { CommonModule } from '@angular/common';
  import { RouterModule, Routes } from '@angular/router';
  import { RoleGuard } from '../_guards/role.guard';
- 
  import { CategoriesComponent } from './categories/categories.component';
  
  const routes: Routes = [
