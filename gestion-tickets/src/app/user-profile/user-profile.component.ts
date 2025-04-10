@@ -55,8 +55,9 @@ export class UserProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.globalLoaderService.showGlobalLoader();
+    
     this.initForm();
+    this.globalLoaderService.showGlobalLoader();
     // Charger la liste des pays avant de charger l'utilisateur
     this.paysService.getPays().subscribe({
       next: (pays) => {

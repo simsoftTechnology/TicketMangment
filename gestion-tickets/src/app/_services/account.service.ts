@@ -198,6 +198,14 @@ export class AccountService {
   
     return this.http.post(this.baseUrl + 'users/export', cleanedFilters, { responseType: 'blob' });
   }
+
+  forgotPassword(model: any): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.baseUrl + 'account/forgot-password', model);
+  }
+
+  resetPassword(model: any): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.baseUrl + 'account/reset-password', model);
+  }
   
   
 }
