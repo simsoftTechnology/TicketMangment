@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface SearchResultDTO {
   id: number;
@@ -13,8 +14,7 @@ export interface SearchResultDTO {
   providedIn: 'root'
 })
 export class SearchService {
-  private apiUrl = 'https://localhost:5001/api/search'; // Assurez-vous que l'URL correspond à celle définie côté backend
-
+  private apiUrl = environment.apiUrl+"search";
   constructor(private http: HttpClient) {}
 
   search(query: string): Observable<SearchResultDTO[]> {

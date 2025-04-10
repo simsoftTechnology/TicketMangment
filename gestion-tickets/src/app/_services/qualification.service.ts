@@ -2,13 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Qualification } from '../_models/qualification.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QualificationService {
-  private baseUrl = 'https://localhost:5001/api/qualifications'; // à adapter
-
+  private baseUrl = environment.apiUrl+"qualifications";
   constructor(private http: HttpClient) { }
 
   getQualifications(): Observable<Qualification[]> {
