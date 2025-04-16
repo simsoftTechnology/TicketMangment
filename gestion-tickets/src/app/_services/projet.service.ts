@@ -65,12 +65,12 @@ export class ProjetService {
 
   // Supprimer un projet
   deleteProjet(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/supprimerProjet/${id}`);
+    return this.http.get<void>(`${this.baseUrl}supprimerProjet/${id}`);
   }
 
   deleteSelectedProjets(ids: number[]): Observable<any> {
     // On utilise http.request pour pouvoir envoyer un body avec la méthode DELETE
-    return this.http.request('delete', `${this.baseUrl}/supprimerProjets`, { body: ids });
+    return this.http.request('get', `${this.baseUrl}supprimerProjets`, { body: ids });
   }
 
   // Ajouter un utilisateur à un projet
@@ -100,13 +100,13 @@ export class ProjetService {
 
   // Supprimer un utilisateur d'un projet
   supprimerUtilisateurDuProjet(projetId: number, userId: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${projetId}/utilisateurs/${userId}`);
+    return this.http.get<void>(`${this.baseUrl}delete/${projetId}/utilisateurs/${userId}`);
   }
 
 
   deleteSelectedProjectMembers(projetId: number, userIds: number[]): Observable<any> {
     // On utilise http.request('delete') pour envoyer un body avec la méthode DELETE.
-    return this.http.request('delete', `${this.baseUrl}/supprimerUtilisateursDuProjet`, {
+    return this.http.request('get', `${this.baseUrl}supprimerUtilisateursDuProjet`, {
       body: { projetId, userIds }
     });
   }

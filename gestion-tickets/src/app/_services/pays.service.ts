@@ -74,7 +74,7 @@ export class PaysService {
   
 
   deletePays(idPays: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}pays/supprimerPays/${idPays}`);
+    return this.http.get(`${this.baseUrl}pays/supprimerPays/${idPays}`);
   }
   
   

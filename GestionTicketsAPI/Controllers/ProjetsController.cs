@@ -117,7 +117,7 @@ namespace GestionTicketsAPI.Controllers
 
 
     // Supprimer un projet
-    [HttpDelete("supprimerProjet/{id}")]
+    [HttpGet("supprimerProjet/{id}")]
     public async Task<IActionResult> DeleteProjet(int id)
     {
       var result = await _projetService.DeleteProjetAsync(id);
@@ -127,7 +127,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Supprimer plusieurs projets
-    [HttpDelete("supprimerProjets")]
+    [HttpGet("supprimerProjets")]
     public async Task<IActionResult> DeleteProjets([FromBody] List<int> ids)
     {
       if (ids == null || !ids.Any())
@@ -169,7 +169,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Supprimer un utilisateur d'un projet
-    [HttpDelete("{projetId}/utilisateurs/{userId}")]
+    [HttpGet("delete/{projetId}/utilisateurs/{userId}")]
     public async Task<IActionResult> SupprimerUtilisateurDuProjet(int projetId, int userId)
     {
       var result = await _projetService.SupprimerUtilisateurDuProjetAsync(projetId, userId);
@@ -179,7 +179,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // Supprimer plusieurs utilisateurs d'un projet
-    [HttpDelete("supprimerUtilisateursDuProjet")]
+    [HttpGet("supprimerUtilisateursDuProjet")]
     public async Task<IActionResult> SupprimerUtilisateursDuProjet([FromBody] ProjetUsersDeleteDto deleteDto)
     {
       if (deleteDto == null || deleteDto.UserIds == null || !deleteDto.UserIds.Any())

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Societe } from '../_models/societe';
 import { PaginatedResult, Pagination } from '../_models/pagination';
@@ -68,11 +68,14 @@ export class SocieteService {
   }
 
   deleteSociete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    const headers = new HttpHeaders()
+  .set('Content-Type', 'application/json; charset=utf-8')
+  .set('Accept', 'application/json; charset=utf-8');
+    return this.http.get<void>(`${this.apiUrl}delet/${id}`, { headers });
   }
 
   deleteSelectedSocietes(ids: number[]): Observable<void> {
-    return this.http.request<void>('delete', `${this.apiUrl}/supprimerSocietes`, { body: ids });
+    return this.http.request<void>('get', `${this.apiUrl}supprimerSocietes`, { body: ids });
   }
 
   getSocieteUsersPaged(
@@ -112,7 +115,7 @@ export class SocieteService {
 
 
   detachUser(societeId: number, userId: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${societeId}/users/${userId}`, { responseType: 'text' });
+    return this.http.get(`${this.apiUrl}${societeId}/delete/users/${userId}`, { responseType: 'text' });
   }
 
   exportSocietes(searchTerm: string, extraFilters: any): Observable<Blob> {

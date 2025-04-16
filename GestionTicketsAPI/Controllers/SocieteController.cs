@@ -92,7 +92,7 @@ namespace GestionTicketsAPI.Controllers
 
 
     // DELETE: api/Societe/5
-    [HttpDelete("{id}")]
+    [HttpGet("delet/{id}")]
     public async Task<IActionResult> DeleteSociete(int id)
     {
       var deleted = await _societeService.DeleteSocieteAsync(id);
@@ -102,7 +102,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // DELETE: api/Societe/supprimerSocietes
-    [HttpDelete("supprimerSocietes")]
+    [HttpGet("supprimerSocietes")]
     public async Task<IActionResult> DeleteSocietes([FromBody] List<int> ids)
     {
       if (ids == null || !ids.Any())
@@ -139,7 +139,7 @@ namespace GestionTicketsAPI.Controllers
       }
     }
 
-    [HttpDelete("{societeId}/users/{userId}")]
+    [HttpGet("{societeId}/delete/users/{userId}")]
     public async Task<IActionResult> DetachUser(int societeId, int userId)
     {
       if (await _societeService.DetachUserFromSocieteAsync(societeId, userId))

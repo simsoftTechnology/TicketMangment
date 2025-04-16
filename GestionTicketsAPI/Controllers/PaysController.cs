@@ -115,7 +115,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     [Authorize]
-    [HttpDelete("supprimerPays/{idPays}")]
+    [HttpGet("supprimerPays/{idPays}")]
     public async Task<ActionResult> DeletePays(int idPays)
     {
       var deleted = await _paysService.DeletePaysAsync(idPays);

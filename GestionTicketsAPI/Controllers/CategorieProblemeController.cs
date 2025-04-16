@@ -104,7 +104,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // DELETE : api/CategorieProbleme/5
-    [HttpDelete("{id}")]
+    [HttpGet("delete/{id}")]
     public async Task<IActionResult> DeleteCategorie(int id)
     {
       bool result = await _categorieService.DeleteCategorieAsync(id);
@@ -114,7 +114,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // DELETE : api/CategorieProbleme/deleteMultiple
-    [HttpDelete("deleteMultiple")]
+    [HttpGet("deleteMultiple")]
     public async Task<IActionResult> DeleteMultipleCategories([FromBody] List<int> ids)
     {
       if (ids == null || !ids.Any())

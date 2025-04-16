@@ -167,7 +167,7 @@ export class AccountService {
   
 
   deleteUser(id: number): Observable<any> {
-    return this.http.delete(this.baseUrl + 'users/' + id).pipe(
+    return this.http.get(this.baseUrl + 'users/delete/' + id).pipe(
       tap(() => {
         if (this.currentUser()?.id === id) {
           this.logout();

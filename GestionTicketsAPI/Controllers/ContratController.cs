@@ -43,7 +43,7 @@ namespace GestionTicketsAPI.Controllers
         }
 
         // DELETE api/contrat/5
-        [HttpDelete("{id}")]
+        [HttpGet("delete/{id}")]
         public async Task<IActionResult> DeleteContrat(int id)
         {
             var result = await _contratService.DeleteContratAsync(id);
