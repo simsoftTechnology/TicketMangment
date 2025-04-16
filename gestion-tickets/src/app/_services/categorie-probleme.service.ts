@@ -61,13 +61,13 @@ export class CategorieProblemeService {
 
   // Supprime une catégorie par ID
   deleteCategory(id: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}delete/${id}`);
+    return this.http.get(`${this.baseUrl}/delete/${id}`);
   }
 
   // Supprime plusieurs catégories à la fois
   deleteSelectedCategories(ids: number[]): Observable<any> {
     // Utilisation de la méthode http.request afin d'envoyer un body avec la requête DELETE
-    return this.http.request('get', `${this.baseUrl}deleteMultiple`, { body: ids });
+    return this.http.request('get', `${this.baseUrl}/deleteMultiple`, { body: ids });
   }
 
   exportCategories(): Observable<Blob> {

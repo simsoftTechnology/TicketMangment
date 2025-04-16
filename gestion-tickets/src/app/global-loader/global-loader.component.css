@@ -1,16 +1,8 @@
+/* Styles globaux */
 body {
-  font-family: sans-serif;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
   margin: 0;
-  padding: 20px;
-}
-
-button {
-  padding: 10px 15px;
-  background: #f0f0f0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
+  padding: 0;
 }
 
 /* Loader overlay */
@@ -20,14 +12,16 @@ button {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.7); /* Transparent background */
+  /* Fond plus transparent */
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s, visibility 0.3s;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .global-loader-overlay.active {
@@ -35,16 +29,17 @@ button {
   visibility: visible;
 }
 
-/* Spinner */
+/* Spinner moderne */
 .spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(128, 128, 128, 0.2); /* Light gray border */
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(192, 192, 192, 0.3); /* Bord gris clair semi-transparent */
+  border-top: 4px solid #cccccc; /* Bord supérieur plus marqué */
   border-radius: 50%;
-  border-top-color: rgba(128, 128, 128, 0.8); /* Darker gray for the spinning part */
-  animation: spin 1s linear infinite;
+  animation: spin 0.8s linear infinite;
 }
 
+/* Animation de rotation */
 @keyframes spin {
   0% {
     transform: rotate(0deg);

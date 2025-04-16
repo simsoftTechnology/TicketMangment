@@ -384,7 +384,7 @@ export class DetailsProjetComponent implements OnInit {
           },
           error: (err) => {
             if (err.status === 409) {
-              this.toastr.error(err.error.message, 'Erreur');
+              //this.toastr.error(err.message, 'Erreur');
             } else {
               console.error('Erreur lors de l’ajout de l’utilisateur', err);
             }

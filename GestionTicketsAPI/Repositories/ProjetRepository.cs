@@ -187,7 +187,8 @@ public class ProjetRepository : IProjetRepository
 
   public async Task AddProjetUserAsync(ProjetUser projetUser)
   {
-    await _context.ProjetUser.AddAsync(projetUser);
+    await _context.ProjetUser
+          .AddAsync(projetUser);
   }
 
   public async Task<ProjetUser?> GetProjetUserAsync(int projetId, int userId)
@@ -224,9 +225,13 @@ public class ProjetRepository : IProjetRepository
   public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
   {
     return await _context.Projets
+      .Include(p => p.ChefProjet)  // Inclusion du chef de projet
+      .Include(p => p.Societe)       // Inclusion de la société
+          .ThenInclude(s => s.Pays)  // Inclusion du pays de la société
       .Where(p => p.ProjetUsers.Any(pu => pu.UserId == userId))
       .ToListAsync();
   }
+
 
   public async Task<bool> ProjetHasTicketsAsync(int projetId)
   {

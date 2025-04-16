@@ -195,7 +195,6 @@ export class ListUtilisateursComponent implements OnInit {
         },
         error: error => {
           console.error("Erreur lors de la suppression de l'utilisateur", error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
           this.isDeleteLoading = false;
         }
       });

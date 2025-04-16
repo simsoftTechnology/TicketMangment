@@ -128,16 +128,28 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost("{societeId}/users/{userId}")]
     public async Task<IActionResult> AttachUser(int societeId, int userId)
     {
-      bool attached = await _societeService.AttachUserToSocieteAsync(societeId, userId);
-      if (attached)
+      
+      try
       {
-        return Ok(new { message = "Utilisateur attaché à la société avec succès." });
+        bool attached = await _societeService.AttachUserToSocieteAsync(societeId, userId);
+        if (attached)
+        {
+          return Ok("Utilisateur attaché à la société avec succès.");
+        }
+        else
+        {
+          return Conflict("Cet utilisateur est déjà attaché à la société.");
+
+        }
       }
-      else
+      catch (Exception ex)
       {
-        return Conflict(new { message = "Cet utilisateur est déjà attaché à la société." });
+        // Loggez l'exception en détail pour analyser le problème
+        return StatusCode(500, new { message = ex.Message });
       }
     }
+    
+
 
     [HttpGet("{societeId}/delete/users/{userId}")]
     public async Task<IActionResult> DetachUser(int societeId, int userId)

@@ -388,7 +388,7 @@ export class ModifierSocieteComponent implements OnInit {
   }
 
   viewProjet(projetId: number): void {
-    this.router.navigate(['/home/projets/details', projetId]);
+    this.router.navigate(['/home/Projets/details', projetId]);
   }
 
   range(start: number, end: number): number[] {
@@ -422,14 +422,11 @@ export class ModifierSocieteComponent implements OnInit {
         if (result) {
           this.toastr.success("Utilisateur attaché avec succès");
           this.loadSocieteUsers();
-        } else {
-          this.toastr.error("L'utilisateur est déjà associé à cette société");
-        }
+        } 
         this.loaderService.hideLoader();
       },
       error: error => {
         console.error("Erreur lors de l'attachement de l'utilisateur", error);
-        this.toastr.error("Erreur lors de l'attachement de l'utilisateur");
         this.loaderService.hideLoader();
       }
     });

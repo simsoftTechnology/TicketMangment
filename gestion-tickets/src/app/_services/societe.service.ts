@@ -71,7 +71,7 @@ export class SocieteService {
     const headers = new HttpHeaders()
   .set('Content-Type', 'application/json; charset=utf-8')
   .set('Accept', 'application/json; charset=utf-8');
-    return this.http.get<void>(`${this.apiUrl}delet/${id}`, { headers });
+    return this.http.get<void>(`${this.apiUrl}/delet/${id}`, { headers });
   }
 
   deleteSelectedSocietes(ids: number[]): Observable<void> {
@@ -115,7 +115,7 @@ export class SocieteService {
 
 
   detachUser(societeId: number, userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}${societeId}/delete/users/${userId}`, { responseType: 'text' });
+    return this.http.get(`${this.apiUrl}/${societeId}/delete/users/${userId}`, { responseType: 'text' });
   }
 
   exportSocietes(searchTerm: string, extraFilters: any): Observable<Blob> {

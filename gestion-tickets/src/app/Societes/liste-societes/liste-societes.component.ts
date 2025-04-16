@@ -120,7 +120,6 @@ export class ListeSocietesComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors de la suppression de la société', error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
           this.isDeleteLoading = false;
         }
       });
@@ -168,7 +167,6 @@ export class ListeSocietesComponent implements OnInit {
         },
         error: (error) => {
           console.error("Erreur lors de la suppression des sociétés", error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
           this.isDeleteMultipleLoading = false;
         }
       });

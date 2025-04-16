@@ -130,7 +130,6 @@ export class ListeProjetsComponent implements OnInit {
         },
         error: (err) => {
           console.error("Erreur lors de la suppression du projet", err);
-          this.toastr.error("Erreur lors de la suppression");
           this.isDeleteLoading = false;
         }
       });
@@ -180,7 +179,6 @@ export class ListeProjetsComponent implements OnInit {
           this.isDeleteMultipleLoading = false;
         },
         error: error => {
-          this.toastr.error("Erreur lors de la suppression");
           this.isDeleteMultipleLoading = false;
         }
       });

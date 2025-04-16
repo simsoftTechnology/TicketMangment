@@ -65,19 +65,19 @@ export class ProjetService {
 
   // Supprimer un projet
   deleteProjet(id: number): Observable<void> {
-    return this.http.get<void>(`${this.baseUrl}supprimerProjet/${id}`);
+    return this.http.get<void>(`${this.baseUrl}/supprimerProjet/${id}`);
   }
 
   deleteSelectedProjets(ids: number[]): Observable<any> {
     // On utilise http.request pour pouvoir envoyer un body avec la méthode DELETE
-    return this.http.request('get', `${this.baseUrl}supprimerProjets`, { body: ids });
+    return this.http.request('get', `${this.baseUrl}/supprimerProjets`, { body: ids });
   }
 
   // Ajouter un utilisateur à un projet
-  ajouterUtilisateurAuProjet(projetId: number, userId: number, role: string): Observable<void> {
+  ajouterUtilisateurAuProjet(projetId: number, userId: number, role: string): Observable<string> {
     const body = { userId: userId, role: role };
-    return this.http.post<void>(`${this.baseUrl}/${projetId}/utilisateurs`, body);
-  }
+    return this.http.post(`${this.baseUrl}/${projetId}/utilisateurs`, body, { responseType: 'text' });
+  }  
 
   // Récupérer les membres d'un projet
   getMembresProjet(projetId: number): Observable<ProjetMember[]> {
@@ -100,13 +100,13 @@ export class ProjetService {
 
   // Supprimer un utilisateur d'un projet
   supprimerUtilisateurDuProjet(projetId: number, userId: number): Observable<void> {
-    return this.http.get<void>(`${this.baseUrl}delete/${projetId}/utilisateurs/${userId}`);
+    return this.http.get<void>(`${this.baseUrl}/delete/${projetId}/utilisateurs/${userId}`);
   }
 
 
   deleteSelectedProjectMembers(projetId: number, userIds: number[]): Observable<any> {
     // On utilise http.request('delete') pour envoyer un body avec la méthode DELETE.
-    return this.http.request('get', `${this.baseUrl}supprimerUtilisateursDuProjet`, {
+    return this.http.request('get', `${this.baseUrl}/supprimerUtilisateursDuProjet`, {
       body: { projetId, userIds }
     });
   }
