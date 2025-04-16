@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-modifier-pays',
-  imports: [ReactiveFormsModule, RouterLink, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './modifier-pays.component.html',
   styleUrls: ['./modifier-pays.component.css']
 })

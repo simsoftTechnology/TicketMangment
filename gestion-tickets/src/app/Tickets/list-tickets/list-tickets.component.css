@@ -496,15 +496,19 @@ input, select, button {
   background-color: rgba(61, 219, 68, 0.1);
 }
 
-/* styles.scss ou un fichier de styles global, pas dans un composant.scss isolé */
-::ng-deep .ticket-filter-menu {
-  overflow: visible !important; /* Permet au contenu de déborder */
-  max-height: none !important; /* Supprime la hauteur maximale */
+.cdk-overlay-container {
+  overflow: visible !important;
 }
 
 .ticket-filter-content {
   max-height: 300px; /* Maintient le défilement interne */
   overflow-y: auto;
+}
+
+
+::ng-deep .ticket-filter-menu {
+  overflow: visible !important; /* Permet au contenu de dépasser */
+  max-height: none !important;   /* Supprime la hauteur maximale imposée par défaut */
 }
 
 
