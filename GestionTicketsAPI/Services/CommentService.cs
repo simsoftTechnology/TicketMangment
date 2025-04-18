@@ -113,8 +113,6 @@ public class CommentService : ICommentService
         var baseMessage = $@"
         <html>
    <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
-              
- 
 
                 <p>              Ceci est une notification  de ticket de support .               </p>
 
