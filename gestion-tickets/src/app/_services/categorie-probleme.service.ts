@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
-import { PaginatedResult } from '../_models/pagination';
+import { environment } from '../../environment/environment';
+import { PaginatedResult, Pagination } from '../_models/pagination';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CategorieProblemeService {
-  private baseUrl = 'https://localhost:5001/api/CategorieProbleme';
+   baseUrl = environment.URLAPI+'CategorieProbleme/';
 
   constructor(private http: HttpClient) {}
 
@@ -18,22 +19,27 @@ export class CategorieProblemeService {
   }
 
   // Récupère les catégories paginées
-  getCategoriesPaginated(pageNumber: number, pageSize: number, searchTerm: string = ''): Observable<PaginatedResult<CategorieProbleme[]>> {
-    const paginatedResult: PaginatedResult<CategorieProbleme[]> = new PaginatedResult<CategorieProbleme[]>();
-    
-    let params = new HttpParams()
-      .set('pageNumber', pageNumber.toString())
-      .set('pageSize', pageSize.toString())
-      .set('searchTerm', searchTerm);
-
-    return this.http.get<CategorieProbleme[]>(`${this.baseUrl}/paged`, { observe: 'response', params })
+  getCategoriesPaginated(
+    pageNumber: number,
+    pageSize: number,
+    searchTerm: string = '',
+    extraFilters?: any
+  ): Observable<PaginatedResult<CategorieProbleme[]>> {
+    const params = {
+      pageNumber,
+      pageSize,
+      searchTerm,
+      ...extraFilters
+    };
+  
+    return this.http.post<any>(`${this.baseUrl}paged`, params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<CategorieProbleme[]>) => {
-          paginatedResult.items = response.body || [];
           const paginationHeader = response.headers.get('Pagination');
-          if (paginationHeader) {
-            paginatedResult.pagination = JSON.parse(paginationHeader);
-          }
+          const paginatedResult: PaginatedResult<CategorieProbleme[]> = {
+            items: response.body || [],
+            pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
+          };
           return paginatedResult;
         })
       );
@@ -41,7 +47,7 @@ export class CategorieProblemeService {
 
   // Récupère une catégorie par ID
   getCategoryById(id: number): Observable<CategorieProbleme> {
-    return this.http.get<CategorieProbleme>(`${this.baseUrl}/${id}`);
+    return this.http.get<CategorieProbleme>(`${this.baseUrl}${id}`);
   }
 
   // Ajoute une nouvelle catégorie
@@ -51,17 +57,22 @@ export class CategorieProblemeService {
 
   // Met à jour une catégorie existante
   updateCategory(category: CategorieProbleme): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${category.id}`, category);
+    return this.http.post(`${this.baseUrl}put/${category.id}`, category);
   }
 
   // Supprime une catégorie par ID
   deleteCategory(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+    return this.http.get(`${this.baseUrl}delete/${id}`);
   }
 
   // Supprime plusieurs catégories à la fois
   deleteSelectedCategories(ids: number[]): Observable<any> {
     // Utilisation de la méthode http.request afin d'envoyer un body avec la requête DELETE
-    return this.http.request('delete', `${this.baseUrl}/deleteMultiple`, { body: ids });
+    return this.http.request('get', `${this.baseUrl}deleteMultiple`, { body: ids });
   }
+
+  exportCategories(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}export`, { responseType: 'blob' });
+  }
+ 
 }

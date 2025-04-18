@@ -1,21 +1,55 @@
+/* @import url('assets/fontawesome/css/all.min.css'); */
 
-/* Import Material Icons */
-@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+/* fallback */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/googleapi.woff2') format('woff2');
+}
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+.material-icon {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
 
 /* Container styles */
 .container {
-  padding: 50px 0px;
+  padding: 50px 50px;
   font-weight: 500;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
 }
-
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
-
 .add-user-btn {
   background-color: #fa9745;
   color: white;
@@ -26,31 +60,25 @@
   cursor: pointer;
   font-size: 18px;
 }
-
 .add-user-btn:hover {
   background-color: #f38932;
 }
-
 .material-icons {
   vertical-align: middle;
   margin-right: 5px;
 }
-
 h2 {
   color: #333;
   font-size: 1.7rem;
   margin-bottom: 40px;
   font-weight: 500;
 }
-
 th.actions, td.actions {
   width: 1%;
   white-space: nowrap; /* Empêche le retour à la ligne */
   text-align: center;
   padding-right: 20px; /* Ajoute un peu d'espace pour éviter que les boutons ne collent trop */
 }
-
-
 /* Table styles */
 table {
   width: 100%;
@@ -60,11 +88,9 @@ table {
   border-radius: 10px;
   overflow: hidden;
 }
-
 thead {
   background-color: #f8f9fa;
 }
-
 th {
   text-align: left;
   padding: 12px 10px;
@@ -72,15 +98,11 @@ th {
   font-weight: 500;
   border-bottom: 1px solid #eee;
 }
-
 td {
   padding: 12px 10px;
   border-bottom: 1px solid #eee;
   color: #333;
 }
-
-
-
 /* Action buttons */
 .edit-btn, .delete-btn , .view-btn{
   padding: 0px;
@@ -91,59 +113,39 @@ td {
   font-size: 1.2rem;
   transition: transform 0.2s, color 0.2s;
 }
-
 .delete-btn {
   color: red;
 }
-
 .delete-btn:hover {
   color: rgb(232, 3, 3);
   transform: scale(1.1);
 }
-
 .edit-btn {
   color: #f38932;
 }
-
 .edit-btn:hover {
   color: #f07d1f;
   transform: scale(1.1);
 }
-
-
 .view-btn:hover {
   color: rgb(6, 6, 6);
   transform: scale(1.1);
 }
-
-
-
-
-
-
-
 /* Les autres colonnes se partageront l'espace restant équitablement */
 th:not(.checkbox-column):not(:last-child),
 td:not(.checkbox-column):not(.actions) {
   width: auto;
 }
-
-
-
-
 .checkbox-column {
   max-width: 5px; 
   text-align: right;
   padding: 10px 5px; /* Ajustement du padding */
 }
-
-
 /* Custom checkbox styles */
 .checkbox-wrapper {
   position: relative;
   display: inline-block;
 }
-
 .custom-checkbox {
   position: absolute;
   opacity: 0;
@@ -151,7 +153,6 @@ td:not(.checkbox-column):not(.actions) {
   height: 0;
   width: 0;
 }
-
 .checkbox-label {
   position: relative;
   display: inline-block;
@@ -162,12 +163,10 @@ td:not(.checkbox-column):not(.actions) {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-
 .custom-checkbox:checked + .checkbox-label {
   background-color: #f57c00;
   border-color: #f57c00;
 }
-
 .custom-checkbox:checked + .checkbox-label::after {
   content: "";
   position: absolute;
@@ -179,21 +178,17 @@ td:not(.checkbox-column):not(.actions) {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-
 .checkbox-label:hover {
   border-color: #f57c00;
 }
-
 .filter-row {
   background-color: #ffffff;
   border-bottom: 1px solid #eee;
 }
-
 .filter-actions {
   text-align: right;
   padding: 8px 20px;
 }
-
 .filter-btn, .view-btn {
   background: none;
   border: none;
@@ -204,31 +199,88 @@ td:not(.checkbox-column):not(.actions) {
   color: #666;
   transition: all 0.2s;
 }
-
 .filter-btn:hover, .view-btn:hover {
   background-color: #f5f5f5;
   color: #333;
 }
-
 .view-btn.active {
   background-color: #f5f5f5;
   color: #f57c00;
 }
 
+.export-btn, 
+button[mat-icon-button] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+}
+
+/* Style spécifique pour le bouton d'exportation Excel */
+.export-btn {
+  background-color: #f9e2cc;
+  color: #f57c00;
+  border: 1px solid #fbc997;
+}
+
+.export-btn:hover {
+  background-color: #fde1c8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn:active {
+  transform: translateY(1px);
+}
+
+.export-btn .material-icons {
+  font-size: 18px;
+  margin-right: 6px;
+}
+
+/* Style spécifique pour le bouton de filtre */
+button[mat-icon-button] {
+  background-color: #f5f5f5;
+  color: #666;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #e0e0e0;
+}
+
+button[mat-icon-button]:hover {
+  background-color: #e0e0e0;
+  color: #f57c00;
+}
+
+button[mat-icon-button] .material-icons {
+  margin-right: 0;
+  font-size: 20px;
+}
+
+/* État actif pour le bouton de filtre lorsque le menu est ouvert */
+button[mat-icon-button].mat-menu-trigger-active {
+  background-color: #fff3e0;
+  color: #f57c00;
+  border-color: #ffcc80;
+}
 
 
 .material-icons {
   font-size: 25px;
   vertical-align: middle;
 }
-
-
 /* Ensure input fields are responsive */
 input, select, button {
   max-width: 100%;
   box-sizing: border-box;
 }
-
 .pagination-container {
   display: flex;
   justify-content: space-between;
@@ -236,7 +288,6 @@ input, select, button {
   padding: 0.75rem 1rem;
   background: #fff;
 }
-
 .pagination-info {
   color: #4b5563;
   font-size: 0.875rem;
@@ -405,6 +456,24 @@ input, select, button {
 .cancel-btn:hover {
   color: #d32f2f;
   transform: scale(1.1);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive adjustments */

@@ -5,7 +5,7 @@ namespace GestionTicketsAPI.Interfaces
 {
     public interface ISocieteRepository
     {
-        Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null);
+        Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null, string? pays = null);
         Task<PagedList<Societe>> GetSocietesPagedAsync(UserParams userParams);
         Task<Societe?> GetSocieteByIdAsync(int id);
         Task<Societe?> GetSocieteWithDetailsByIdAsync(int id);
@@ -19,6 +19,7 @@ namespace GestionTicketsAPI.Interfaces
         Task UpdateRelatedEntitiesForSocietePaysChangeAsync(int societeId, int newPaysId);
 
         Task<bool> SocieteExists(string nom);
+        Task<bool> SocieteHasProjectsAsync(int societeId);
         Task<bool> SaveAllAsync();
     }
 }

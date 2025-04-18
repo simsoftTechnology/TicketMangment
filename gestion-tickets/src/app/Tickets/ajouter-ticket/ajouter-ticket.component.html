@@ -8,28 +8,52 @@
         <!-- Qualification -->
         <div class="form-group">
           <label for="qualificationId">Qualification <span class="required">*</span></label>
-          <select id="qualificationId" formControlName="qualificationId" class="form-control"
-                  [class.is-invalid]="addTicketForm.get('qualificationId')?.touched && addTicketForm.get('qualificationId')?.invalid">
-            <option value="" disabled selected>Sélectionnez une qualification</option>
-            <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
-          </select>
-          <div *ngIf="(addTicketForm.get('qualificationId')?.touched || formSubmitted) && addTicketForm.get('qualificationId')?.hasError('required')" class="invalid-feedback">
+          <div id="qualificationId" class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('qualification')">
+              <div class="selected-item">
+                {{ selectedQualification?.name || 'Sélectionnez une qualification' }}
+              </div>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="dropdown-content" [class.show]="isQualificationDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher une qualification..." [(ngModel)]="qualificationSearchTerm"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterQualifications()" />
+              </div>
+              <div class="option-list">
+                <ng-container
+                  *ngIf="filteredQualifications && filteredQualifications.length > 0; else noQualificationResults">
+                  <div *ngFor="let q of filteredQualifications" class="option-item" (click)="selectQualification(q)">
+                    {{ q.name }}
+                  </div>
+                </ng-container>
+                <ng-template #noQualificationResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucune qualification trouvée</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="formSubmitted && !selectedQualification" class="invalid-feedback">
             La qualification est obligatoire.
           </div>
         </div>
-        <!-- Dropdown personnalisé pour le Projet -->
+        <!-- Projet -->
         <div class="form-group">
           <label for="projetId">Projet <span class="required">*</span></label>
-          <div class="custom-select">
+          <div id="projetId" class="custom-select">
             <div class="select-box" (click)="toggleDropdown('projet')">
               <div class="selected-item">
                 {{ selectedProjet?.nom || 'Sélectionnez un projet' }}
               </div>
+              <span class="arrow">▼</span>
             </div>
             <div class="dropdown-content" [class.show]="isProjetDropdownOpen">
               <div class="search-box">
-                <input type="text" name="searchProjet" placeholder="Rechercher un projet..." [(ngModel)]="searchProjet"
-                       [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterProjets()" />
+                <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="searchProjet"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterProjets()" />
               </div>
               <div class="option-list">
                 <ng-container *ngIf="filteredProjets && filteredProjets.length > 0; else noProjetResults">
@@ -54,19 +78,20 @@
 
       <!-- Ligne 2 : Catégorie de problème & Priorité -->
       <div class="form-group-inline">
-        <!-- Dropdown personnalisé pour la Catégorie de Problème -->
+        <!-- Catégorie de Problème -->
         <div class="form-group">
           <label for="problemCategoryId">Catégorie de Problème <span class="required">*</span></label>
-          <div class="custom-select">
+          <div id="problemCategoryId" class="custom-select">
             <div class="select-box" (click)="toggleDropdown('categorie')">
               <div class="selected-item">
                 {{ selectedCategorie?.nom || 'Sélectionnez une catégorie' }}
               </div>
+              <span class="arrow">▼</span>
             </div>
             <div class="dropdown-content" [class.show]="isCategorieDropdownOpen">
               <div class="search-box">
-                <input type="text" name="searchCategorie" placeholder="Rechercher une catégorie..."
-                       [(ngModel)]="searchCategorie" [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterCategories()" />
+                <input type="text" placeholder="Rechercher une catégorie..." [(ngModel)]="searchCategorie"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterCategories()" />
               </div>
               <div class="option-list">
                 <ng-container *ngIf="filteredCategories && filteredCategories.length > 0; else noCategorieResults">
@@ -90,12 +115,34 @@
         <!-- Priorité -->
         <div class="form-group">
           <label for="priorityId">Priorité <span class="required">*</span></label>
-          <select id="priorityId" formControlName="priorityId" class="form-control"
-                  [class.is-invalid]="addTicketForm.get('priorityId')?.touched && addTicketForm.get('priorityId')?.invalid">
-            <option value="" disabled selected>Sélectionnez une priorité</option>
-            <option *ngFor="let p of prioriteOptions" [value]="p">{{ p }}</option>
-          </select>
-          <div *ngIf="(addTicketForm.get('priorityId')?.touched || formSubmitted) && addTicketForm.get('priorityId')?.hasError('required')" class="invalid-feedback">
+          <div id="priorityId" class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('priority')">
+              <div class="selected-item">
+                {{ selectedPriority?.name || 'Sélectionnez une priorité' }}
+              </div>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="dropdown-content" [class.show]="isPriorityDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher une priorité..." [(ngModel)]="prioritySearchTerm"
+                  [ngModelOptions]="{ standalone: true }" (ngModelChange)="filterPriorities()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredPriorities && filteredPriorities.length > 0; else noPriorityResults">
+                  <div *ngFor="let p of filteredPriorities" class="option-item" (click)="selectPriority(p)">
+                    {{ p.name }}
+                  </div>
+                </ng-container>
+                <ng-template #noPriorityResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucune priorité trouvée</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="formSubmitted && !selectedPriority" class="invalid-feedback">
             La priorité est obligatoire.
           </div>
         </div>
@@ -105,8 +152,10 @@
       <div class="form-group">
         <label for="title">Titre <span class="required">*</span></label>
         <input id="title" type="text" formControlName="title" class="form-control"
-               [class.is-invalid]="addTicketForm.get('title')?.touched && addTicketForm.get('title')?.invalid">
-        <div *ngIf="(addTicketForm.get('title')?.touched || formSubmitted) && addTicketForm.get('title')?.hasError('required')" class="invalid-feedback">
+          [class.is-invalid]="addTicketForm.get('title')?.touched && addTicketForm.get('title')?.invalid">
+        <div
+          *ngIf="(addTicketForm.get('title')?.touched || formSubmitted) && addTicketForm.get('title')?.hasError('required')"
+          class="invalid-feedback">
           Le titre est obligatoire.
         </div>
       </div>
@@ -118,38 +167,35 @@
           <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
           <ngx-editor [editor]="editor" formControlName="description" id="description"></ngx-editor>
         </div>
-        <div *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')" class="invalid-feedback">
+        <div
+          *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')"
+          class="invalid-feedback">
           La description est obligatoire.
         </div>
       </div>
 
-      <!-- Responsable (optionnel) -->
-      <div class="form-group">
-        <label for="responsibleId">Responsable</label>
-        <select id="responsibleId" formControlName="responsibleId" class="form-control">
-          <option value="" disabled selected>Sélectionnez un responsable</option>
-          <option *ngFor="let user of usersOptions" [value]="user.id">{{ user.nom }}</option>
-        </select>
-      </div>
-
-      <!-- Raison du rejet (optionnel) -->
-      <div class="form-group">
-        <label for="reasonRejection">Raison du rejet</label>
-        <input id="reasonRejection" type="text" formControlName="reasonRejection" class="form-control">
-      </div>
-
       <!-- Attachement -->
       <div class="form-group">
-        <label for="attachments">Attachement</label>
-        <input id="attachments" type="file" (change)="onFileSelected($event)" class="form-control-file">
+        <label for="attachment">Attachement</label>
+        <input id="attachment" type="file" (change)="onFileSelected($event)" class="form-control-file">
       </div>
 
       <!-- Boutons -->
       <div class="button-group">
-        <button type="submit" class="btn-create">Créer</button>
-        <button type="button" class="btn-add" (click)="createAndReset()">Créer &amp; Ajouter un autre</button>
-        <button type="button" class="btn-cancel" (click)="cancel()">Annuler</button>
+        <button type="submit" class="btn-create" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingCreate">
+            Créer
+          </ng-container>
+          <ng-template #loadingCreate>
+            <span class="spinner"></span> Créer
+          </ng-template>
+        </button>
+        <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="isLoading">
+          Annuler
+        </button>
       </div>
+
+      
 
     </form>
   </div>

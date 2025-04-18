@@ -19,12 +19,15 @@ import { PaysService } from '../../_services/pays.service';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-modifier-societe',
     imports: [ReactiveFormsModule, NgIf, NgFor, FormsModule, CommonModule],
     templateUrl: './modifier-societe.component.html',
-    styleUrls: ['./modifier-societe.component.css']
+    styleUrls: ['./modifier-societe.component.scss']
 })
 export class ModifierSocieteComponent implements OnInit {
   societeForm!: FormGroup;
@@ -52,12 +55,13 @@ export class ModifierSocieteComponent implements OnInit {
   displayedUsers: User[] = [];
   userJumpPage: number = 1;
 
-
   // --- Dropdown Pays ---
   pays: Pays[] = [];
   filteredPays: Pays[] = [];
   paysSearchTerm: string = '';
   isPaysDropdownOpen: boolean = false;
+
+  isLoading: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -70,13 +74,30 @@ export class ModifierSocieteComponent implements OnInit {
     private overlayModalService: OverlayModalService,
     private dialog: MatDialog,
     private router: Router,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
+    // Chargez la liste des pays
     this.loadPays();
-    this.societeId = +this.route.snapshot.paramMap.get('id')!;
 
+    // Initialisez les formulaires
+    this.initForms();
+
+    // Écoutez les changements de paramètres de la route
+    this.route.params.subscribe(params => {
+      this.societeId = +params['id'];
+      this.loadSocieteDetails();
+    });
+  }
+
+  private initForms(): void {
     // Initialisation du formulaire de la société
     this.societeForm = this.fb.group({
       nom: ['', Validators.required],
@@ -93,43 +114,50 @@ export class ModifierSocieteComponent implements OnInit {
       type: ['Standard', Validators.required],
       typeContrat: ['Client-Societe', Validators.required]
     });
+  }
 
-    // Récupération des détails de la société, incluant éventuellement le contrat
+  private loadSocieteDetails(): void {
+    // Active le loader global
+    this.globalLoaderService.showGlobalLoader();
+  
     this.societeService.getSocieteDetails(this.societeId).subscribe(
       (details: Societe) => {
         this.societeDetails = details;
-        // Mise à jour du formulaire de la société
+        // Mettez à jour vos formulaires avec les valeurs récupérées
         this.societeForm.patchValue({
           nom: details.nom,
           adresse: details.adresse,
           telephone: details.telephone,
           paysId: details.paysId 
         });
-        // Mise à jour du formulaire du contrat si celui-ci existe
         if (details.contrat) {
           this.contratForm.patchValue({
             id: details.contrat.id,
-            dateDebut: details.contrat.dateDebut 
-              ? new Date(details.contrat.dateDebut+ 'Z').toISOString().substring(0, 10)
+            dateDebut: details.contrat.dateDebut
+              ? new Date(details.contrat.dateDebut + 'Z').toISOString().substring(0, 10)
               : '',
-            dateFin: details.contrat.dateFin 
-              ? new Date(details.contrat.dateFin+ 'Z').toISOString().substring(0, 10)
+            dateFin: details.contrat.dateFin
+              ? new Date(details.contrat.dateFin + 'Z').toISOString().substring(0, 10)
               : '',
             type: details.contrat.type,
             typeContrat: details.contrat.typeContrat
           });
         }
-              
-        
-        
-        // Chargement des projets et utilisateurs
+        // Chargement des projets et utilisateurs associés
         this.loadProjects();
         this.loadSocieteUsers();
       },
-      error => { console.error('Erreur lors de la récupération des détails', error); }
+      error => {
+        console.error('Erreur lors de la récupération des détails', error);
+        this.toastr.error('Erreur lors de la récupération des détails');
+      },
+      () => {
+        // Masque le loader global lorsque l'opération est terminée
+        this.globalLoaderService.hideGlobalLoader();
+      }
     );
-    
   }
+  
 
   onSubmit(): void {
     if (!this.societeForm.dirty) {
@@ -137,35 +165,50 @@ export class ModifierSocieteComponent implements OnInit {
       return;
     }
     if (this.societeForm.valid) {
-      if (!confirm("Confirmez-vous la modification de la société ?")) {
-        return; // L'utilisateur a annulé la modification
-      }
-      const updatedSociete: Societe = {
-        ...this.societeDetails,
-        ...this.societeForm.value
-      };
-      this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
-        next: () => {
-          this.toastr.success("Société modifiée avec succès");
-        },
-        error: error => {
-          console.error('Erreur lors de la mise à jour de la société', error);
-          this.toastr.error("Erreur lors de la mise à jour de la société");
-        }
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = "Confirmez-vous la modification de la société ?";
+      
+      modalInstance.confirmed.subscribe(() => {
+        const updatedSociete: Societe = {
+          ...this.societeDetails,
+          ...this.societeForm.value
+        };
+
+
+        updatedSociete.nom= this.accountService.removeSpecial(updatedSociete.nom)
+        updatedSociete.adresse= this.accountService.removeSpecial(updatedSociete.adresse)
+        
+        // Active le loader avant l'appel
+        this.loaderService.showLoader();
+        this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
+          next: () => {
+            this.toastr.success("Société modifiée avec succès");
+            this.loaderService.hideLoader();
+          },
+          error: error => {
+            console.error('Erreur lors de la mise à jour de la société', error);
+            this.toastr.error("Erreur lors de la mise à jour de la société");
+            this.loaderService.hideLoader();
+          }
+        });
+        this.overlayModalService.close();
+      });
+      
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
       });
     }
-  }  
+  }
 
+    
   onSubmitContrat(): void {
     if (this.contratForm.valid) {
-      // Ajout du champ societePartenaireId si nécessaire
       const contractData: Contrat = {
         ...this.contratForm.value,
         societePartenaireId: this.societeDetails.id
       };
   
       if (contractData.id && contractData.id > 0) {
-        // Mise à jour du contrat existant
         this.contratService.updateContract(contractData.id, contractData).subscribe({
           next: () => {
             this.toastr.success("Contrat mis à jour avec succès");
@@ -177,7 +220,6 @@ export class ModifierSocieteComponent implements OnInit {
           }
         });
       } else {
-        // Création d'un nouveau contrat
         this.contratService.addContract(contractData).subscribe({
           next: (newContract: Contrat) => {
             this.toastr.success("Contrat créé avec succès");
@@ -194,8 +236,6 @@ export class ModifierSocieteComponent implements OnInit {
     }
   }
   
-  
-
   cancelContrat(): void {
     if (this.societeDetails.contrat) {
       this.contratForm.patchValue({
@@ -221,8 +261,6 @@ export class ModifierSocieteComponent implements OnInit {
     this.contratForm.markAsPristine();
   }
   
-  
-
   onCancel(): void {
     this.societeForm.patchValue({
       nom: this.societeDetails.nom,
@@ -246,7 +284,6 @@ export class ModifierSocieteComponent implements OnInit {
     this.contratForm.markAsPristine();
   }
   
-
   switchTab(tab: string): void {
     this.activeTab = tab;
     if (tab === 'projets') {
@@ -270,8 +307,6 @@ export class ModifierSocieteComponent implements OnInit {
     });
   }
   
-
-  // Fonctions de pagination pour les projets et utilisateurs
   loadProjects(): void {
     this.projetsService.getPaginatedProjets(
         this.pageNumber,
@@ -280,10 +315,7 @@ export class ModifierSocieteComponent implements OnInit {
         this.societeDetails.id
       )
       .subscribe((result: PaginatedResult<Projet[]>) => {
-        // Utiliser un tableau vide par défaut si result.items est undefined
         this.displayedProjects = result.items || [];
-        
-        // Gérer le cas où la pagination pourrait être undefined
         if (result.pagination) {
           this.totalProjects = result.pagination.totalItems;
           this.totalPages = result.pagination.totalPages;
@@ -294,11 +326,8 @@ export class ModifierSocieteComponent implements OnInit {
       }, error => {
         console.error('Erreur lors du chargement des projets paginés', error);
       });
-  }  
+  }
   
-  
-
-
   onPageChange(newPage: number): void {
     this.pageNumber = Math.min(Math.max(newPage, 1), this.totalPages);
     this.jumpPage = this.pageNumber;
@@ -328,11 +357,8 @@ export class ModifierSocieteComponent implements OnInit {
       )
       .subscribe(
         (result: PaginatedResult<User[]>) => {
-          // On récupère la liste paginée
           this.displayedUsers = result.items || [];
-          // On met à jour la pagination en fonction des données renvoyées
           if (result.pagination) {
-            // Par exemple, si votre objet pagination contient totalCount et totalPages
             this.totalUsers = result.pagination.totalItems;
             this.userTotalPages = result.pagination.totalPages;
           } else {
@@ -347,9 +373,6 @@ export class ModifierSocieteComponent implements OnInit {
       );
   }
   
-
-  
-
   onUserPageChange(newPage: number): void {
     this.userPageNumber = Math.min(Math.max(newPage, 1), this.userTotalPages);
     this.userJumpPage = this.userPageNumber;
@@ -380,9 +403,8 @@ export class ModifierSocieteComponent implements OnInit {
   openAttachUserDialog(): void {
     this.accountService.getAllUsers().subscribe({
       next: (allUsers: User[]) => {
-        // On passe directement la liste complète des utilisateurs au dialogue
         const dialogRef = this.dialog.open(UserSelectorDialogComponent, {
-          data: { availableUsers: allUsers }
+          data: { availableUsers: allUsers.filter((res)=>{return res.role =="Client"  && res.societeId== null}) }
         });
         
         dialogRef.afterClosed().subscribe((selectedUser: User) => {
@@ -399,55 +421,49 @@ export class ModifierSocieteComponent implements OnInit {
   }
   
   attachUser(userId: number): void {
+    this.loaderService.showLoader();
     this.societeService.attachUser(this.societeDetails.id, userId).subscribe({
       next: (result: boolean) => {
         if (result) {
           this.toastr.success("Utilisateur attaché avec succès");
           this.loadSocieteUsers();
         } else {
-          // Si le backend renvoie false, on affiche le message associé à une association existante
           this.toastr.error("L'utilisateur est déjà associé à cette société");
         }
+        this.loaderService.hideLoader();
       },
       error: error => {
         console.error("Erreur lors de l'attachement de l'utilisateur", error);
-        let message = "Erreur lors de l'attachement de l'utilisateur";
-        if (error.error) {
-          if (typeof error.error === 'string') {
-            try {
-              const parsedError = JSON.parse(error.error);
-              message = parsedError.message || error.error;
-            } catch {
-              message = error.error;
-            }
-          } else if (error.error.message) {
-            message = error.error.message;
-          }
-        } else if (error.message) {
-          message = error.message;
-        }
-        this.toastr.error(message);
-      }
-    });
-  }  
-
-  detachUser(user: User): void {
-    const confirmationMessage = `Êtes-vous sûr de vouloir détacher ${user.firstName} ${user.lastName} de ${this.societeDetails.nom} ?`;
-    if (!confirm(confirmationMessage)) {
-      return; // L'utilisateur a annulé l'action
-    }
-    this.societeService.detachUser(this.societeDetails.id, user.id).subscribe({
-      next: () => {
-        this.toastr.success("Utilisateur détaché avec succès");
-        this.loadSocieteUsers(); // Rafraîchir la liste après suppression
-      },
-      error: error => {
-        console.error("Erreur lors du détachement de l'utilisateur", error);
-        this.toastr.error("Erreur lors du détachement de l'utilisateur");
+        this.toastr.error("Erreur lors de l'attachement de l'utilisateur");
+        this.loaderService.hideLoader();
       }
     });
   }
-  
+
+
+  detachUser(user: User): void {
+    const confirmationMessage = `Êtes-vous sûr de vouloir détacher ${user.firstName} ${user.lastName} de ${this.societeDetails.nom} ?`;
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = confirmationMessage;
+    
+    modalInstance.confirmed.subscribe(() => {
+      this.societeService.detachUser(this.societeDetails.id, user.id).subscribe({
+        next: () => {
+          this.toastr.success("Utilisateur détaché avec succès");
+          this.loadSocieteUsers();
+        },
+        error: error => {
+          console.error("Erreur lors du détachement de l'utilisateur", error);
+          this.toastr.error("Erreur lors du détachement de l'utilisateur");
+        }
+      });
+      this.overlayModalService.close();
+    });
+    
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
+  }
   
   toggleDropdown(type: string): void {
     if (type === 'pays') {
@@ -459,7 +475,6 @@ export class ModifierSocieteComponent implements OnInit {
     return this.pays.find(p => p.idPays === idPays)?.nom || '';
   }  
 
-  // --- Gestion des dropdowns pour Pays ---
   loadPays(): void {
     this.paysService.getPays(this.paysSearchTerm).subscribe({
       next: (data) => {
@@ -477,7 +492,6 @@ export class ModifierSocieteComponent implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    // Vérifiez si le clic se produit en dehors d'un élément ayant la classe 'custom-select'
     if (!target.closest('.custom-select')) {
       this.isPaysDropdownOpen = false;
     }
@@ -494,7 +508,6 @@ export class ModifierSocieteComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(ProjectModalComponent);
     modalInstance.societeId = this.societeDetails.id;
     
-    // S'abonner à l'événement de fermeture du modal
     if (modalInstance.closed) {
       modalInstance.closed.subscribe((result: any) => {
         if (result && result.projectCreated) {
@@ -503,7 +516,4 @@ export class ModifierSocieteComponent implements OnInit {
       });
     }
   }
-  
-  
-  
 }

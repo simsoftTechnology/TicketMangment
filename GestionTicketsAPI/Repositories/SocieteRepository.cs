@@ -20,14 +20,24 @@ namespace GestionTicketsAPI.Repositories
     }
 
     // Récupérer toutes les sociétés
-    public async Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null)
+    public async Task<IEnumerable<Societe>> GetAllSocietesAsync(string? searchTerm = null, string? pays = null)
     {
-      var query = _context.Societes.AsQueryable();
+      var query = _context.Societes
+                  .Include(s => s.Pays) // Inclure l'entité Pays
+                  .AsQueryable();
 
+      // Filtrage par nom de société
       if (!string.IsNullOrEmpty(searchTerm))
       {
         var lowerSearchTerm = searchTerm.ToLower();
         query = query.Where(s => s.Nom.ToLower().Contains(lowerSearchTerm));
+      }
+
+      // Filtrage par nom de pays
+      if (!string.IsNullOrEmpty(pays))
+      {
+        var lowerPays = pays.ToLower();
+        query = query.Where(s => s.Pays != null && s.Pays.Nom.ToLower().Contains(lowerPays));
       }
 
       return await query.ToListAsync();
@@ -36,17 +46,26 @@ namespace GestionTicketsAPI.Repositories
     public async Task<PagedList<Societe>> GetSocietesPagedAsync(UserParams userParams)
     {
       var query = _context.Societes
-          .Include(s => s.Pays) // Inclure l'entité Pays
-          .AsQueryable();
+                  .Include(s => s.Pays)
+                  .AsQueryable();
 
+      // Filtrage par nom de société
       if (!string.IsNullOrEmpty(userParams.SearchTerm))
       {
         var lowerSearchTerm = userParams.SearchTerm.ToLower();
         query = query.Where(s => s.Nom.ToLower().Contains(lowerSearchTerm));
       }
 
+      // Filtrage par nom de pays (assurez-vous que UserParams contient une propriété "Pays")
+      if (!string.IsNullOrEmpty(userParams.Pays))
+      {
+        var lowerPays = userParams.Pays.ToLower();
+        query = query.Where(s => s.Pays != null && s.Pays.Nom.ToLower().Contains(lowerPays));
+      }
+
       return await PagedList<Societe>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
     }
+
 
     // Récupérer une société par ID (simple)
     public async Task<Societe?> GetSocieteByIdAsync(int id)
@@ -92,9 +111,9 @@ namespace GestionTicketsAPI.Repositories
       // Charger la société avec ses associations
       var societe = await _context.Societes
           .Include(s => s.SocieteUsers)
-          .ThenInclude(su => su.User)
+              .ThenInclude(su => su.User)
           .Include(s => s.ContratsPartenaire)
-          .Include(s => s.Projets!)
+          .Include(s => s.Projets)
               .ThenInclude(p => p.Pays)
           .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -103,26 +122,28 @@ namespace GestionTicketsAPI.Repositories
         return false;
       }
 
+      // Vérifier si la société possède des projets associés
+      if (await SocieteHasProjectsAsync(id))
+      {
+        throw new InvalidOperationException("Impossible de supprimer la société car elle contient des projets associés.");
+      }
+
       // Supprimer les associations dans la table de jonction
       if (societe.SocieteUsers?.Any() == true)
       {
         _context.RemoveRange(societe.SocieteUsers);
       }
 
-      // Vous pouvez adapter la suppression des contrats si nécessaire
+      // Suppression optionnelle des contrats partenaires
       if (societe.ContratsPartenaire?.Any() == true)
       {
         _context.Contrats.RemoveRange(societe.ContratsPartenaire);
       }
 
-      if (societe.Projets?.Any() == true)
-      {
-        _context.Projets.RemoveRange(societe.Projets);
-      }
+      // Ne pas supprimer les projets ici, car la présence d'au moins un projet empêche la suppression de la société.
 
       // Supprimer la société elle-même
       _context.Societes.Remove(societe);
-
 
       // Utilisation d'une transaction pour garantir l'atomicité
       using (var transaction = await _context.Database.BeginTransactionAsync())
@@ -133,6 +154,7 @@ namespace GestionTicketsAPI.Repositories
 
       return true;
     }
+
 
     public async Task<PagedList<User>> GetSocieteUsersPagedAsync(int societeId, UserParams userParams)
     {
@@ -156,15 +178,36 @@ namespace GestionTicketsAPI.Repositories
 
     public async Task<bool> AttachUserToSocieteAsync(int societeId, int userId)
     {
+      // Récupérer l'utilisateur pour connaître son rôle
+      var user = await _context.Users.FindAsync(userId);
+      if (user == null)
+      {
+        // Gestion de l'erreur : utilisateur non trouvé
+        return false;
+      }
+
+      // Si l'utilisateur est client, vérifier qu'il n'est associé à aucune autre société
+      if (user.Role.Name.ToLower() == "client")
+      {
+        bool isAlreadyClient = await _context.SocieteUsers
+            .AnyAsync(su => su.UserId == userId);
+        if (isAlreadyClient)
+        {
+          // Ne pas autoriser plusieurs associations pour un client
+          return false;
+        }
+      }
+
+      // Vérifier si l'association existe déjà (pour tous les rôles)
       var association = await _context.SocieteUsers
           .FirstOrDefaultAsync(su => su.SocieteId == societeId && su.UserId == userId);
-
       if (association != null)
       {
         Console.WriteLine($"Association existante : SocieteId {societeId}, UserId {userId}");
         return false;
       }
 
+      // Créer l'association
       var societeUser = new SocieteUser
       {
         SocieteId = societeId,
@@ -180,6 +223,7 @@ namespace GestionTicketsAPI.Repositories
         : $"Erreur lors de l'insertion dans la base pour SocieteId {societeId}, UserId {userId}");
       return result;
     }
+
 
 
 
@@ -246,5 +290,11 @@ namespace GestionTicketsAPI.Repositories
     {
       return await _context.SaveChangesAsync() > 0;
     }
+
+    public async Task<bool> SocieteHasProjectsAsync(int societeId)
+    {
+      return await _context.Projets.AnyAsync(p => p.SocieteId == societeId);
+    }
+
   }
 }

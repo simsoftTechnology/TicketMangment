@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
+
   [ApiController]
   public class PaysController : BaseApiController
   {
@@ -19,9 +19,10 @@ namespace GestionTicketsAPI.Controllers
     }
 
     [Authorize]
-    [HttpGet("getPays")]
-    public async Task<ActionResult<IEnumerable<PaysDto>>> GetPays([FromQuery] string? searchTerm)
+    [HttpPost("getPays")]
+    public async Task<ActionResult<IEnumerable<PaysDto>>> GetPays([FromBody] Dictionary<string, string?> data)
     {
+      data.TryGetValue("searchTerm", out var searchTerm);
       if (!string.IsNullOrWhiteSpace(searchTerm))
       {
         var filteredPays = await _paysService.GetPaysAsync(searchTerm);
@@ -34,6 +35,7 @@ namespace GestionTicketsAPI.Controllers
       }
     }
 
+
     [Authorize]
     [HttpGet("{idPays}")]
     public async Task<ActionResult<PaysDto>> GetPaysById(int idPays)
@@ -44,25 +46,66 @@ namespace GestionTicketsAPI.Controllers
     }
 
     [Authorize]
-    [HttpPut("ModifierPays/{idPays}")]
-    public async Task<ActionResult> UpdatePays(int idPays, [FromForm] PaysUpdateDto paysUpdateDto, IFormFile? file)
+    [HttpPost("ModifierPays/{idPays}")]
+    public async Task<ActionResult> UpdatePays(int idPays, [FromBody] Dictionary<string, string> data)
     {
+      if (!data.TryGetValue("nom", out var nom))
+        return BadRequest("Le nom est requis.");
+
+      data.TryGetValue("codeTel", out var codeTel);
+      data.TryGetValue("file", out var fileBase64);
+
+      // Création du DTO de mise à jour
+      var paysUpdateDto = new PaysUpdateDto
+      {
+        Nom = nom,
+        CodeTel = codeTel
+      };
+
+      IFormFile? file = null;
+      if (!string.IsNullOrEmpty(fileBase64))
+      {
+        try
+        {
+          // Supposons que fileBase64 est sous la forme "data:<mimeType>;base64,<data>"
+          var base64Data = fileBase64.Substring(fileBase64.IndexOf(',') + 1);
+          var bytes = Convert.FromBase64String(base64Data);
+          var stream = new MemoryStream(bytes);
+          // Le nom et le type MIME sont arbitraires ici, à adapter selon vos besoins
+          file = new FormFile(stream, 0, stream.Length, "file", "uploadedFile.jpg");
+        }
+        catch (Exception ex)
+        {
+          return BadRequest("Erreur lors de la conversion du fichier: " + ex.Message);
+        }
+      }
+
       var updated = await _paysService.UpdatePaysAsync(idPays, paysUpdateDto, file);
-      if (!updated) return BadRequest("Erreur lors de la mise à jour du pays.");
+      if (!updated)
+        return BadRequest("Erreur lors de la mise à jour du pays.");
+
       return NoContent();
     }
 
+
+
     [Authorize]
     [HttpPost("ajouterPays")]
-    public async Task<ActionResult<PaysDto>> AddPays([FromForm] string nom, IFormFile file)
+    public async Task<ActionResult<PaysDto>> AddPays([FromBody] Dictionary<string, string> data)
     {
-      // Vérifier si le pays existe déjà en fonction de son nom
+      if (!data.TryGetValue("nom", out var nom))
+        return BadRequest("Le nom est requis.");
+
+      data.TryGetValue("codeTel", out var codeTel);
+      data.TryGetValue("file", out var fileBase64);
+
       if (await _paysService.PaysExists(nom))
         return BadRequest("Le pays existe déjà");
 
       try
       {
-        var paysDto = await _paysService.AddPaysAsync(nom, file);
+        // Adaptez votre service pour traiter fileBase64 en lieu et place d'un IFormFile
+        var paysDto = await _paysService.AddPaysAsync(nom, codeTel, fileBase64);
         return CreatedAtAction(nameof(GetPays), new { idPays = paysDto.IdPays }, paysDto);
       }
       catch (Exception ex)
@@ -70,10 +113,8 @@ namespace GestionTicketsAPI.Controllers
         return BadRequest(ex.Message);
       }
     }
-
-
-    [Authorize]
-    [HttpDelete("supprimerPays/{idPays}")]
+ 
+    [HttpGet("supprimerPays/{idPays}")]
     public async Task<ActionResult> DeletePays(int idPays)
     {
       var deleted = await _paysService.DeletePaysAsync(idPays);
@@ -81,18 +122,5 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
-    [HttpPost("{idPays}/add-photo")]
-    public async Task<ActionResult<PhotoDto>> AddPhoto(int idPays, IFormFile file)
-    {
-      try
-      {
-        var photoDto = await _paysService.AddPhotoAsync(idPays, file);
-        return CreatedAtAction(nameof(GetPays), new { idPays = idPays }, photoDto);
-      }
-      catch (Exception ex)
-      {
-        return BadRequest(ex.Message);
-      }
-    }
   }
 }

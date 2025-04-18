@@ -1,5 +1,6 @@
 import { Contrat } from "./contrat";
 import { ProjetMember } from "./projet-member"; // Assurez-vous du bon chemin
+import { Societe } from "./societe";
 
 export interface User {
   id: number;
@@ -16,5 +17,7 @@ export interface User {
   selected?: boolean;
   token: string;
   societeId?: number;
-  projetMembers?: ProjetMember[]; // Ajout de la relation aux projets
+  societe?: Societe;
+  projetMembers?: ProjetMember[]; 
+  createdAt?: Date;
 }

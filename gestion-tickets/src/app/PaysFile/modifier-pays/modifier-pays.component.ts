@@ -3,28 +3,41 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { PaysService } from '../../_services/pays.service';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Pays } from '../../_models/pays';
+import { LoaderService } from '../../_services/loader.service';
+import { ToastrService } from 'ngx-toastr';
+import { CommonModule } from '@angular/common';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
-    selector: 'app-modifier-pays',
-    imports: [ReactiveFormsModule, RouterLink],
-    templateUrl: './modifier-pays.component.html',
-    styleUrl: './modifier-pays.component.css'
+  selector: 'app-modifier-pays',
+  imports: [ReactiveFormsModule, RouterLink, CommonModule],
+  templateUrl: './modifier-pays.component.html',
+  styleUrls: ['./modifier-pays.component.css']
 })
 export class ModifierPaysComponent implements OnInit {
   paysForm: FormGroup;
   selectedFile: File | undefined;
   paysId: number | null = null;
-  originalPays: Pays | null = null; // Stocker les données originales
+  originalPays: Pays | null = null;
+
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private paysService: PaysService,
     private router: Router,
-    public route: ActivatedRoute
+    public route: ActivatedRoute,
+    private loaderService: LoaderService,
+    private toastr: ToastrService,
+    private accountService: AccountService,
   ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
     this.paysForm = this.fb.group({
       nom: [''],
-      file: [null],
+      codeTel: [''],
+      file: [null]
     });
   }
 
@@ -34,9 +47,10 @@ export class ModifierPaysComponent implements OnInit {
       if (id) {
         this.paysId = +id;
         this.paysService.getPaysById(this.paysId).subscribe((pays: Pays) => {
-          this.originalPays = { ...pays }; // Copie des données originales
+          this.originalPays = { ...pays };
           this.paysForm.patchValue({
             nom: pays.nom,
+            codeTel: pays.codeTel
           });
         });
       }
@@ -45,33 +59,47 @@ export class ModifierPaysComponent implements OnInit {
 
   onFileSelected(event: any): void {
     this.selectedFile = event.target.files[0];
+    this.paysForm.get('file')?.setValue(this.selectedFile);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.paysId === null || !this.originalPays) return;
   
-    // Détecter les changements
     const hasNomChanged = this.paysForm.value.nom.trim() !== this.originalPays.nom.trim();
+    const hasCodeTelChanged = this.paysForm.value.codeTel.trim() !== this.originalPays.codeTel.trim();
     const hasFileChanged = !!this.selectedFile;
   
-    // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
-    if (!hasNomChanged && !hasFileChanged) {
-      this.router.navigate(['/home/Pays']);
-      return;
+    if (!hasNomChanged && !hasCodeTelChanged && !hasFileChanged) {
+      this.toastr.warning("veuillez modifier au moins un champs");
+  
     }
-  
-    // Toujours inclure le nom, même s'il n'a pas changé
-    const paysUpdateDto: any = {
-      nom: this.paysForm.value.nom || this.originalPays.nom, // Conserver l'ancien nom si non modifié
-    };
-  
-    // Envoyer le fichier seulement s'il a été modifié
-    const fileToSend = hasFileChanged ? this.selectedFile : undefined;
-  
-    this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
-      this.router.navigate(['/home/Pays']);
+    else{
+
+      const paysUpdateDto: any = {
+        nom: this.accountService.removeSpecial(this.paysForm.value.nom) || this.accountService.removeSpecial(this.originalPays.nom),
+        codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
+      };
+    
+      const fileToSend = hasFileChanged ? this.selectedFile : undefined;
+      this.loaderService.showLoader();
+    
+      // Utiliser await pour récupérer l'observable
+      const updateObservable = await this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend);
+      updateObservable.subscribe((res) => {
+        this.loaderService.hideLoader();
+        this.toastr.success("Pays mis à jour avec succéss");
+        this.router.navigate(['/home/Pays']);
+      },
+    
+    (error)=>{
+      console.log(error);
+      
+      this.toastr.error("Erreur se produit", error);
     });
+    }
   }
-  
+  annuler(){
+    this.paysForm.patchValue({ nom: this.originalPays?.nom.trim() ,  codeTel : this.originalPays?.codeTel.trim() });
+  }
   
 }

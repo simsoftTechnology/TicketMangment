@@ -10,7 +10,7 @@
       <!-- Ligne de filtre avec barre de recherche -->
       <tr class="filter-row">
         <td class="checkbox-column"></td>
-        <td colspan="5">
+        <td colspan="6">
           <div class="search-wrapper">
             <input type="text" class="search-input" placeholder="Rechercher un ticket..."
               [(ngModel)]="ticketsSearchTerm" (ngModelChange)="onSearchChange()" />
@@ -18,15 +18,24 @@
           </div>
         </td>
         <td colspan="4" class="filter-actions">
-          <button class="filter-btn">
+          <button class="export-btn" (click)="exportTickets()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+              <span class="material-icons">download</span> Export Excel
+            </ng-container>
+            <ng-template #loadingExportTpl>
+              <span class="spinner"></span> Export Execl
+            </ng-template>
+          </button>          
+          <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>
-          <button class="view-btn">
-            <span class="material-icons">grid_view</span>
-          </button>
-          <button class="view-btn active">
-            <span class="material-icons">view_list</span>
-          </button>
+          
+          <!-- Définition du matMenu contenant le composant de filtre -->
+          <mat-menu #filterMenu="matMenu" panelClass="ticket-filter-menu" disableClose>
+            <div class="ticket-filter-content">
+              <app-ticket-filter (applyFilter)="onApplyFilter($event)"></app-ticket-filter>
+            </div>
+          </mat-menu>                             
         </td>
       </tr>
       <!-- En-tête des colonnes -->
@@ -37,9 +46,11 @@
             <label for="selectAll" class="checkbox-label"></label>
           </div>
         </th>
+        <th>Id</th>
         <th>Titre</th>
         <th>Qualification</th>
         <th>Projet</th>
+        <th>Société</th>
         <th *ngIf="(currentUser?.role?.toLowerCase() !== 'client')">Client</th>
         <th>Catégorie</th>
         <th>Priorité</th>
@@ -56,9 +67,11 @@
             <label [for]="'ticket' + i" class="checkbox-label"></label>
           </div>
         </td>
+        <td>{{ ticket.id }}</td>
         <td>{{ ticket.title }}</td>
         <td>{{ getQualificationLabel(ticket.qualificationId) }}</td>
         <td>{{ ticket.projet?.nom || 'Non défini' }}</td>
+        <td>{{ ticket.projet?.nomSociete || 'Non défini' }}</td>
         <td *ngIf="(currentUser?.role?.toLowerCase() !== 'client')">
           {{ ticket.owner?.firstName }} {{ ticket.owner?.lastName || '' }}
         </td>
@@ -69,21 +82,21 @@
           </span>
         </td>                        
         <td>
-          <span [ngClass]="getStatusClass(ticket.statutId)">
+          <span >
             {{ getStatusLabel(ticket.statutId) }}
           </span>
         </td>        
         <td class="actions">
-          <button class="view-btn" [routerLink]="['/home/Tickets/details', ticket.id]">
+          <button class="view-btn" [routerLink]="[baseRoute, 'details', ticket.id]">
             <span class="material-icons">visibility</span>
-          </button>
+          </button>          
         </td>
       </tr>
 
       <!-- Message si aucune donnée -->
       <ng-container *ngIf="paginatedResult?.items?.length === 0">
         <tr>
-          <td colspan="10">
+          <td colspan="11">
             <div class="no-content">
               <span class="icon">✕</span>
               <p>Aucun ticket trouvé</p>
@@ -94,7 +107,7 @@
 
       <!-- Pagination -->
       <tr>
-        <td colspan="10">
+        <td colspan="11">
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de

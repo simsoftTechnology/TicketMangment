@@ -5,7 +5,6 @@ using GestionTicketsAPI.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GestionTicketsAPI.Services
@@ -24,9 +23,6 @@ namespace GestionTicketsAPI.Services
             _cloudinary = new Cloudinary(acc);
         }
 
-        /// <summary>
-        /// Upload d'une image sur Cloudinary.
-        /// </summary>
         public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
         {
             var uploadResult = new ImageUploadResult();
@@ -37,65 +33,31 @@ namespace GestionTicketsAPI.Services
                 var uploadParams = new ImageUploadParams
                 {
                     File = new FileDescription(file.FileName, stream),
-                    Transformation = new Transformation()
-                                        .Width(300)
-                                        .Height(300)
-                                        .Crop("fill")
-                                        .Gravity("auto")
-                                        .Quality(90),
+                    Transformation = new Transformation().Quality(100),
                     Folder = "ticketManagment"
                 };
-
                 uploadResult = await _cloudinary.UploadAsync(uploadParams);
             }
 
             return uploadResult;
         }
 
-        /// <summary>
-        /// Upload d'un fichier (image ou non‑image) sur Cloudinary.
-        /// Pour les images, la même transformation que AddPhotoAsync est appliquée.
-        /// Pour les autres fichiers (Word, PDF, etc.), on utilise RawUploadParams.
-        /// </summary>
         public async Task<UploadResult> UploadFileAsync(IFormFile file)
         {
-            if (file.Length <= 0)
-                return null;
-
             using var stream = file.OpenReadStream();
-            var extension = Path.GetExtension(file.FileName).ToLower();
+            return await UploadFileAsync(stream, file.FileName);
+        }
 
-            // Extensions images classiques
-            var imageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-
-            if (imageExtensions.Contains(extension))
+        // Nouvelle implémentation pour l'upload via Stream et fileName
+        public async Task<UploadResult> UploadFileAsync(Stream fileStream, string fileName)
+        {
+            var uploadParams = new RawUploadParams
             {
-                var uploadParams = new ImageUploadParams
-                {
-                    File = new FileDescription(file.FileName, stream),
-                    Transformation = new Transformation()
-                                        .Width(300)
-                                        .Height(300)
-                                        .Crop("fill")
-                                        .Gravity("auto")
-                                        .Quality(90),
-                    Folder = "ticketManagment"
-                };
+                File = new FileDescription(fileName, fileStream),
+                Folder = "ticketManagment"
+            };
 
-                return await _cloudinary.UploadAsync(uploadParams);
-            }
-            else
-            {
-                // Pour les fichiers non‑images, on utilise RawUploadParams.
-                var uploadParams = new RawUploadParams
-                {
-                    File = new FileDescription(file.FileName, stream),
-                    Folder = "ticketManagment"
-                    // ResourceType est déjà géré par Cloudinary pour les fichiers raw.
-                };
-
-                return await _cloudinary.UploadAsync(uploadParams);
-            }
+            return await _cloudinary.UploadAsync(uploadParams);
         }
 
         public async Task<DeletionResult> DeletePhotoAsync(string publicId)

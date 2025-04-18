@@ -1,7 +1,34 @@
+@import url('assets/fontawesome/css/all.min.css');
+
+
 .cdk-overlay-container,
 .mat-dialog-container {
   z-index: 10000 !important;
 }
+html, body {
+  height: 100%;
+  overflow: auto; /* Le scrollbar du navigateur est conservé */
+}
+
+
+
+app-home {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+
+app-dashboard {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+
 
 .custom-backdrop {
   background-color: rgba(0, 0, 0, 0.5) !important;
@@ -39,3 +66,5 @@
 .toast-progress {
   background-color: white !important;
 }
+
+

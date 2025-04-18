@@ -24,15 +24,24 @@
         </td>
         <td class="checkbox-column"></td>
         <td colspan="3" class="filter-actions">
-          <button class="filter-btn">
+          <button class="export-btn" (click)="exportSocietes()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+              <span class="material-icons">download</span> Export Excel
+            </ng-container>
+            <ng-template #loadingExportTpl>
+              <span class="spinner"></span> Export Excel
+            </ng-template>
+          </button>          
+          <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>
-          <button class="view-btn">
-            <span class="material-icons">grid_view</span>
-          </button>
-          <button class="view-btn active">
-            <span class="material-icons">view_list</span>
-          </button>
+      
+          <!-- Définition du matMenu contenant le composant de filtre basé sur le pays -->
+          <mat-menu #filterMenu="matMenu" class="societe-filter-menu" disableClose>
+            <div>
+              <app-societe-filter (applyFilter)="onFilter($event)"></app-societe-filter>
+            </div>
+          </mat-menu>
         </td>
       </tr>
 
@@ -48,9 +57,14 @@
         <th>Adresse</th>
         <th>Téléphone</th>
         <th class="actions">
-          <button class="delete-btn" (click)="deleteSelectedSocietes()">
-            <span class="material-icons">delete</span>
-          </button>
+          <button class="delete-btn" (click)="deleteSelectedSocietes()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingBulkDeleteTpl">
+              <span class="material-icons">delete</span>
+            </ng-container>
+            <ng-template #loadingBulkDeleteTpl>
+              <span class="spinner"></span>
+            </ng-template>
+          </button>          
         </th>
       </tr>
     </thead>
@@ -78,9 +92,14 @@
             <button class="edit-btn" [routerLink]="['/home', 'Societes', 'modifierSociete', societe.id]">
               <span class="material-icons">edit</span>
             </button>
-            <button class="delete-btn" (click)="deleteSociete(societe.id)">
-              <span class="material-icons">delete</span>
-            </button>
+            <button class="delete-btn" (click)="deleteSociete(societe.id)" [disabled]="isLoading">
+              <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+                <span class="material-icons">delete</span>
+              </ng-container>
+              <ng-template #loadingDeleteTpl>
+                <span class="spinner"></span>
+              </ng-template>
+            </button>            
           </td>
         </tr>
       </ng-container>

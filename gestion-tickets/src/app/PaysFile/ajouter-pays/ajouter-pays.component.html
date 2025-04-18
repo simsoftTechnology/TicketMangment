@@ -1,7 +1,6 @@
-<div class="container">
+<div class="update-form">
   <h2>Ajouter un pays</h2>
   <form [formGroup]="paysForm" (ngSubmit)="onSubmit()">
-    
     <!-- Champ Nom -->
     <div class="form-group">
       <label for="nom">Nom du pays <span class="required">*</span></label>
@@ -16,7 +15,22 @@
         Le nom du pays est obligatoire.
       </div>
     </div>
-
+    
+    <!-- Champ Code Téléphonique -->
+    <div class="form-group">
+      <label for="codeTel">Code Téléphonique <span class="required">*</span></label>
+      <input 
+        type="text" 
+        id="codeTel" 
+        formControlName="codeTel" 
+        class="form-control"
+        [class.is-invalid]="paysForm.get('codeTel')?.invalid && paysForm.get('codeTel')?.touched"
+      />
+      <div *ngIf="paysForm.get('codeTel')?.invalid && paysForm.get('codeTel')?.touched" class="invalid-feedback text-start">
+        Le code téléphonique est obligatoire.
+      </div>
+    </div>
+    
     <!-- Champ Fichier -->
     <div class="form-group">
       <label for="selectedFile">Photo du pays <span class="required">*</span></label>
@@ -31,9 +45,16 @@
         La photo du pays est obligatoire.
       </div>
     </div>
-
+    
     <!-- Boutons -->
-    <button type="submit" class="btn btn-primary">Ajouter</button>
+    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading; else loadingCreate">
+        Ajouter
+      </ng-container>
+      <ng-template #loadingCreate>
+        <span class="spinner"></span> Ajouter
+      </ng-template>
+    </button>
     <button class="btn btn-secondary" routerLink="/home/Pays">Annuler</button>
   </form>
 </div>

@@ -11,7 +11,16 @@
         class="form-control"
       />
     </div>
-
+    <!-- Champ Code Téléphonique -->
+    <div class="form-group">
+      <label for="codeTel">Code Téléphonique</label>
+      <input 
+        type="text" 
+        id="codeTel" 
+        formControlName="codeTel" 
+        class="form-control"
+      />
+    </div>
     <!-- Champ Fichier -->
     <div class="form-group">
       <label for="file">Photo du pays</label>
@@ -22,9 +31,15 @@
         class="form-control"
       />
     </div>
-
     <!-- Boutons -->
-    <button type="submit" class="btn btn-primary">Mettre à jour</button>
-    <button class="btn btn-secondary" routerLink="/home/Pays">Annuler</button>
+    <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading; else loadingCreate">
+        Mettre à jour
+      </ng-container>
+      <ng-template #loadingCreate>
+        <span class="spinner"></span> Mettre à jour
+      </ng-template>
+    </button>
+    <button class="btn btn-secondary"  (click)="annuler()"  >Annuler</button>
   </form>
 </div>

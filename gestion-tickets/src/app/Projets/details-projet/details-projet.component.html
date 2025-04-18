@@ -46,6 +46,47 @@
         </div>
       </div>
     </div>
+
+    <!-- Chef de projet -->
+    <div class="info-item societe">
+      <div class="info-item">
+        <span class="info-label">Chef de projet</span>
+        <span class="info-value" *ngIf="!editMode && projet && projet.chefProjet">
+          {{ projet.chefProjet.firstName }} {{ projet.chefProjet.lastName }}
+        </span>
+        <div *ngIf="editMode">
+          <div class="custom-select">
+            <div class="select-box" (click)="toggleDropdown('chef')">
+              <div class="selected-item">
+                {{ getChefName(projet.chefProjetId) || 'Sélectionner un chef de projet' }}
+              </div>
+              <span class="arrow">▼</span>
+            </div>
+            <div class="dropdown-content" [class.show]="isChefDropdownOpen">
+              <div class="search-box">
+                <input type="text" placeholder="Rechercher un chef de projet..." [(ngModel)]="searchChef"
+                  (ngModelChange)="onChefSearch()" />
+              </div>
+              <div class="option-list">
+                <ng-container *ngIf="filteredChefs.length > 0; else noChefResults">
+                  <div *ngFor="let chef of filteredChefs" class="option-item" (click)="selectChef(chef)">
+                    {{ chef.firstName }} {{ chef.lastName }}
+                  </div>
+                </ng-container>
+                <ng-template #noChefResults>
+                  <div class="no-results">
+                    <span class="no-results-icon">🔍</span>
+                    <p class="no-results-text">Aucun chef de projet trouvé</p>
+                  </div>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Pays -->
     <div class="info-item pays">
       <div class="info-item">
@@ -56,8 +97,8 @@
         </div>
       </div>
     </div>
-    
-    
+
+
   </div>
 
   <!-- Boutons d'édition / sauvegarde / annulation -->
@@ -67,7 +108,14 @@
       class="edit-btn" (click)="editMode = true">
       Modifier
     </button>
-    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()">Enregistrer</button>
+    <button *ngIf="editMode" class="edit-btn" (click)="saveProjet()" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading; else loadingSaveTpl">
+        Enregistrer
+      </ng-container>
+      <ng-template #loadingSaveTpl>
+        <span class="spinner"></span> Enregistrer
+      </ng-template>
+    </button>
     <button *ngIf="editMode" class="delete-btn" (click)="cancelEdit()">Annuler</button>
   </div>
 
@@ -84,7 +132,9 @@
         <td colspan="4">
           <div class="header-actions">
             <div class="left-actions">
-              <button class="add-user-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"  (click)="openUserSelector()">
+              <button class="add-user-btn"
+                *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
+                (click)="openUserSelector()">
                 <span class="material-icons">person_add</span>
               </button>
             </div>
@@ -109,7 +159,9 @@
         <th>Nom</th>
         <th>Rôle</th>
         <th class="actions">
-          <button class="delet-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"  (click)="deleteSelectedMembers()">
+          <button class="delet-btn"
+            *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
+            (click)="deleteSelectedMembers()">
             <span class="material-icons">delete</span>
           </button>
         </th>
@@ -129,8 +181,15 @@
           <td>{{ membre.firstName }} {{ membre.lastName }}</td>
           <td><span class="role">{{ membre.role }}</span></td>
           <td class="actions">
-            <button class="delet-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"  (click)="removeUser(membre.userId)">
-              <span class="material-icons">delete</span>
+            <button class="delet-btn"
+              *ngIf="(accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet')"
+              (click)="removeUser(membre.userId)" [disabled]="isLoading">
+              <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+                <span class="material-icons">delete</span>
+              </ng-container>
+              <ng-template #loadingDeleteTpl>
+                <span class="spinner"></span>
+              </ng-template>
             </button>
           </td>
         </tr>
@@ -181,7 +240,6 @@
 
   <!-- Boutons de suppression du projet et de retour -->
   <div class="buttons">
-    <button class="delete-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"  (click)="deleteProjet(projet.id)">Supprimer</button>
     <button class="back-btn" (click)="goBack()">Retourner</button>
   </div>
 </div>

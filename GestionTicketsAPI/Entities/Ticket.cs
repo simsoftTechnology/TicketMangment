@@ -18,16 +18,20 @@ public class Ticket
     public Qualification Qualification { get; set; }
     public int ProblemCategoryId { get; set; }
     public CategorieProbleme ProblemCategory { get; set; }
-    public int? ValidationId { get; set; }
-    public Validation Validation { get; set; }
     public int StatutId { get; set; }
     public StatutDesTicket Statut { get; set; }
+
+    public string? ValidationReason { get; set; }
     public int? ResponsibleId { get; set; }
     public User Responsible { get; set; }
     public string? Attachments { get; set; }
     public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
     public DateTime? ApprovedAt { get; set; }
     public DateTime? SolvedAt { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public string? CompletionComment { get; set; }
+    public int? HoursSpent { get; set; }
+    public DateTime? FinishedAt { get; set; }
 }

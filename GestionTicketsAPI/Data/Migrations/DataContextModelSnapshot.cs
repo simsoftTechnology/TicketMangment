@@ -56,9 +56,6 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<DateTime?>("DateModification")
-                        .HasColumnType("datetime(6)");
-
                     b.Property<int>("TicketId")
                         .HasColumnType("int");
 
@@ -136,6 +133,10 @@ namespace GestionTicketsAPI.Migrations
                         .HasColumnType("int")
                         .HasColumnName("id_pays");
 
+                    b.Property<string>("CodeTel")
+                        .HasMaxLength(10)
+                        .HasColumnType("varchar(10)");
+
                     b.Property<string>("Nom")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -203,7 +204,7 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("IdPays")
+                    b.Property<int?>("IdPays")
                         .HasColumnType("int")
                         .HasColumnName("id_pays");
 
@@ -378,6 +379,9 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<string>("Attachments")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("CompletionComment")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -387,6 +391,12 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("HoursSpent")
+                        .HasColumnType("int");
 
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
@@ -416,11 +426,11 @@ namespace GestionTicketsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int?>("ValidationId")
-                        .HasColumnType("int");
+                    b.Property<string>("ValidationReason")
+                        .HasColumnType("longtext");
 
                     b.HasKey("Id");
 
@@ -437,8 +447,6 @@ namespace GestionTicketsAPI.Migrations
                     b.HasIndex("ResponsibleId");
 
                     b.HasIndex("StatutId");
-
-                    b.HasIndex("ValidationId");
 
                     b.ToTable("Tickets");
                 });
@@ -498,30 +506,6 @@ namespace GestionTicketsAPI.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("GestionTicketsAPI.Entities.Validation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Validation");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Commentaire", b =>
@@ -591,8 +575,7 @@ namespace GestionTicketsAPI.Migrations
                     b.HasOne("GestionTicketsAPI.Entities.Pays", "Pays")
                         .WithMany()
                         .HasForeignKey("IdPays")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("GestionTicketsAPI.Entities.Societe", "Societe")
                         .WithMany("Projets")
@@ -698,11 +681,6 @@ namespace GestionTicketsAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("GestionTicketsAPI.Entities.Validation", "Validation")
-                        .WithMany()
-                        .HasForeignKey("ValidationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Owner");
 
                     b.Navigation("Priority");
@@ -716,8 +694,6 @@ namespace GestionTicketsAPI.Migrations
                     b.Navigation("Responsible");
 
                     b.Navigation("Statut");
-
-                    b.Navigation("Validation");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.User", b =>

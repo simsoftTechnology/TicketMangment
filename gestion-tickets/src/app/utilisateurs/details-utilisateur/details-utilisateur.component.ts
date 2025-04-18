@@ -26,12 +26,16 @@ import { StatusService } from '../../_services/status.service';
 import { PrioriteService } from '../../_services/priorite.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AttachProjectDialogComponent } from '../attach-project-dialog/attach-project-dialog.component';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-details-utilisateur',
   imports: [FormsModule, NgIf, NgFor, CommonModule, PipesModule, ReactiveFormsModule, DefaultPipe],
   templateUrl: './details-utilisateur.component.html',
-  styleUrls: ['./details-utilisateur.component.css']
+  styleUrls: ['./details-utilisateur.component.scss']
 })
 export class DetailsUtilisateurComponent implements OnInit {
   private user: User | null = null;  // stocke les données utilisateur récupérées
@@ -61,6 +65,9 @@ export class DetailsUtilisateurComponent implements OnInit {
   roles: Role[] = [];
   statuses: StatutDesTicket[] = [];
   priorities: Priorite[] = [];
+  selectedCountry: Pays | undefined;
+
+  isLoading: boolean = false;
 
   constructor(
     private paysService: PaysService,
@@ -75,8 +82,15 @@ export class DetailsUtilisateurComponent implements OnInit {
     private roleService: RoleService,
     private statusService: StatusService,
     private prioriteService: PrioriteService,
-    private dialog: MatDialog
-  ) { }
+    private dialog: MatDialog,
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService 
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   // Getter pour exposer l'utilisateur dans le template sous le nom "userDetails"
   get userDetails(): User | null {
@@ -86,32 +100,60 @@ export class DetailsUtilisateurComponent implements OnInit {
   private ticketSearchSubject = new Subject<string>();
 
   ngOnInit(): void {
+    // Initialisation des formulaires et chargement des listes
+    this.initForm();
+    this.initContratForm();
     this.loadPays();
     this.loadSocietes();
     this.loadRoles();
     this.loadStatuses();
     this.loadPriorities();
+  
+    this.userForm.get('role')?.valueChanges.subscribe(role => {
+      const societeControl = this.userForm.get('societeId');
+      if (role === 'Client') {
+        societeControl?.enable();
+      } else {
+        societeControl?.disable();
+      }
+    });
+    
+    // Souscription aux changements du champ 'pays' du formulaire utilisateur
+    this.userForm.get('pays')?.valueChanges.subscribe(value => {
+      this.selectedCountry = this.paysList.find(p => p.idPays === +value);
+    });
 
+    // Souscription à la recherche sur les tickets avec débounce
     this.ticketSearchSubject.pipe(
-      debounceTime(300),          // Attendre 300ms de pause
-      distinctUntilChanged()      // Émettre uniquement si la valeur change
+      debounceTime(300),
+      distinctUntilChanged()
     ).subscribe(searchTerm => {
       this.ticketSearchTerm = searchTerm;
       this.ticketPageNumber = 1;
       this.loadTickets();
     });
-    const userId = this.route.snapshot.paramMap.get('id');
-    if (userId) {
-      this.loadUserDetails(+userId);
-    }
-    this.initForm();
-    this.initContratForm();
+
+    // Écouter les changements dans les paramètres de la route
+    this.route.params.subscribe(params => {
+      const userId = params['id'];
+      if (userId) {
+        // Charger les détails de l'utilisateur à chaque changement d'ID
+        this.loadUserDetails(+userId);
+      }
+    });
+
+    // (Optionnel) Écouter également les queryParams
+    this.route.queryParams.subscribe(queryParams => {
+      // console.log("QueryParams mis à jour :", queryParams);
+      // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
+    });
   }
 
 
 
   openAttachProjectDialog(): void {
     const dialogRef = this.dialog.open(AttachProjectDialogComponent, {
+      data: {}
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -132,6 +174,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
+
 
   loadPays(): void {
     this.paysService.getPays().subscribe({
@@ -195,11 +238,16 @@ export class DetailsUtilisateurComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       pays: ['', Validators.required],
       role: ['', Validators.required],
-      societe: [''],
+      societeId: [''],
       // Ces champs sont optionnels, à renseigner uniquement si l’utilisateur souhaite changer son mot de passe
-      nouveauPassword: ['', [Validators.minLength(6), Validators.maxLength(8)]],
+      nouveauPassword: ['', [Validators.minLength(8), Validators.maxLength(16)]],
       confirmNouveauPassword: [''],
-      numTelephone: ['', [Validators.required, Validators.pattern(/^[+]\d{3}\s?\d{2}\s?\d{3}\s?\d{3}$/)]],
+      numTelephone: ['', [
+        Validators.required,
+        Validators.pattern(/^[0-9\s]+$/),
+        Validators.minLength(8),
+        Validators.maxLength(10)
+      ]],
       actif: [false]
     }, { validators: newPasswordMatchValidator });
   }
@@ -217,40 +265,49 @@ export class DetailsUtilisateurComponent implements OnInit {
 
 
   loadUserDetails(userId: number): void {
+    this.globalLoaderService.showGlobalLoader();
     this.accountService.getUser(userId).subscribe({
       next: (user) => {
         this.user = user;
-        // Remplir le formulaire de l'utilisateur
+        // Traitement du numéro de téléphone et mise à jour du formulaire
+        const codeTel = user.pays ? this.paysList.find(p => p.idPays === +user.pays)?.codeTel : '';
+        let numeroLocal = user.numTelephone || '';
+        if (codeTel && numeroLocal.startsWith(codeTel)) {
+          numeroLocal = numeroLocal.substring(codeTel.length).trim();
+        }
+        this.selectedCountry = this.paysList.find(p => p.idPays === +user.pays);
         this.userForm.patchValue({
           id: user.id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
           role: user.role,
-          pays: user.pays,              // Ajout du pays
-          societe: user.societeId,       // Ajout de la société (vérifiez le nom du champ)
-          numTelephone: user.numTelephone, // Ajout du numéro de téléphone
-          actif: user.actif              // Ajout de l'état actif
+          pays: user.pays,
+          societeId: user.societe ? user.societe.id : null,
+          numTelephone: numeroLocal,
+          actif: user.actif
         });
-        // Si un contrat existe, remplir également le formulaire du contrat
         if (user.contrat) {
           this.contratForm.patchValue({
-            id: user.contrat.id, // Assurez-vous de patcher l'identifiant du contrat
-            dateDebut: user.contrat.dateDebut
-              ? new Date(user.contrat.dateDebut + 'Z').toISOString().substring(0, 10)
-              : '',
-            dateFin: user.contrat.dateFin
-              ? new Date(user.contrat.dateFin + 'Z').toISOString().substring(0, 10)
-              : '',
+            id: user.contrat.id,
+            dateDebut: user.contrat.dateDebut ? new Date(user.contrat.dateDebut + 'Z').toISOString().substring(0, 10) : '',
+            dateFin: user.contrat.dateFin ? new Date(user.contrat.dateFin + 'Z').toISOString().substring(0, 10) : '',
           });
         }
+        // Chargement des projets et tickets associés
         this.loadProjects();
         this.loadTickets();
       },
-      error: (error) =>
-        console.error("Erreur lors du chargement de l'utilisateur", error)
+      error: (error) => {
+        console.error('Erreur lors du chargement de l’utilisateur', error);
+      },
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
+      }
     });
   }
+  
+
 
 
   // Mise à jour de l'utilisateur
@@ -265,24 +322,29 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
+  
+    const updatedUser: User = this.userForm.value;  
 
-    const updatedUser: User = this.userForm.value;
+    updatedUser.firstName= this.accountService.removeSpecial(this.userForm.value.firstName)
+    updatedUser.lastName= this.accountService.removeSpecial(this.userForm.value.lastName)
+
+    // Afficher le loader
+    this.loaderService.showLoader();  
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         // Mise à jour locale de la variable utilisateur
         this.user = { ...this.user, ...updatedUser };
         this.toastr.success("Mise à jour effectuée avec succès.");
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour", error);
         this.toastr.error("Erreur lors de la mise à jour de l'utilisateur.");
+        this.loaderService.hideLoader();
       }
     });
-  }
-
-
-  onCancel(): void {
-    // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
+  }  
+  onCancel(): void {    
     if (this.user) {
       this.userForm.patchValue({
         lastName: this.user.lastName,
@@ -295,6 +357,8 @@ export class DetailsUtilisateurComponent implements OnInit {
         actif: this.user.actif
         // Les champs de mot de passe restent vides
       });
+      // console.log('2', this.userForm);
+      
     }
   }
 
@@ -317,43 +381,43 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.toastr.error("Aucun contrat trouvé pour cet utilisateur.");
       return;
     }
-
+  
     // Vérifier si au moins un champ du contrat a été modifié
     if (!this.contratForm.dirty) {
       this.toastr.warning("Veuillez modifier au moins un champ du contrat.");
       return;
     }
-
+  
     // Vérifier que le formulaire est valide
     if (this.contratForm.invalid) {
       this.toastr.error("Veuillez corriger les erreurs du formulaire de contrat.");
       return;
     }
-
-    // Fusionner l'objet contrat original avec les valeurs du formulaire pour conserver les valeurs non modifiées
+    
     const originalContrat = this.user.contrat;
     const contratToUpdate = {
-      ...originalContrat,      // Conserve toutes les valeurs actuelles (ClientId, SocietePartenaireId, etc.)
-      ...this.contratForm.value // Écrase uniquement les valeurs modifiées (dateDebut, dateFin, type, etc.)
+      ...originalContrat,
+      ...this.contratForm.value
     };
-
-    // Appel au service en utilisant l'ID du contrat (et non l'ID de l'utilisateur)
+  
+    // Affiche le loader
+    this.loaderService.showLoader();
+  
     this.contratService.updateContract(contratToUpdate.id, contratToUpdate).subscribe({
       next: () => {
         this.toastr.success("Contrat mis à jour avec succès.");
-        // Mettre à jour l'objet contrat de l'utilisateur localement
         if (this.user) {
           this.user.contrat = contratToUpdate;
         }
-
-        console.log("Contrat mis à jour :", contratToUpdate);
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour du contrat", error);
         this.toastr.error("Erreur lors de la mise à jour du contrat.");
+        this.loaderService.hideLoader();
       }
     });
-  }
+  }  
 
 
 
@@ -430,8 +494,13 @@ export class DetailsUtilisateurComponent implements OnInit {
 
     const firstName = this.user.firstName;
     const lastName = this.user.lastName;
-    if (confirm(`Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`)) {
-      this.projetService.supprimerUtilisateurDuProjet(projetId, this.user.id).subscribe({
+    const confirmationMessage = `Êtes-vous sûr de vouloir supprimer "${firstName} ${lastName}" de ce projet ?`;
+
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = confirmationMessage;
+
+    modalInstance.confirmed.subscribe(() => {
+      this.projetService.supprimerUtilisateurDuProjet(projetId, this.user!.id).subscribe({
         next: () => {
           this.toastr.success(`${firstName} ${lastName} a été retiré du projet.`);
           this.loadProjects(); // Recharge la liste des projets
@@ -441,8 +510,14 @@ export class DetailsUtilisateurComponent implements OnInit {
           this.toastr.error('Une erreur est survenue lors de la suppression.');
         }
       });
-    }
+      this.overlayModalService.close();
+    });
+
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
   }
+
 
 
 }

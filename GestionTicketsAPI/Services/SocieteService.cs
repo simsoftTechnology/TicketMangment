@@ -20,10 +20,10 @@ namespace GestionTicketsAPI.Services
       _mapper = mapper;
     }
 
-    public async Task<IEnumerable<SocieteDto>> GetAllSocietesAsync(string? searchTerm = null)
+    public async Task<IEnumerable<SocieteDto>> GetAllSocietesAsync(string? searchTerm = null, string? pays = null)
     {
-      var societes = await _societeRepository.GetAllSocietesAsync(searchTerm);
-      return _mapper.Map<IEnumerable<SocieteDto>>(societes);
+        var societes = await _societeRepository.GetAllSocietesAsync(searchTerm, pays);
+        return _mapper.Map<IEnumerable<SocieteDto>>(societes);
     }
 
     public async Task<PagedList<SocieteDto>> GetSocietesPagedAsync(UserParams userParams)
@@ -38,6 +38,7 @@ namespace GestionTicketsAPI.Services
       );
       return pagedSocieteDtos;
     }
+
 
     public async Task<SocieteDto?> GetSocieteByIdAsync(int id)
     {
@@ -107,6 +108,7 @@ namespace GestionTicketsAPI.Services
     {
       return await _societeRepository.DeleteSocieteWithAssociationsAsync(id);
     }
+
 
     public async Task<bool> DeleteSocietesAsync(List<int> ids)
     {

@@ -9,7 +9,7 @@
     <thead>
       <!-- Ligne de filtres -->
       <tr class="filter-row">
-        <td class="filter-cell" colspan="5">
+        <td class="filter-cell" colspan="6">
           <div class="filter-container">
             <div class="search-wrapper">
               <input type="text" class="search-input" placeholder="Rechercher un projet..."
@@ -17,15 +17,23 @@
               <span class="material-icons search-icon">search</span>
             </div>
             <div class="filter-actions">
-              <button class="filter-btn">
+              <button class="export-btn" (click)="exportProjets()" [disabled]="isLoading">
+                <ng-container *ngIf="!isLoading; else loadingExportTpl">
+                  <span class="material-icons">download</span> Export Excel
+                </ng-container>
+                <ng-template #loadingExportTpl>
+                  <span class="spinner"></span> Export en cours...
+                </ng-template>
+              </button>                           
+              <button mat-icon-button [matMenuTriggerFor]="filterMenu">
                 <span class="material-icons">filter_list</span>
               </button>
-              <button class="view-btn">
-                <span class="material-icons">grid_view</span>
-              </button>
-              <button class="view-btn active">
-                <span class="material-icons">view_list</span>
-              </button>
+              <!-- Menu contenant le composant de filtre -->
+              <mat-menu #filterMenu="matMenu" class="projet-filter-menu" disableClose>
+                <div>
+                  <app-projet-filter (applyFilter)="onApplyFilter($event)"></app-projet-filter>
+                </div>
+              </mat-menu>
             </div>
           </div>
         </td>
@@ -38,9 +46,10 @@
             <label for="selectAll" class="checkbox-label"></label>
           </div>
         </th>
-        <th>Nom du projet</th>
-        <th>Nom du pays</th>
-        <th>Nom de la société</th>
+        <th>Projet</th>
+        <th>Chef de projet</th>
+        <th>Société</th>
+        <th>Pays</th>
         <th class="actions">
           <button class="delete-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteSelectedProjects()">
             <span class="material-icons">delete</span>
@@ -59,17 +68,23 @@
           </div>
         </td>
         <td>{{ projet.nom }}</td>
-        <td>{{ projet.nomPays || 'Non défini' }}</td>
+        <td>{{ projet.chefProjet ? (projet.chefProjet.firstName + ' ' + projet.chefProjet.lastName) : 'Aucun' }}</td>
         <td>{{ projet.nomSociete || 'Non défini' }}</td>
+        <td>{{ projet.nomPays || 'Non défini' }}</td>
         <td class="actions">
           <!-- Bouton Voir -->
           <button class="view-btn" [routerLink]="['/home', 'Projets', 'details', projet.id]">
             <span class="material-icons">visibility</span>
           </button>
           <!-- Bouton Supprimer -->
-          <button class="delete-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteProjet(projet.id)">
-            <span class="material-icons">delete</span>
-          </button>
+          <button class="delete-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteProjet(projet.id)" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+              <span class="material-icons">delete</span>
+            </ng-container>
+            <ng-template #loadingDeleteTpl>
+              <span class="spinner"></span>
+            </ng-template>
+          </button>                 
         </td>
       </tr>
 

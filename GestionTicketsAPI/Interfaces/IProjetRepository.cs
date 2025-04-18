@@ -8,7 +8,8 @@ public interface IProjetRepository
     {
         // Projets
         Task<IEnumerable<Projet>> GetProjetsAsync();
-        Task<PagedList<Projet>> GetProjetsPagedAsync(UserParams projetParams);
+        Task<PagedList<Projet>> GetProjetsPagedAsync(ProjectFilterParams filterParams);
+        Task<IEnumerable<Projet>> GetProjetsFilteredAsync(ProjectFilterParams filterParams);
         Task<Projet?> GetProjetByIdAsync(int id);
         Task AddProjetAsync(Projet projet);
         void UpdateProjet(Projet projet);
@@ -21,5 +22,8 @@ public interface IProjetRepository
         Task<ProjetUser?> GetProjetUserAsync(int projetId, int userId);
         void RemoveProjetUser(ProjetUser projetUser);
         Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId);
+        Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId);
         Task<bool> ProjetExists(string nom);
+        Task<bool> ProjetHasTicketsAsync(int projetId);
+        Task<IEnumerable<Projet>> GetProjetsBySocieteIdAsync(int societeId);
     }

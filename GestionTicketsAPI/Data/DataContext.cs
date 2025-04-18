@@ -26,7 +26,6 @@ namespace GestionTicketsAPI.Data
     public DbSet<Qualification> Qualifications { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<StatutDesTicket> StatutsDesTickets { get; set; }
-    public DbSet<Validation> Validation { get; set; }
 
     public DbSet<SocieteUser> SocieteUsers { get; set; }
 
@@ -145,12 +144,6 @@ namespace GestionTicketsAPI.Data
           .HasForeignKey(t => t.ProblemCategoryId)
           .OnDelete(DeleteBehavior.Restrict);
 
-      // Relation Ticket -> Validation (optionnelle)
-      modelBuilder.Entity<Ticket>()
-          .HasOne(t => t.Validation)
-          .WithMany() // Pas de collection dans Validation
-          .HasForeignKey(t => t.ValidationId)
-          .OnDelete(DeleteBehavior.SetNull);
 
       // Relation Ticket -> StatutDesTicket
       modelBuilder.Entity<Ticket>()
@@ -164,7 +157,8 @@ namespace GestionTicketsAPI.Data
           .HasOne(t => t.Owner)
           .WithMany() // Pas de collection spécifique dans User pour les tickets créés
           .HasForeignKey(t => t.OwnerId)
-          .OnDelete(DeleteBehavior.Restrict);
+          .OnDelete(DeleteBehavior.Cascade);
+
 
       // Relation Ticket -> Responsible (utilisateur assigné)
       modelBuilder.Entity<Ticket>()
