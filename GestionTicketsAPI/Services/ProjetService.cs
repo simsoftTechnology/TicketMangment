@@ -26,9 +26,9 @@ public class ProjetService : IProjetService
     return _mapper.Map<IEnumerable<ProjetDto>>(projets);
   }
 
-  public async Task<PagedList<ProjetDto>> GetProjetsPagedAsync(UserParams projetParams)
+  public async Task<PagedList<ProjetDto>> GetProjetsPagedAsync(ProjectFilterParams filterParams)
   {
-    var projetsPaged = await _projetRepository.GetProjetsPagedAsync(projetParams);
+    var projetsPaged = await _projetRepository.GetProjetsPagedAsync(filterParams);
     var projetsDto = _mapper.Map<IEnumerable<ProjetDto>>(projetsPaged);
 
     var pagedProjetDtos = new PagedList<ProjetDto>(
@@ -39,6 +39,12 @@ public class ProjetService : IProjetService
     );
 
     return pagedProjetDtos;
+  }
+
+  public async Task<IEnumerable<ProjetDto>> GetProjetsFilteredAsync(ProjectFilterParams filterParams)
+  {
+    var projets = await _projetRepository.GetProjetsFilteredAsync(filterParams);
+    return _mapper.Map<IEnumerable<ProjetDto>>(projets);
   }
 
   public async Task<ProjetDto?> GetProjetByIdAsync(int id)
@@ -76,7 +82,7 @@ public class ProjetService : IProjetService
 
 
 
-  public async Task<bool> UpdateProjetAsync(int id, ProjetDto projetDto)
+  public async Task<bool> UpdateProjetAsync(int id, ProjetUpdateDto projetDto)
   {
     if (id != projetDto.Id)
       return false;

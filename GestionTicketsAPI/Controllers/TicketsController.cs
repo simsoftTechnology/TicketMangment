@@ -9,22 +9,23 @@ using GestionTicketsAPI.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using ClosedXML.Excel;
 
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  public class TicketsController : ControllerBase
+  public class TicketsController : BaseApiController
   {
     private readonly ITicketService _ticketService;
     private readonly IMapper _mapper;
     private readonly IPhotoService _photoService;
     private readonly EmailService _emailService;
-
     private readonly IUserService _userService;
     private readonly ICommentService _commentService;
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IWebHostEnvironment _env;
 
-    public TicketsController(ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService)
+    public TicketsController(IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService)
     {
       _ticketService = ticketService;
       _mapper = mapper;
@@ -32,21 +33,24 @@ namespace GestionTicketsAPI.Controllers
       _userService = userService;
       _emailService = emailService;
       _commentService = commentService;
+      _excelExportService = excelExportService;
+      _env = env;
     }
 
-  [HttpPost("paged")]
-        public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromBody] UserParams ticketParams)
+    // GET api/tickets?...
+    [HttpPost("paged")]
+    public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromBody] TicketFilterParams filterParams)
     {
-      // Extraction des informations de l'utilisateur connecté via les claims
       var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
       var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
       if (userIdClaim != null && roleClaim != null)
       {
-        ticketParams.UserId = int.Parse(userIdClaim.Value);
-        ticketParams.Role = roleClaim.Value;
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        filterParams.Role = roleClaim.Value;
       }
 
-      var pagedTickets = await _ticketService.GetTicketsPagedAsync(ticketParams);
+      var pagedTickets = await _ticketService.GetTicketsPagedAsync(filterParams);
+
       var pagination = new
       {
         currentPage = pagedTickets.CurrentPage,
@@ -69,86 +73,161 @@ namespace GestionTicketsAPI.Controllers
 
     // POST api/tickets
     [HttpPost]
-    public async Task<ActionResult<TicketDto>> CreateTicket([FromForm] TicketCreateDto ticketCreateDto)
+    public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
     {
-      // Vérification de l'unicité du titre du ticket
       if (await _ticketService.TicketExists(ticketCreateDto.Title))
         return BadRequest("Un ticket avec ce titre existe déjà");
 
-      UploadResult uploadResult = null;
-      if (ticketCreateDto.Attachment != null)
+      // Variable pour stocker l'URL de l'attachement enregistré localement
+      string attachmentUrl = null;
+
+      if (!string.IsNullOrEmpty(ticketCreateDto.AttachmentBase64) && !string.IsNullOrEmpty(ticketCreateDto.AttachmentFileName))
       {
-        uploadResult = await _photoService.UploadFileAsync(ticketCreateDto.Attachment);
-        if (uploadResult?.Error != null)
-          return BadRequest(uploadResult.Error.Message);
+        byte[] fileBytes = Convert.FromBase64String(ticketCreateDto.AttachmentBase64);
+        string assetsPath = Path.Combine(_env.WebRootPath, "assets");
+        if (!Directory.Exists(assetsPath))
+        {
+          Directory.CreateDirectory(assetsPath);
+        }
+        string fileName = $"{Guid.NewGuid()}_{ticketCreateDto.AttachmentFileName}";
+        string filePath = Path.Combine(assetsPath, fileName);
+        await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
+
+        // Utilisation d'une URL absolue
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        attachmentUrl = $"{baseUrl}/assets/{fileName}";
       }
 
-      // Mapper le DTO vers l'entité Ticket et définir la date de création
+
       var ticket = _mapper.Map<Ticket>(ticketCreateDto);
       ticket.CreatedAt = DateTime.UtcNow;
       ticket.UpdatedAt = null;
 
-      // Récupération du statut par défaut depuis la table des statuts
       var defaultStatus = await _ticketService.GetStatusByNameAsync("—");
       if (defaultStatus == null)
         return BadRequest("Statut par défaut introuvable");
       ticket.StatutId = defaultStatus.Id;
 
-      if (uploadResult?.SecureUrl != null)
+      if (!string.IsNullOrEmpty(attachmentUrl))
       {
-        ticket.Attachments = uploadResult.SecureUrl.AbsoluteUri;
+        ticket.Attachments = attachmentUrl;
       }
 
-      // Ajout du ticket dans le repository
       await _ticketService.AddTicketAsync(ticket);
       await _ticketService.SaveAllAsync();
 
-      // Recharger le ticket avec ses relations (incluant Projet et ChefProjet)
       var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
       if (ticketFromDb == null)
       {
         return NotFound();
       }
 
-      // Envoi d'e-mails en tâche de fond via Hangfire
-
-      // Envoi d'email au chef de projet s'il existe
       var chefProjet = ticketFromDb.Projet?.ChefProjet;
       if (chefProjet != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{chefProjet.FirstName} {chefProjet.LastName}",
-            chefProjet.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {chefProjet.FirstName} {chefProjet.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}) pour le projet '{ticketFromDb.Projet.Nom}'."
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                    $"{chefProjet.FirstName} {chefProjet.LastName}",
+                    chefProjet.Email,
+                    "Nouveau ticket créé",
+                      $@"
+                        < html >
+                        < body style = 'font-family: Arial, sans-serif; color: #333; font-size: 14px;' >
+                        < h3 style = 'color: #2c3e50;' > Nouveau ticket de support </ h3 >
+
+
+                        < p > Bonjour {chefProjet.FirstName} {chefProjet.LastName},</ p >
+
+                        < p >                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.                </ p >
+
+                        < p >                    Une nouvelle Ticket a été créée par M./ Mme { ticket.Owner.FirstName}                { ticket.Owner.LastName}.      </ p >
+
+                        < p >    Vous pouvez consulter ce ticket à tout moment ici :   < a href = 'https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style = 'color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;' > Ticket N° { ticket.Id}     </ a >    </ p >
+
+                        < ul >
+                            < li >< strong > Sujet :</ strong > { ticket.Title}</ li >
+                            < li >< strong > Projet :</ strong > { ticketFromDb.Projet.Nom}</ li >
+                            < li >< strong > Statut :</ strong > Ouvert </ li >
+                        </ ul >
+
+                        < p style = 'margin-top: 20px;' >   Nous restons à votre disposition pour toute information complémentaire.  </ p >
+
+                        < p > Cordialement, </ p >
+
+                        < p >< strong > Support Technique </ strong > </ p >
+
+                        < p > SIMSOFT TECHNOLOGIES </ p >
+
+
+                        </ body >
+                        </ html > "
         ));
       }
+           
 
-      // Envoi d'email de confirmation au client (celui qui a créé le ticket)
+
+
       var client = ticketFromDb.Owner;
       if (client != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{client.FirstName} {client.LastName}",
-            client.Email,
-            "Confirmation de création de ticket",
-            $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-            $"Votre ticket intitulé '{ticket.Title}' (n° {ticket.Id}) a été créé avec succès. Nous vous remercions pour votre confiance."
-        ));
-      }
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+             $"{client.FirstName} {client.LastName}",
+             client.Email,
+             "Nouveau ticket créé",
+             $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
 
-      // Envoi d'email aux utilisateurs ayant le rôle 'super admin'
+
+                <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                <p>
+                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.
+                </p>
+
+                <p>
+                    Une nouvelle Ticket a été créée par M./Mme {ticket.Owner.FirstName} {ticket.Owner.LastName}.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici : <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticketFromDb.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Ouvert</li>
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+    
+                </body>
+                </html>
+             "
+         ));
+            }
+
       var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
       foreach (var admin in superAdmins)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}). Veuillez vérifier les détails dans l'application."
-        ));
+        //BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+        //    $"{admin.FirstName} {admin.LastName}",
+        //    admin.Email,
+        //    "Nouveau ticket créé",
+        //    $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
+        //    $"Le client {ticket.Owner.FirstName} {ticket.Owner.LastName} a créé un nouveau ticket <br><br>" +
+        //    $"intitulé : {ticket.Title} <br><br>" +
+        //    $"N° :{ticket.Id}). <br><br>" +
+        //    $" Veuillez vérifier les détails dans l'application.< br >< br >" +
+        //    $"Cordialement.< br >< br >" +
+        //     $"SIMSOFT TECHNOLOGIES"
+        //));
       }
 
       var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
@@ -156,16 +235,13 @@ namespace GestionTicketsAPI.Controllers
     }
 
 
-
     [HttpPost("validate/{id}")]
     public async Task<IActionResult> ValidateTicket(int id, [FromBody] TicketValidationDto ticketValidationDto)
     {
-      // Récupération du ticket à valider
       var ticket = await _ticketService.GetTicketEntityByIdAsync(id);
       if (ticket == null)
         return NotFound("Ticket non trouvé");
 
-      // Vérification de l'authentification
       var currentUserIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
       var currentUserRoleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
       if (currentUserIdClaim == null || currentUserRoleClaim == null)
@@ -184,7 +260,6 @@ namespace GestionTicketsAPI.Controllers
 
       if (ticketValidationDto.IsAccepted)
       {
-        // Si accepté, rechercher le statut "Accepté"
         var acceptedStatus = await _ticketService.GetStatusByNameAsync("Accepté");
         if (acceptedStatus == null)
           return BadRequest("Statut 'Accepté' introuvable");
@@ -192,7 +267,6 @@ namespace GestionTicketsAPI.Controllers
         ticket.StatutId = acceptedStatus.Id;
         ticket.ApprovedAt = DateTime.UtcNow;
 
-        // Envoi d'email d'acceptation au client en tâche de fond
         var client = ticket.Owner;
         if (client != null)
         {
@@ -200,12 +274,40 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket accepté",
-              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-              $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été accepté."
+               $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3>Support Technique </h3>  
+
+                <p>Bonjour {client.FirstName} {client.LastName},</p> 
+
+                <p>                    Ceci est une notification de validation de ticket de support .                </p>
+
+                <p>                    Votre ticket a été accepté avec succée.                </p>
+
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> En cours</li>
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+                </body>
+                </html>
+                "
+             
           ));
         }
 
-        // Si un responsable est assigné, on met à jour le statut et on envoie un email au responsable
         if (ticketValidationDto.ResponsibleId.HasValue)
         {
           ticket.ResponsibleId = ticketValidationDto.ResponsibleId.Value;
@@ -221,15 +323,42 @@ namespace GestionTicketsAPI.Controllers
                 $"{responsible.FirstName} {responsible.LastName}",
                 responsible.Email,
                 "Nouveau ticket assigné",
-                $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-                $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+                 $@"
+                   <html>
+                     <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                    <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+                    <p>Bonjour  {responsible.FirstName} {responsible.LastName},</p>
+
+                     <p>               Ceci est une notification d'assignement de ticket de support .            </p>
+
+                    <p>                  Vous avez été désigné comme responsable du Ticket.               </p>
+
+                     <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                    <ul>
+                     <li><strong>Sujet :</strong> {ticket.Title}</li>
+                     <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                     <li><strong>Statut :</strong> En cours</li>
+                    </ul>
+
+                    <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                    <p> Cordialement, </p>
+
+                    <p><strong>  Support Technique</strong> </p>
+
+                    <p> SIMSOFT TECHNOLOGIES </p>
+
+                    </body>
+                    </html>
+                    " 
             ));
           }
         }
       }
       else
       {
-        // Si refusé, rechercher le statut "Refusé" et envoyer un email de refus au client
         var refusedStatus = await _ticketService.GetStatusByNameAsync("Refusé");
         if (refusedStatus == null)
           return BadRequest("Statut 'Refusé' introuvable");
@@ -243,8 +372,45 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket refusé",
-              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-              $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été refusé. Raison : {ticket.ValidationReason}"
+               $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3>Support Technique </h3>  
+
+                <p>Bonjour {client.FirstName} {client.LastName},</p>
+
+                <p>
+                    Ceci est une notification de validation de ticket de support .
+                </p>
+
+                <p>
+                    Votre ticket a été  refusé.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Refusé </li>
+                    <li><strong>Raison :</strong>  {ticket.ValidationReason} </li>
+                </ul>
+
+                <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+                </body>
+                </html>
+                "
+
+
+
           ));
         }
       }
@@ -257,11 +423,9 @@ namespace GestionTicketsAPI.Controllers
       return BadRequest("La validation du ticket a échoué");
     }
 
-
-
     // Endpoint pour l'upload du fichier en arrière-plan
     [HttpPost("upload")]
-    public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadFile([FromBody] IFormFile file)
     {
       var uploadResult = await _photoService.UploadFileAsync(file);
       if (uploadResult == null || uploadResult.Error != null)
@@ -295,17 +459,13 @@ namespace GestionTicketsAPI.Controllers
       return BadRequest("La suppression des tickets a échoué.");
     }
 
-
-
     [HttpPost("finish/{id}")]
     public async Task<IActionResult> FinishTicket(int id, [FromBody] TicketCompletionDto completionDto)
     {
-      // Récupération du ticket
       var ticket = await _ticketService.GetTicketEntityByIdAsync(id);
       if (ticket == null)
         return NotFound("Ticket non trouvé");
 
-      // Vérification de l'authentification et de l'autorisation
       var currentUserIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
       var currentUserRoleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
       if (currentUserIdClaim == null || currentUserRoleClaim == null)
@@ -325,7 +485,6 @@ namespace GestionTicketsAPI.Controllers
       if (!isAuthorized)
         return Unauthorized("Vous n'êtes pas autorisé à terminer ce ticket.");
 
-      // Détermination du nouveau statut
       var newStatusName = completionDto.IsResolved ? "Résolu" : "Non Résolu";
       var newStatus = await _ticketService.GetStatusByNameAsync(newStatusName);
       if (newStatus == null)
@@ -340,63 +499,115 @@ namespace GestionTicketsAPI.Controllers
       if (!updateResult)
         return BadRequest("La clôture du ticket a échoué");
 
-      // Construction du texte du commentaire s'il existe
       string commentText = !string.IsNullOrWhiteSpace(completionDto.Comment)
                              ? $" Commentaire : {completionDto.Comment}"
                              : "";
 
-      // Envoi d'emails aux différents destinataires en tâche de fond
-
-      // Email au client (Owner)
       if (ticket.Owner != null)
       {
         BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
             $"{ticket.Owner.FirstName} {ticket.Owner.LastName}",
             ticket.Owner.Email,
             "Ticket terminé",
-            $"Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},<br><br>" +
-            $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
+             $@"
+        <html>
+   <body style='font-family: Arial, sans-serif; color: #051678; font-size: 14px;'>
+              <h3>Support Technique </h3>
+                <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                <p>              Ceci est une notification  de ticket de support .               </p>
+
+                <p>                    Votre ticket a été  {ticket.Statut.Name}.{commentText}.                </p>
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                   <li><strong>Statut :</strong> Terminer </li>
+                    <li><strong>Date de début :</strong> {ticket.CreatedAt:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Date de fin :</strong> {completionDto.CompletionDate:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Nombre d'heures :</strong> {completionDto.HoursSpent} </li>
+                </ul>
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+                <p><strong>  Support Technique</strong> </p>
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+</body>
+</html>
+"
+          
         ));
       }
 
-      // Email au chef de projet
       if (ticket.Projet?.ChefProjet != null)
       {
         BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
             $"{ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName}",
             ticket.Projet.ChefProjet.Email,
             "Ticket terminé",
-            $"Bonjour {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) du projet '{ticket.Projet.Nom}' est {ticket.Statut.Name}.{commentText}"
+
+             $@"
+        <html>
+   <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+              
+ <h3>Bonjour  {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},</h3>
+
+                <p>              Ceci est une notification  de ticket de support .               </p>
+
+                <p>                    la ticket de Mr/Mme  {ticket.Owner.FirstName} {ticket.Owner.LastName}  a été  {ticket.Statut.Name}.{commentText}.                </p>
+
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Terminer </li>
+                    <li><strong>Date de début :</strong> {ticket.CreatedAt:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Date de fin :</strong> {completionDto.CompletionDate:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Nombre d'heures :</strong> {completionDto.HoursSpent} </li>
+
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+                <p><strong>  Support Technique</strong> </p>
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+</body>
+</html>
+"
+    
         ));
       }
 
-      // Email au responsable assigné
       if (ticket.Responsible != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
-            ticket.Responsible.Email,
-            "Ticket terminé",
-            $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) qui vous a été assigné est {ticket.Statut.Name}.{commentText}"
-        ));
+      //  BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+      //      $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
+      //      ticket.Responsible.Email,
+      //      "Ticket terminé",
+      //      $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br>" +
+      //      $"Le ticket {ticket.Title} N°{ticket.Id}  qui vous a été assigné est {ticket.Statut.Name}.{commentText}" +
+      //        $"Cordialement. <br>" +
+      //       $"SIMSOFT TECHNOLOGIES"
+      //  ));
       }
 
-      // Email à tous les super admins
       var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
       foreach (var admin in superAdmins)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Ticket terminé",
-            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
-        ));
+        //BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+        //    $"{admin.FirstName} {admin.LastName}",
+        //    admin.Email,
+        //    "Ticket terminé",
+        //    $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
+        //    $"Le ticket :  {ticket.Title} N°{ticket.Id} est {ticket.Statut.Name}.{commentText}" +
+        //    $"Cordialement. <br>" +
+        //    $"SIMSOFT TECHNOLOGIES"
+        //));
       }
 
-      // Création automatique d'un commentaire
       string resolutionStatus = completionDto.IsResolved ? "résolu" : "non résolu";
       string commentContent = $"Votre ticket est {resolutionStatus}.<br>" +
                               $"Date de début : {ticket.CreatedAt:dd/MM/yyyy HH:mm}<br>" +
@@ -418,9 +629,6 @@ namespace GestionTicketsAPI.Controllers
       return NoContent();
     }
 
-
-
-
     [HttpPost("updateResponsible/{id}")]
     public async Task<IActionResult> UpdateResponsible(int id, [FromBody] TicketResponsibleDto responsibleDto)
     {
@@ -428,7 +636,6 @@ namespace GestionTicketsAPI.Controllers
       if (ticket == null)
         return NotFound("Erreur : Ticket non trouvé.");
 
-      // Vérification de l'authentification et autorisation
       var currentUserIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
       var currentUserRoleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
       if (currentUserIdClaim == null || currentUserRoleClaim == null)
@@ -447,7 +654,6 @@ namespace GestionTicketsAPI.Controllers
       if (!isAuthorized)
         return Unauthorized("Erreur : Vous n'êtes pas autorisé à modifier le responsable.");
 
-      // Vérifier si le responsable a réellement changé
       if (ticket.ResponsibleId.HasValue && ticket.ResponsibleId.Value == responsibleDto.ResponsibleId)
       {
         return BadRequest("Erreur : Le responsable n'a pas été modifié.");
@@ -458,7 +664,6 @@ namespace GestionTicketsAPI.Controllers
       if (!updateResult)
         return BadRequest("Erreur : La mise à jour du responsable a échoué.");
 
-      // Envoi d'email au nouveau responsable en tâche de fond
       var responsible = await _userService.GetUserByIdAsync(ticket.ResponsibleId.Value);
       if (responsible != null)
       {
@@ -467,13 +672,14 @@ namespace GestionTicketsAPI.Controllers
           responsible.Email,
           "Ticket mis à jour - Nouveau responsable assigné",
           $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-          $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+          $"Vous avez été désigné comme responsable du Ticket intitulé {ticket.Title} N°{ticket.Id}." +
+            $"Cordialement. <br>" +
+             $"SIMSOFT TECHNOLOGIES"
         ));
       }
 
       return NoContent();
     }
-
 
     [HttpGet("status-count")]
     public IActionResult GetTicketCountByStatus()
@@ -492,7 +698,25 @@ namespace GestionTicketsAPI.Controllers
       return Ok(result);
     }
 
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportTickets([FromBody] TicketFilterParams filterParams)
+    {
+      var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+      var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+      if (userIdClaim != null && roleClaim != null)
+      {
+        filterParams.UserId = int.Parse(userIdClaim.Value);
+        filterParams.Role = roleClaim.Value;
+      }
 
+      var tickets = await _ticketService.GetTicketsFilteredAsync(filterParams);
+      var ticketExportDtos = _mapper.Map<IEnumerable<TicketExportDto>>(tickets);
+      var content = _excelExportService.ExportToExcel(ticketExportDtos, "Tickets");
+
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"TicketsExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+    }
 
   }
 }

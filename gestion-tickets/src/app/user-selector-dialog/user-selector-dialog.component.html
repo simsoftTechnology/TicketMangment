@@ -20,10 +20,15 @@
 
     <!-- Bouton de confirmation (optionnel, ici nous utilisons le clic sur l'option pour fermer le dropdown) -->
     <div class="confirm-container" *ngIf="selectedUser">
-      <button class="confirm-button" (click)="confirmSelection()">
-        Confirmer
+      <button class="confirm-button" (click)="confirmSelection()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">
+          Confirmer
+        </ng-container>
+        <ng-template #loadingTpl>
+          <span class="spinner"></span> Confirmer
+        </ng-template>
       </button>
-    </div>
+    </div>    
   </div>
 </div>
 

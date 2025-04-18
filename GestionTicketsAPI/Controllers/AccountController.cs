@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
 public class AccountController : BaseApiController
 {
   private readonly IAccountService _accountService;
@@ -34,16 +33,35 @@ public class AccountController : BaseApiController
       // Appel au service d'inscription
       var userDto = await _accountService.RegisterAsync(registerDto);
 
-      // Préparation du corps de l'e-mail en HTML
-      var body = $"Bonjour {userDto.FirstName} {userDto.LastName},<br><br>" +
-                 "Votre compte a été créé avec succès.<br><br>" +
-                 $"Email : {userDto.Email}<br>" +
-                 $"Mot de passe : {registerDto.Password}<br>" +
-                 $"Rôle : {userDto.Role}<br><br>" +
-                 $"Connectez-vous en cliquant sur le lien suivant<br><br>" +
-                 $"Lien : https://simsoft.tn:8040  <br><br>" +
+      // Préparation du corps de l'e-mail en HTML, avec un formatage plus professionnel
+      var body = $@"
+                    <html>
+                      <body style='font-family: Arial, sans-serif; color: #333;'>
+                        <p>Bonjour {userDto.FirstName} {userDto.LastName},</p>
+    
+                        <p>Nous sommes ravis de vous accueillir au sein de notre plateforme. Votre compte a été créé avec succès et vous pouvez dès à présent accéder à votre espace personnel.</p>
+    
+                            <p>Pour accéder à l'application, cliquez sur le lien ci-dessous :</p>
+                        <p>
+                          <strong> <a href='https://simsoft-gt.tn' style='color: #de0b0b; text-decoration: none; font-size:14px' target='_blank' >
+                            Accéder à l'application
+                          </a></strong>
 
-                 "Merci de votre confiance.";
+                        </p>
+                        <p><strong>Vos identifiants de connexion :</strong></p>
+                        <ul>
+                          <li><strong>Email :</strong> {userDto.Email}</li>
+                          <li><strong>Mot de passe :</strong> {registerDto.Password}</li>
+                          <li><strong>Rôle :</strong> {userDto.Role}</li>
+                        </ul>
+    
+                     
+    
+                        <p>Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.</p>
+    
+                        <p>Cordialement,<br>L'équipe Simsoft</p>
+                      </body>
+                    </html>";
 
       // Envoi de l'e-mail en tâche de fond via Hangfire.
       BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(

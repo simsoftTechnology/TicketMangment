@@ -8,7 +8,8 @@ public interface IProjetRepository
     {
         // Projets
         Task<IEnumerable<Projet>> GetProjetsAsync();
-        Task<PagedList<Projet>> GetProjetsPagedAsync(UserParams projetParams);
+        Task<PagedList<Projet>> GetProjetsPagedAsync(ProjectFilterParams filterParams);
+        Task<IEnumerable<Projet>> GetProjetsFilteredAsync(ProjectFilterParams filterParams);
         Task<Projet?> GetProjetByIdAsync(int id);
         Task AddProjetAsync(Projet projet);
         void UpdateProjet(Projet projet);

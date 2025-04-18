@@ -18,21 +18,98 @@ namespace GestionTicketsAPI.Repositories
     public async Task<PagedList<User>> GetUsersAsync(UserParams userParams)
     {
       var query = _context.Users
-                    .Include(u => u.Contrats)
-                    .Include(u => u.Role)
-                    .Include(u => u.SocieteUsers) 
-                      .ThenInclude(su => su.Societe) 
-                    .OrderByDescending(t => t.CreatedAt)
-                    .AsQueryable();
+                  .Include(u => u.Contrats)
+                  .Include(u => u.Role)
+                  .Include(u => u.SocieteUsers)
+                    .ThenInclude(su => su.Societe)
+                  .OrderByDescending(u => u.CreatedAt)
+                  .AsQueryable();
 
+      // Filtrage par SearchTerm (prénom ou nom)
       if (!string.IsNullOrEmpty(userParams.SearchTerm))
       {
         var lowerSearchTerm = userParams.SearchTerm.ToLower();
-        query = query.Where(u => u.FirstName.ToLower().Contains(lowerSearchTerm)
-                              || u.LastName.ToLower().Contains(lowerSearchTerm));
+        query = query.Where(u =>
+            u.FirstName.ToLower().Contains(lowerSearchTerm) ||
+            u.LastName.ToLower().Contains(lowerSearchTerm));
+      }
+
+      // Filtrage par rôle
+      if (!string.IsNullOrEmpty(userParams.Role))
+      {
+        var lowerRole = userParams.Role.ToLower();
+        query = query.Where(u => u.Role.Name.ToLower().Contains(lowerRole));
+      }
+
+      // Filtrage par actif/inactif
+      if (userParams.Actif.HasValue)
+      {
+        query = query.Where(u => u.Actif == userParams.Actif.Value);
+      }
+
+      // Filtrage par présence de contrat
+      if (userParams.HasContract.HasValue)
+      {
+        if (userParams.HasContract.Value)
+        {
+          // Utilisateurs possédant au moins un contrat
+          query = query.Where(u => u.Contrats != null && u.Contrats.Any());
+        }
+        else
+        {
+          // Utilisateurs sans contrat
+          query = query.Where(u => u.Contrats == null || !u.Contrats.Any());
+        }
       }
 
       return await PagedList<User>.CreateAsync(query, userParams.PageNumber, userParams.PageSize);
+    }
+
+    public async Task<IEnumerable<User>> GetUsersFilteredAsync(UserParams userParams)
+    {
+      var query = _context.Users
+                  .Include(u => u.Contrats)
+                  .Include(u => u.Role)
+                  .Include(u => u.SocieteUsers)
+                    .ThenInclude(su => su.Societe)
+                  .AsQueryable();
+
+      // Filtrage par SearchTerm (prénom ou nom)
+      if (!string.IsNullOrEmpty(userParams.SearchTerm))
+      {
+        var lowerSearchTerm = userParams.SearchTerm.ToLower();
+        query = query.Where(u =>
+            u.FirstName.ToLower().Contains(lowerSearchTerm) ||
+            u.LastName.ToLower().Contains(lowerSearchTerm));
+      }
+
+      // Filtrage par rôle
+      if (!string.IsNullOrEmpty(userParams.Role))
+      {
+        var lowerRole = userParams.Role.ToLower();
+        query = query.Where(u => u.Role.Name.ToLower().Contains(lowerRole));
+      }
+
+      // Filtrage par actif/inactif
+      if (userParams.Actif.HasValue)
+      {
+        query = query.Where(u => u.Actif == userParams.Actif.Value);
+      }
+
+      // Filtrage par présence de contrat
+      if (userParams.HasContract.HasValue)
+      {
+        if (userParams.HasContract.Value)
+        {
+          query = query.Where(u => u.Contrats != null && u.Contrats.Any());
+        }
+        else
+        {
+          query = query.Where(u => u.Contrats == null || !u.Contrats.Any());
+        }
+      }
+
+      return await query.ToListAsync();
     }
 
     public async Task<IEnumerable<User>> GetUsersNoPaginationAsync()
@@ -40,8 +117,8 @@ namespace GestionTicketsAPI.Repositories
       return await _context.Users
                     .Include(u => u.Contrats)
                     .Include(u => u.Role)
-                    .Include(u => u.SocieteUsers) 
-                      .ThenInclude(su => su.Societe) 
+                    .Include(u => u.SocieteUsers)
+                      .ThenInclude(su => su.Societe)
                     .ToListAsync();
     }
 
@@ -50,7 +127,7 @@ namespace GestionTicketsAPI.Repositories
       return await _context.Users
           .Include(u => u.Contrats)
           .Include(u => u.Role)
-          .Include(u => u.SocieteUsers) 
+          .Include(u => u.SocieteUsers)
               .ThenInclude(su => su.Societe)
           .FirstOrDefaultAsync(u => u.Id == id);
     }
@@ -60,57 +137,57 @@ namespace GestionTicketsAPI.Repositories
       return await _context.Users
           .Include(u => u.ProjetUsers)
           .Include(u => u.Role)
-          .Include(u => u.SocieteUsers) 
+          .Include(u => u.SocieteUsers)
               .ThenInclude(su => su.Societe)
           .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<bool> DeleteUserAsync(User user)
-{
-    // Vérifier si l'utilisateur est assigné à un ticket
-    bool isAssignedToTickets = await _context.Tickets.AnyAsync(t => 
-        t.OwnerId == user.Id ||
-        t.ResponsibleId == user.Id ||
-        (t.Projet != null && t.Projet.ChefProjetId == user.Id)
-    );
-
-    if (isAssignedToTickets)
     {
+      // Vérifier si l'utilisateur est assigné à un ticket
+      bool isAssignedToTickets = await _context.Tickets.AnyAsync(t =>
+          t.OwnerId == user.Id ||
+          t.ResponsibleId == user.Id ||
+          (t.Projet != null && t.Projet.ChefProjetId == user.Id)
+      );
+
+      if (isAssignedToTickets)
+      {
         throw new InvalidOperationException("Impossible de supprimer l'utilisateur car il est assigné à des tickets.");
-    }
+      }
 
-    // Supprimer les associations dans ProjetUser
-    var projetUsers = await _context.ProjetUser
-        .Where(pu => pu.UserId == user.Id)
-        .ToListAsync();
-    if (projetUsers.Any())
-    {
+      // Supprimer les associations dans ProjetUser
+      var projetUsers = await _context.ProjetUser
+          .Where(pu => pu.UserId == user.Id)
+          .ToListAsync();
+      if (projetUsers.Any())
+      {
         _context.ProjetUser.RemoveRange(projetUsers);
-    }
+      }
 
-    // Supprimer les associations dans SocieteUser
-    var societeUsers = await _context.SocieteUsers
-        .Where(su => su.UserId == user.Id)
-        .ToListAsync();
-    if (societeUsers.Any())
-    {
+      // Supprimer les associations dans SocieteUser
+      var societeUsers = await _context.SocieteUsers
+          .Where(su => su.UserId == user.Id)
+          .ToListAsync();
+      if (societeUsers.Any())
+      {
         _context.SocieteUsers.RemoveRange(societeUsers);
-    }
+      }
 
-    // Supprimer les commentaires de l'utilisateur
-    var userComments = await _context.Commentaires
-        .Where(c => c.UtilisateurId == user.Id)
-        .ToListAsync();
-    if (userComments.Any())
-    {
+      // Supprimer les commentaires de l'utilisateur
+      var userComments = await _context.Commentaires
+          .Where(c => c.UtilisateurId == user.Id)
+          .ToListAsync();
+      if (userComments.Any())
+      {
         _context.Commentaires.RemoveRange(userComments);
+      }
+
+      // Enfin, supprimer l'utilisateur
+      _context.Users.Remove(user);
+
+      return await _context.SaveChangesAsync() > 0;
     }
-
-    // Enfin, supprimer l'utilisateur
-    _context.Users.Remove(user);
-
-    return await _context.SaveChangesAsync() > 0;
-}
 
 
 

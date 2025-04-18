@@ -32,7 +32,7 @@ import { MatDividerModule } from '@angular/material/divider';
     CommonModule
   ],
   templateUrl: './layout.component.html',
-  styleUrls: ['./layout.component.css']
+  styleUrls: ['./layout.component.scss']
 })
 export class LayoutComponent implements OnInit, OnDestroy {
 

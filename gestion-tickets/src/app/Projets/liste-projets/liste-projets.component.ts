@@ -11,12 +11,23 @@ import { AccountService } from '../../_services/account.service';
 // Importations pour le modal de confirmation
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { ProjetFilterComponent } from '../../_filters/projet-filter/projet-filter.component';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
-    selector: 'app-liste-projets',
-    imports: [NgFor, NgIf, FormsModule, RouterLink],
-    templateUrl: './liste-projets.component.html',
-    styleUrls: ['./liste-projets.component.css']
+  selector: 'app-liste-projets',
+  imports: [NgFor, NgIf, FormsModule, RouterLink,
+    MatMenuModule,
+    MatIconModule,
+    MatButtonModule,
+    ProjetFilterComponent
+  ],
+  templateUrl: './liste-projets.component.html',
+  styleUrls: ['./liste-projets.component.css']
 })
 export class ListeProjetsComponent implements OnInit {
   paginatedResult: PaginatedResult<Projet[]> | null = null;
@@ -25,55 +36,59 @@ export class ListeProjetsComponent implements OnInit {
   jumpPage!: number;
   projetsSearchTerm: string = '';
 
+  // Ajout de la propriété currentFilters
+  currentFilters: any = {};
+  isLoading: boolean = false;
+
   constructor(
     private projetsService: ProjetService,
     public accountService: AccountService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
-  ) {}
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
-    this.loadProjets();
+    this.route.data.subscribe(data => {
+      this.getProjets();
+    });
   }
 
   onSearchChange(): void {
     // Réinitialise la pagination (page 1)
     this.pageNumber = 1;
-    this.loadProjets();
+    this.getProjets();
   }
-  
-  loadProjets(): void {
-    const currentUser = this.accountService.currentUser();
+
+  getProjets(): void {
+    this.globalLoaderService.showGlobalLoader();
     
-    // Vérifie si l'utilisateur connecté est un super admin (en comparaison en minuscules)
-    if (currentUser && currentUser.role?.toLowerCase() === 'super admin') {
-      // Super admin : affiche tous les projets
-      this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, this.projetsSearchTerm)
-        .subscribe({
-          next: (result) => {
-            this.paginatedResult = result;
-          },
-          error: (error) => {
-            console.error('Erreur lors du chargement des projets paginés', error);
-          }
-        });
-    } else if (currentUser) {
-      // Autres utilisateurs : affiche uniquement les projets qui leur sont associés
-      this.accountService.getUserProjects(currentUser.id, this.pageNumber, this.pageSize, this.projetsSearchTerm)
-        .subscribe({
-          next: (result) => {
-            this.paginatedResult = result;
-          },
-          error: (error) => {
-            console.error('Erreur lors de la requête vers :', error.url || 'URL inconnue', error);
-            console.error('Erreur lors du chargement des projets de l\'utilisateur', error);
-          }
-        });
-    } else {
-      console.error("Utilisateur non connecté");
-    }
+    const filters = { 
+      ...this.currentFilters, 
+      searchTerm: this.projetsSearchTerm,
+      role: this.accountService.currentUser()?.role,
+      userId: this.accountService.currentUser()?.id
+    };
+  
+    this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, filters.searchTerm, filters)
+      .subscribe({
+        next: (response) => {
+          this.paginatedResult = response;
+          this.globalLoaderService.hideGlobalLoader();
+        },
+        error: (error) => {
+          this.globalLoaderService.hideGlobalLoader();
+          console.error('Erreur lors du chargement des projets paginés', error);
+          this.toastr.error('Erreur lors du chargement des projets paginés');
+        }
+      });
   }
   
 
@@ -84,7 +99,7 @@ export class ListeProjetsComponent implements OnInit {
       return projets;
     }
     const lowerTerm = this.projetsSearchTerm.toLowerCase();
-    return projets.filter(projet => 
+    return projets.filter(projet =>
       projet.nom.toLowerCase().includes(lowerTerm)
     );
   }
@@ -94,7 +109,7 @@ export class ListeProjetsComponent implements OnInit {
     const maxPage = this.paginatedResult?.pagination?.totalPages || 1;
     this.pageNumber = Math.min(Math.max(newPage, 1), maxPage);
     this.jumpPage = this.pageNumber;
-    this.loadProjets();
+    this.getProjets();
   }
 
   jumpToPage(): void {
@@ -111,15 +126,24 @@ export class ListeProjetsComponent implements OnInit {
   deleteProjet(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer ce projet ?";
-    
+
     modalInstance.confirmed.subscribe(() => {
-      this.projetsService.deleteProjet(id).subscribe(() => {
-        this.toastr.success("Projet suprimé avec succès")
-        this.loadProjets();
+      this.loaderService.showLoader();
+      this.projetsService.deleteProjet(id).subscribe({
+        next: () => {
+          this.toastr.success("Projet supprimé avec succès");
+          this.getProjets();
+          this.loaderService.hideLoader();
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression du projet", err);
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
-    
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
@@ -131,13 +155,11 @@ export class ListeProjetsComponent implements OnInit {
       this.paginatedResult.items.forEach(projet => projet.selected = checkbox.checked);
     }
   }
-  
 
   toggleSelection(projet: Projet, event: Event): void {
     const checkbox = event.target as HTMLInputElement;
     projet.selected = checkbox.checked;
   }
-  
 
   range(start: number, end: number): number[] {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -146,31 +168,61 @@ export class ListeProjetsComponent implements OnInit {
   // Suppression en masse des projets via le modal de confirmation
   deleteSelectedProjects(): void {
     const projets = this.paginatedResult?.items || [];
-    const selectedIds = projets
-      .filter(projet => projet.selected)
-      .map(projet => projet.id);
-  
+    const selectedIds = projets.filter(projet => projet.selected).map(projet => projet.id);
+
     if (selectedIds.length === 0) {
       this.toastr.warning("Aucun projet sélectionné pour suppression.");
       return;
     }
-  
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?";
-    
+
     modalInstance.confirmed.subscribe(() => {
+      this.loaderService.showLoader();
       this.projetsService.deleteSelectedProjets(selectedIds).subscribe({
         next: () => {
           this.toastr.success("Les projets sélectionnés ont été supprimés avec succès.");
-          this.loadProjets();
+          this.getProjets();
+          this.loaderService.hideLoader();
         },
-        error: error => this.toastr.error("Erreur lors de la suppression")
+        error: error => {
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
+        }
       });
       this.overlayModalService.close();
     });
-    
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
+    });
+  }
+
+  onApplyFilter(filters: any): void {
+    this.currentFilters = filters;
+    this.pageNumber = 1; // Réinitialiser la pagination
+    this.getProjets();
+  }
+  
+
+  exportProjets(): void {
+    this.loaderService.showLoader();
+    this.projetsService.exportProjets(this.currentFilters).subscribe({
+      next: (fileBlob: Blob) => {
+        const objectUrl = URL.createObjectURL(fileBlob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = `ProjetsExport_${new Date().getTime()}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+        this.loaderService.hideLoader();
+      },
+      error: (err) => {
+        console.error("Erreur lors de l'export des projets", err);
+        this.toastr.error("Erreur lors de l'export des projets");
+        this.loaderService.hideLoader();
+      }
     });
   }
 }

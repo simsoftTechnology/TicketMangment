@@ -6,6 +6,7 @@ import { Pays } from '../../_models/pays';
 import { LoaderService } from '../../_services/loader.service';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-modifier-pays',
@@ -28,6 +29,7 @@ export class ModifierPaysComponent implements OnInit {
     public route: ActivatedRoute,
     private loaderService: LoaderService,
     private toastr: ToastrService,
+    private accountService: AccountService,
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -60,38 +62,44 @@ export class ModifierPaysComponent implements OnInit {
     this.paysForm.get('file')?.setValue(this.selectedFile);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.paysId === null || !this.originalPays) return;
   
-    // Détecter les changements sur le nom et le code téléphonique
     const hasNomChanged = this.paysForm.value.nom.trim() !== this.originalPays.nom.trim();
     const hasCodeTelChanged = this.paysForm.value.codeTel.trim() !== this.originalPays.codeTel.trim();
     const hasFileChanged = !!this.selectedFile;
   
-    // Si aucun changement, ne pas envoyer de requête et rediriger l'utilisateur
-    // if (!hasNomChanged && !hasFileChanged) {
-    //   this.router.navigate(['/home/Pays']);
-    //   return;
-    // }
     if (!hasNomChanged && !hasCodeTelChanged && !hasFileChanged) {
-      this.toastr.error("Erreur lors de la mis à jour du pays");
-      this.router.navigate(['/home/Pays']);
-      return;
+      this.toastr.warning("veuillez modifier au moins un champs");
+  
     }
-  
-    // Toujours inclure le nom et le code téléphonique, même s'ils n'ont pas changé
-    const paysUpdateDto: any = {
-      nom: this.paysForm.value.nom || this.originalPays.nom,
-      codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
-    };
-  
-    const fileToSend = hasFileChanged ? this.selectedFile : undefined;
-    this.loaderService.showLoader();
-    this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend).subscribe(() => {
-      // this.router.navigate(['/home/Pays']);
-      this.loaderService.hideLoader();
-      this.toastr.success("Pays mis à jour avec succéss");
-      this.router.navigate(['/home/Pays']);
+    else{
+
+      const paysUpdateDto: any = {
+        nom: this.accountService.removeSpecial(this.paysForm.value.nom) || this.accountService.removeSpecial(this.originalPays.nom),
+        codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
+      };
+    
+      const fileToSend = hasFileChanged ? this.selectedFile : undefined;
+      this.loaderService.showLoader();
+    
+      // Utiliser await pour récupérer l'observable
+      const updateObservable = await this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend);
+      updateObservable.subscribe((res) => {
+        this.loaderService.hideLoader();
+        this.toastr.success("Pays mis à jour avec succéss");
+        this.router.navigate(['/home/Pays']);
+      },
+    
+    (error)=>{
+      console.log(error);
+      
+      this.toastr.error("Erreur se produit", error);
     });
+    }
   }
+  annuler(){
+    this.paysForm.patchValue({ nom: this.originalPays?.nom.trim() ,  codeTel : this.originalPays?.codeTel.trim() });
+  }
+  
 }

@@ -4,7 +4,7 @@
   border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   max-width: 500px;
-  margin: 0 ;
+  margin: 0;
   overflow: hidden;
   border: none;
   position: relative;
@@ -86,14 +86,35 @@
     padding: 1rem;
   }
   
-  .modal-footer {
-    padding: 0.75rem 1rem;
-    flex-direction: column;
-    gap: 0.5rem;
+}
+
+/* Additional responsive breakpoints */
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 90%;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 992px) {
+  .modal-content {
+    max-width: 80%;
+    margin: 0 auto;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 320px) {
+  .modal-title {
+    font-size: 1.1rem;
+  }
+  
+  .modal-body {
+    font-size: 0.9rem;
   }
   
   .btn {
-    width: 100%;
-    padding: 0.6rem;
+    font-size: 0.8rem;
+    padding: 0.5rem;
   }
 }

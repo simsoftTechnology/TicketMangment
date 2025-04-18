@@ -120,6 +120,7 @@ namespace GestionTicketsAPI.Services
 
       var userDto = _mapper.Map<UserDto>(user);
       userDto.Token = _tokenService.CreateToken(user);
+      
 
       return userDto;
     }

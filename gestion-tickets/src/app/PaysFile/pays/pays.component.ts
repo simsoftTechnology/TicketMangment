@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
     selector: 'app-pays',
@@ -24,6 +25,7 @@ export class PaysComponent {
   constructor(
     public route: ActivatedRoute,
     private toastr: ToastrService,
+    private globalLoaderService: GlobalLoaderService
   ) { }
 
   ngOnInit(): void {
@@ -31,9 +33,13 @@ export class PaysComponent {
   }
 
   loadPays() {
+    this.globalLoaderService.showGlobalLoader();
     this.paysService.getPays().subscribe({
       next: (pays: Pays[]) => this.paysList = pays,
-      error: (err) => console.error('Erreur lors de la récupération des pays', err)
+      error: (err) => console.error('Erreur lors de la récupération des pays', err),
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
+      }
     });
   }  
 

@@ -28,7 +28,7 @@ namespace GestionTicketsAPI.Services
 
                 var message = new MimeMessage();
 
-                message.From.Add(new MailboxAddress("Simsoft Technologies", "simsoft2021@gmail.com"));
+                message.From.Add(new MailboxAddress("Simsoft Technologies", "simsoft87@gmail.com"));
 
                 message.To.Add(new MailboxAddress(name, email));
 
@@ -52,7 +52,7 @@ namespace GestionTicketsAPI.Services
 
                 await client.ConnectAsync("smtp.gmail.com", 587, SecureSocketOptions.StartTls);
 
-                await client.AuthenticateAsync("drgaieg@gmail.com", "awtz msbn rhof rrwf"); // Use an App Password
+                await client.AuthenticateAsync("simsoft87@gmail.com", "rqdg oyls pnuq qaub"); // Use an App Password
 
                 await client.SendAsync(message);
 

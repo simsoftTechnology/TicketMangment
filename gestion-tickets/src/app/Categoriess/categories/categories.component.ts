@@ -8,6 +8,9 @@ import { CategorieModalComponent } from '../categorie-modal/categorie-modal.comp
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { ToastrService } from 'ngx-toastr';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
     selector: 'app-categories',
@@ -18,6 +21,7 @@ import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.compone
 export class CategoriesComponent implements OnInit {
   categories: CategorieProbleme[] = [];
   searchTerm: string = '';
+  isLoading: boolean = false;
 
   // Pagination
   pageNumber: number = 1;
@@ -30,8 +34,15 @@ export class CategoriesComponent implements OnInit {
 
   constructor(private categorieService: CategorieProblemeService,
     private overlayModalService: OverlayModalService,
-    private toastr: ToastrService
-  ) { }
+    private toastr: ToastrService,
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService,
+    private accountService: AccountService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.loadCategories();
@@ -39,6 +50,9 @@ export class CategoriesComponent implements OnInit {
 
   // Chargement paginé des catégories selon le terme de recherche
   loadCategories(): void {
+    // Affiche le loader global
+    this.globalLoaderService.showGlobalLoader();
+  
     this.categorieService.getCategoriesPaginated(this.pageNumber, this.pageSize, this.searchTerm)
       .subscribe({
         next: (response) => {
@@ -49,9 +63,17 @@ export class CategoriesComponent implements OnInit {
             this.totalPages = response.pagination.totalPages;
           }
         },
-        error: (err) => console.error('Erreur lors du chargement des catégories :', err)
+        error: (err) => {
+          console.error('Erreur lors du chargement des catégories :', err);
+          this.toastr.error("Erreur lors du chargement des catégories.");
+        },
+        complete: () => {
+          // Masque le loader global lorsque l'opération est terminée
+          this.globalLoaderService.hideGlobalLoader();
+        }
       });
   }
+  
 
   // Actualisation lors du changement du terme de recherche
   onSearchChange(): void {
@@ -77,21 +99,27 @@ export class CategoriesComponent implements OnInit {
   // Suppression d'une catégorie individuellement
   deleteCategorie(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
-    modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";
-    
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";  
     modalInstance.confirmed.subscribe(() => {
-      this.categorieService.deleteCategory(id).subscribe({
-        next: () =>{ this.toastr.success("Catégorie suprimée avec succèss"),
-                  this.loadCategories()},
-        error: (err) => console.error("Erreur lors de la suppression de la catégorie :", err)
-      });
+      this.loaderService.showLoader();
+      this.categorieService.deleteCategory(id).subscribe(
+        (res)=>{
+          this.toastr.success("Catégorie supprimée avec succès");
+          // Mise à jour locale : suppression de la catégorie du tableau
+          this.categories = this.categories.filter(categorie => categorie.id !== id);
+          this.loaderService.hideLoader();
+        },
+        (error)=>{
+          console.error("Erreur lors de la suppression de la catégorie :", error);
+          this.loaderService.hideLoader();
+        }    
+       );
       this.overlayModalService.close();
-    });
-    
+    });  
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
-  }
+  }  
   
 
   // Suppression en masse des catégories sélectionnées
@@ -188,6 +216,8 @@ export class CategoriesComponent implements OnInit {
 
   // Enregistre les modifications en appelant le service de mise à jour
   saveEdit(categorie: CategorieProbleme): void {
+    categorie.nom = this.accountService.removeSpecial(categorie.nom)
+    
     this.categorieService.updateCategory(categorie).subscribe({
       next: () => {
         this.toastr.success("Catégorie modifiée avec succès.");
@@ -209,6 +239,23 @@ export class CategoriesComponent implements OnInit {
     cat.editing = false;
   }
   
-
+  exportCategories(): void {
+    this.loaderService.showLoader();
+    this.categorieService.exportCategories().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CategoriesExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.loaderService.hideLoader();
+      },
+      error: (error) => {
+        console.error("Erreur lors de l'export Excel des catégories", error);
+        this.loaderService.hideLoader();
+      }
+    });
+  }
 
 }

@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 
 namespace GestionTicketsAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class SearchController : ControllerBase
+    public class SearchController : BaseApiController
     {
         private readonly DataContext _context;
         public SearchController(DataContext context)

@@ -106,8 +106,17 @@
 
     <!-- Boutons -->
     <div class="button-group">
-      <button type="submit" class="btn btn-primary" [disabled]="projetForm.invalid">Ajouter</button>
-      <button type="button" class="btn btn-secondary" routerLink="/home/Projets">Annuler</button>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary" [disabled]="projetForm.invalid || isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">
+            Ajouter
+          </ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Ajouter
+          </ng-template>
+        </button>
+        <button type="button" class="btn btn-secondary" routerLink="/home/Projets">Annuler</button>
+      </div>
     </div>
   </form>
 </div>

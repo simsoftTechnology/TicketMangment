@@ -11,12 +11,19 @@
       <button *ngIf="canFinishTicket()" (click)="openCompletionModal()">
         Terminer
       </button>
-      <button *ngIf="canUpdateResponsible()" (click)="updateResponsible()">Enregistrer</button>
+      <button *ngIf="canUpdateResponsible()" (click)="updateResponsible()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingResponsibleTpl">
+          Enregistrer
+        </ng-container>
+        <ng-template #loadingResponsibleTpl>
+          <span class="spinner"></span> Enregistrer
+        </ng-template>
+      </button>      
     </div>
   </div>
 
   <!-- Contenu principal du ticket -->
-  <div class="ticket-details-container" *ngIf="ticket; else loading">
+  <div class="ticket-details-container" *ngIf="ticket">
     <!-- Partie gauche : formulaire / informations principales -->
     <div class="left-section">
       <div class="form-grid">
@@ -128,9 +135,9 @@
         <div class="comment-header">
           <!-- Partie gauche : icône et nom -->
           <div class="left-part">
-            <div class="comment-icon">
+            <div class="comment-icon" [ngClass]="{'my-comment-icon': comment.utilisateur?.id !== currentUser?.id}">
               {{ getInitials(comment.utilisateur?.firstName, comment.utilisateur?.lastName) }}
-            </div>
+            </div>            
             <div class="comment-info">
               <span class="comment-author">
                 {{ comment.utilisateur?.id === currentUser?.id 
@@ -158,15 +165,15 @@
     <!-- Champ de saisie pour nouveau commentaire -->
     <div class="comment-input-container">
       <textarea [(ngModel)]="newComment" placeholder="Écrire un commentaire..." class="comment-input" rows="1"></textarea>
-      <button class="send-button" (click)="onAddComment()">
-        <i class="fas fa-paper-plane"></i>
-      </button>
+      <button class="send-button" (click)="onAddComment()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingCommentTpl">
+          <i class="fas fa-paper-plane"></i>
+        </ng-container>
+        <ng-template #loadingCommentTpl>
+          <span class="spinner"></span>
+        </ng-template>
+      </button>      
     </div>
   </div>
-
-  <!-- Si le ticket est en cours de chargement -->
-  <ng-template #loading>
-    <p>Chargement du ticket...</p>
-  </ng-template>
 
 </body>

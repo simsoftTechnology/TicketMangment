@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  public class DashboardController : ControllerBase
+  public class DashboardController : BaseApiController
   {
     private readonly IDashboardService _dashboardService;
 

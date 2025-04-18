@@ -7,8 +7,9 @@ import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
 import { authGuard } from './_guards/auth.guard';
 import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
-import { MesTicketsComponent } from './Tickets/mes-tickets/mes-tickets.component';
 import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
+import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
+import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
 
 export const routes: Routes = [
   // Page de login
@@ -23,19 +24,16 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', component: TableauBordComponent },
       {
-        path: 'Tickets',
-        component: ListTicketsComponent,
-        data: { filterType: '' } // Tous les tickets
-      },
-      {
         path: 'MesTickets',
-        component: ListTicketsComponent,
-        data: { filterType: 'associated' } // Seuls les tickets directement associés
+        loadChildren: () =>
+          import('./Tickets/tickets.module').then(m => m.TicketsModule),
+        data: { filterType: 'associated' }
       },
       {
         path: 'Tickets',
         loadChildren: () =>
           import('./Tickets/tickets.module').then(m => m.TicketsModule),
+        data: { filterType: '' }
       },
       {
         path: 'profile',
@@ -82,9 +80,11 @@ export const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { 
+      useHash: true, // active la stratégie avec hash
       anchorScrolling: 'enabled',
       scrollOffset: [0, 1000],
       onSameUrlNavigation: 'reload'
+
     })
   ],
   exports: [RouterModule]

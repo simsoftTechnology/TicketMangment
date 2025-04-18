@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
   [ApiController]
-  public class QualificationsController : ControllerBase
+  public class QualificationsController : BaseApiController
   {
     private readonly IQualificationService _qualificationService;
 

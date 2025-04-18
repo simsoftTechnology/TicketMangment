@@ -15,12 +15,13 @@ import { DropdownService } from '../../_services/dropdown.service';
 import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
   selector: 'app-project-modal',
   imports: [ ReactiveFormsModule, FormsModule, CommonModule],
   templateUrl: './project-modal.component.html',
-  styleUrl: './project-modal.component.css'
+  styleUrl: './project-modal.component.scss'
 })
 export class ProjectModalComponent {
   @Input() societeId!: number; // Reçu depuis le parent
@@ -60,6 +61,8 @@ export class ProjectModalComponent {
   // Par défaut, le projet est de type Société
   isSocieteProjet: boolean = true;
 
+  isLoading: boolean = false;
+
   constructor(
     private fb: FormBuilder,
     private projetService: ProjetService,
@@ -67,11 +70,16 @@ export class ProjectModalComponent {
     private paysService: PaysService,
     private userService: AccountService,
     private router: Router,
-    private dropdownService: DropdownService,
+    private accountService: AccountService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
-    private toastr: ToastrService
-  ) { }
+    private toastr: ToastrService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.initForm();
@@ -133,18 +141,23 @@ export class ProjectModalComponent {
     }
   
     const formValue = this.projetForm.value;
-    this.projet.nom = formValue.nom;
+    this.projet.nom = this.accountService.removeSpecial(formValue.nom);
     this.projet.description = formValue.description;
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;
-    // ASSIGNATION MANQUANTE : affecter chefProjetId au projet
+    // Affectation du chef de projet
     this.projet.chefProjetId = formValue.chefProjetId;
   
-    // Appel au service pour ajouter le projet
+    // Active le loader avant l'appel au service
+    this.loaderService.showLoader();
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
         this.toastr.success('Projet créé avec succès');
+        // Par exemple, vous pouvez fermer le modal ici
+        this.closeModal();
+        // Ou rediriger vers une autre page :
         this.router.navigate(['/home/Projets']);
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error('Erreur ajout projet', error);
@@ -165,12 +178,10 @@ export class ProjectModalComponent {
           errMsg = error.message;
         }
         this.toastr.error(errMsg);
+        this.loaderService.hideLoader();
       }
     });
   }
-
-
-  
 
   toggleDropdown(type?: string): void {
     if (type) {
@@ -260,5 +271,6 @@ export class ProjectModalComponent {
   }
   closeModal(): void {
     this.overlayModalService.close();
+    this.closed.emit();
   }
 }

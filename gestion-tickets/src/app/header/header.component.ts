@@ -14,7 +14,7 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css']
+  styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
   currentUser: User | null = null;

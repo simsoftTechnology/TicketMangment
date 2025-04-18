@@ -8,7 +8,7 @@ namespace GestionTicketsAPI.Interfaces
     {
         Task<Ticket?> GetTicketByIdAsync(int id);
         Task<IEnumerable<Ticket>> GetTicketsAsync();
-        Task<PagedList<Ticket>> GetTicketsPagedAsync(UserParams ticketParams);
+        Task<PagedList<Ticket>> GetTicketsPagedAsync(TicketFilterParams filterParams);
         Task AddTicketAsync(Ticket ticket);
         void UpdateTicket(Ticket ticket);
         void DeleteTicket(Ticket ticket);
@@ -16,6 +16,8 @@ namespace GestionTicketsAPI.Interfaces
         Task<bool> DeleteMultipleTicketsAsync(IEnumerable<int> ticketIds);
         Task<bool> TicketExists(string title);
         Task<StatutDesTicket?> GetStatusByNameAsync(string statusName);
+        Task<IEnumerable<Ticket>> GetTicketsFilteredAsync(TicketFilterParams filterParams);
         List<object> GetTicketCountByStatus(int userId, string role);
+        Task<IEnumerable<Ticket>> GetTicketsByCategoryIdAsync(int categoryId);
     }
 }

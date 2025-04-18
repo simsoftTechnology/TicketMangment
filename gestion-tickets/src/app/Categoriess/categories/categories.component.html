@@ -1,9 +1,15 @@
 <div class="container">
   <div class="header">
     <h2>Liste des catégories de problèmes</h2>
-    <button class="add-user-btn" (click)="openCategorieModal()">
-      <span class="material-icons">add</span> Ajouter
+    <button class="add-user-btn" (click)="openCategorieModal()" [disabled]="isLoading">
+      <ng-container *ngIf="!isLoading; else loadingAjoutTpl">
+        <span class="material-icons">add</span> Ajouter
+      </ng-container>
+      <ng-template #loadingAjoutTpl>
+        <span class="spinner"></span> Ajouter
+      </ng-template>
     </button>
+    
   </div>
 
   <!-- Zone de recherche -->
@@ -23,15 +29,15 @@
           </div>
         </td>
         <td colspan="2" class="filter-actions">
-          <button class="filter-btn">
-            <span class="material-icons">filter_list</span>
+          <button class="export-btn" (click)="exportCategories()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+              <span class="material-icons">download</span> Export Excel
+            </ng-container>
+            <ng-template #loadingExportTpl>
+              <span class="spinner"></span> Export Excel
+            </ng-template>
           </button>
-          <button class="view-btn">
-            <span class="material-icons">grid_view</span>
-          </button>
-          <button class="view-btn active">
-            <span class="material-icons">view_list</span>
-          </button>
+          
         </td>
       </tr>
       <tr>
@@ -94,9 +100,14 @@
             <span class="material-icons">edit</span>
           </button>
           <!-- Bouton pour supprimer individuellement -->
-          <button class="delete-btn" (click)="deleteCategorie(categorie.id)">
-            <span class="material-icons">delete</span>
-          </button>
+          <button class="delete-btn" (click)="deleteCategorie(categorie.id)" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+              <span class="material-icons">delete</span>
+            </ng-container>
+            <ng-template #loadingDeleteTpl>
+              <span class="spinner"></span>
+            </ng-template>
+          </button>          
         </td>
       </tr>
       <tr *ngIf="categories.length === 0">

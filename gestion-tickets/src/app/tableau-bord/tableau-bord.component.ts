@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Color, NgxChartsModule, ScaleType, LegendPosition } from '@swimlane/ngx-charts';
 import { TicketService } from '../_services/ticket.service';
 import { DashboardService } from '../_services/dashboard.service';
+import { GlobalLoaderService } from '../_services/global-loader.service';
 
 @Component({
   selector: 'app-tableau-bord',
@@ -50,10 +51,12 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
     private accountService: AccountService,
     private router: Router,
     private dashboardService: DashboardService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private globalLoaderService: GlobalLoaderService
   ) { }
 
   ngOnInit(): void {
+    this.globalLoaderService.showGlobalLoader();
     this.currentUser = this.accountService.currentUser();
     if (this.currentUser) {
       this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
@@ -87,7 +90,6 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   loadTicketCounts() {
     this.ticketService.getTicketCountByStatus().subscribe({
       next: (data: any[]) => {
-        // Transformation des données pour correspondre au format { id, name, value }
         this.ticketCounts = data.map(item => ({
           id: item.id,
           name: item.name,
@@ -96,6 +98,10 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Erreur lors de la récupération des stats par statut', err);
+      },
+      complete: () => {
+        // Masque le loader pour cet appel
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
   }
@@ -114,6 +120,10 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       },
       error: (err) => {
         console.error('Erreur lors de la récupération des dashboard counts', err);
+      },
+      complete: () => {
+        // Masque le loader pour cet appel
+        this.globalLoaderService.hideGlobalLoader();
       }
     });
   }

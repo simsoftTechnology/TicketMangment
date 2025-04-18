@@ -1,5 +1,6 @@
 using System;
 using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
@@ -26,18 +27,19 @@ public class CommentService : ICommentService
 
   public async Task<CommentDto> CreateCommentAsync(CommentCreateDto commentCreateDto, int userId)
   {
-    // Création du commentaire
-    var commentaire = new Commentaire
-    {
-      Contenu = commentCreateDto.Contenu,
-      Date = DateTime.UtcNow,
-      TicketId = commentCreateDto.TicketId,
-      UtilisateurId = userId
-    };
+       
+            // Création du commentaire
+            var commentaire = new Commentaire
+            {
+                Contenu = commentCreateDto.Contenu,
+                Date = DateTime.UtcNow,
+                TicketId = commentCreateDto.TicketId,
+                UtilisateurId = userId
+            };
 
     _context.Commentaires.Add(commentaire);
     if (await _context.SaveChangesAsync() <= 0)
-      return null;
+      return null;  
 
     // Chargement du ticket associé avec ses relations (Owner, Projet avec ChefProjet, Responsible)
     var ticket = await _context.Tickets
@@ -107,15 +109,44 @@ public class CommentService : ICommentService
     // D'autres cas peuvent être ajoutés selon vos besoins
 
     // Préparation du sujet et du message de base sans salutation
-    var subject = $"Nouveau commentaire sur le ticket #{ticket.Id}";
-    var baseMessage = $"Un nouveau commentaire a été ajouté par {user.FirstName} {user.LastName} sur le ticket '{ticket.Title}' (n° {ticket.Id}).<br><br>Contenu : {commentaire.Contenu}";
+    var subject = $"Nouveau commentaire  ajouté  le ticket #{ticket.Id}";
+        var baseMessage = $@"
+        <html>
+   <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+              
+ 
 
+                <p>              Ceci est une notification  de ticket de support .               </p>
+
+                <p>  Un nouveau commentaire a été ajouté par {user.FirstName} {user.LastName}.                </p>
+                <p>    Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                <ul>
+                    <li><strong>Sujet  :</strong> {ticket.Title}</li>                   
+                    <li><strong>N°     :</strong> {ticket.Id}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>              
+                    <li><strong>Contenu:</strong> {commentaire.Contenu} </li>
+                    
+                </ul>
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+                <p><strong>  Support Technique</strong> </p>
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+</body>
+</html>
+";
     // Envoi des notifications par email en évitant les doublons (basé sur l'email)
     foreach (var recipient in recipients.GroupBy(r => r.Email).Select(g => g.First()))
     {
-      // Ajout de la salutation personnalisée pour chaque destinataire
-      var personalizedMessage = $"Bonjour {recipient.Name},<br><br>" + baseMessage;
-      await _emailService.SendEmailAsync(recipient.Name, recipient.Email, subject, personalizedMessage);
+            if (commentCreateDto.Contenu != null && !commentCreateDto.Contenu.Contains("Nombre d'heures :")) { 
+            // Ajout de la salutation personnalisée pour chaque destinataire
+                var personalizedMessage = $"" +
+                    $"<h3>Support Technique </h3>  <br>      " +
+                    $" <p>Bonjour {recipient.Name},</p> " + baseMessage;
+                await _emailService.SendEmailAsync(recipient.Name, recipient.Email, subject, personalizedMessage);
+            
+            }         
     }
 
     // Retourner le DTO du commentaire créé

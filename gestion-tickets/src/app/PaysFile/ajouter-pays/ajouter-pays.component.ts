@@ -6,6 +6,7 @@ import { NgIf } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { LoaderService } from '../../_services/loader.service';
 import { ToastrService } from 'ngx-toastr';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-ajouter-pays',
@@ -23,6 +24,7 @@ export class AjouterPaysComponent {
               public route: ActivatedRoute,
               private loaderService: LoaderService,
               private toastr: ToastrService,
+              private accountService:AccountService
             ) 
   {
     this.loaderService.isLoading$.subscribe((loading) => {
@@ -41,26 +43,35 @@ export class AjouterPaysComponent {
     this.paysForm.get('selectedFile')?.setValue(this.selectedFile);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.paysForm.invalid) {
       this.paysForm.markAllAsTouched();
       return;
     }
-
-    const nom = this.paysForm.value.nom;
+  
+    const nom = this.accountService.removeSpecial(this.paysForm.value.nom);
     const codeTel = this.paysForm.value.codeTel;
     this.loaderService.showLoader();
-    this.paysService.addPays(nom, codeTel, this.selectedFile!).subscribe({
-      next: () => {
-        this.toastr.success("Pays crée avec succéss");
-        this.loaderService.hideLoader();
-        this.router.navigate(['/home/Pays']);
-      },
-      error: (err) => {
-        this.loaderService.hideLoader();
-        this.toastr.error(err,"Erreur lors de la création du pays");
-        console.error(err);
-      },
-    });
+  
+    try {
+      const observable = await this.paysService.addPays(nom, codeTel, this.selectedFile!);
+      observable.subscribe({
+        next: () => {
+          this.toastr.success("Pays créé avec succès");
+          this.loaderService.hideLoader();
+          this.router.navigate(['/home/Pays']);
+        },
+        error: (err) => {
+          this.loaderService.hideLoader();
+          this.toastr.error(err, "Erreur lors de la création du pays");
+          console.error(err);
+        },
+      });
+    } catch (err) {
+      this.loaderService.hideLoader();
+      this.toastr.error("Erreur inattendue", err as string);
+      console.error(err);
+    }
   }
+  
 }

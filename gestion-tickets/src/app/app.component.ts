@@ -10,13 +10,15 @@ import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import { LoaderService } from './_services/loader.service';
 import localeFr from '@angular/common/locales/fr';
+import { GlobalLoaderComponent } from './global-loader/global-loader.component';
 
 @Component({
     selector: 'app-root',
     imports: [RouterOutlet, MatDialogModule, OverlayModule,
       AngularEditorModule,
       NgxEditorModule,
-    CommonModule],
+    CommonModule, 
+    GlobalLoaderComponent],
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css']
 })

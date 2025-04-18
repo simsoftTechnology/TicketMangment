@@ -1,8 +1,8 @@
 .update-form {
-  max-width: 800px;
-  height: 650px;
+  max-width: 700px;
+  height: 500px;
   margin: 70px auto;
-  padding: 80px;
+  padding: 30px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -24,7 +24,7 @@
 
 .form-group {
   width: 48%;
-  margin-bottom: 45px;
+  margin-bottom: 15px;
 }
 
 .form-group label {
@@ -161,6 +161,24 @@
 
 .toggle-switch input:checked + .toggle-label:before {
   transform: translateX(26px);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive design */

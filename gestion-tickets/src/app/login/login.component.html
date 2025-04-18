@@ -1,7 +1,7 @@
 <div class="container">
   <div class="custom-card">
     <div class="custom-card-header">
-      <h3>SIMSOFT & SIMSOFT WARE</h3>
+      <h3>SIMSOFT</h3>
       <h4>Connectez-vous à votre compte</h4>
     </div>
     <div class="custom-card-body">
@@ -63,8 +63,13 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary">Connexion</button>
-
+        <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">Connexion</ng-container>
+          <ng-template #loadingTpl>
+            <!-- Vous pouvez définir ici votre animation ou spinner -->
+            <span class="spinner"></span> Connexion
+          </ng-template>
+        </button>
         <div class="forgot-password">
           <a href="#">Mot de passe oublié ?</a>
         </div>

@@ -16,9 +16,8 @@ export class CommentService {
   getCommentsByTicket(ticketId: number): Observable<Comment[]> {
     return this.http.get<Comment[]>(`${this.baseUrl}/ticket/${ticketId}`);
   }
-
-  // Ajouter un nouveau commentaire
   addComment(commentData: { contenu: string; ticketId: number }): Observable<Comment> {
     return this.http.post<Comment>(this.baseUrl, commentData);
   }
+
 }

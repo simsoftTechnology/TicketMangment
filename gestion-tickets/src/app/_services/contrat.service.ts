@@ -24,4 +24,5 @@ export class ContratService {
   addContract(contract: Contrat): Observable<Contrat> {
     return this.http.post<Contrat>(this.baseUrl, contract);
   }
+ 
 }

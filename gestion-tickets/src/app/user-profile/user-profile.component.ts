@@ -7,6 +7,8 @@ import { SocieteService } from '../_services/societe.service';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
+import { LoaderService } from '../_services/loader.service';
+import { GlobalLoaderService } from '../_services/global-loader.service';
 
 // Validateur personnalisé pour vérifier que 'nouveauPassword' et 'confirmNouveauPassword' correspondent
 export const newPasswordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
@@ -32,26 +34,35 @@ export class UserProfileComponent implements OnInit {
   userForm!: FormGroup;
   passwordVisible: boolean = false;
   confirmPasswordVisible: boolean = false;
-  
+
   // Liste des pays chargée via PaysService
   paysList: any[] = [];
   // Propriété pour afficher le drapeau et le code téléphone
   selectedCountry: any = null;
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private accountService: AccountService,
     private paysService: PaysService,
     private toastr: ToastrService,
-  ) {}
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
+    this.globalLoaderService.showGlobalLoader();
     this.initForm();
     // Charger la liste des pays avant de charger l'utilisateur
     this.paysService.getPays().subscribe({
       next: (pays) => {
         this.paysList = pays;
         this.loadUserDetails();
+        this.globalLoaderService.hideGlobalLoader();
       },
       error: (err) => {
         console.error("Erreur lors du chargement des pays", err);
@@ -91,10 +102,11 @@ export class UserProfileComponent implements OnInit {
     const pays = this.paysList.find(p => p.idPays === id);
     return pays ? pays.nom : '';
   }
-  
+
 
   loadUserDetails(): void {
-    // Supposons que accountService.currentUser() renvoie un UserDto complet incluant "societe"
+    this.globalLoaderService.showGlobalLoader();
+
     this.userDetails = this.accountService.currentUser();
     if (this.userDetails) {
       // Récupérer le pays sélectionné
@@ -102,10 +114,12 @@ export class UserProfileComponent implements OnInit {
       // Code téléphonique du pays (ex: "+216")
       const codeTel = country?.codeTel || '';
       let localNumber = this.userDetails.numTelephone || '';
+
       // Si le numéro commence par le code, le retirer
       if (codeTel && localNumber.startsWith(codeTel)) {
         localNumber = localNumber.substring(codeTel.length).trim();
       }
+
       // Mettre à jour le formulaire avec le numéro local
       this.userForm.patchValue({
         id: this.userDetails.id,
@@ -114,14 +128,16 @@ export class UserProfileComponent implements OnInit {
         email: this.userDetails.email,
         pays: this.userDetails.pays,
         role: this.userDetails.role,
-        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : 'Aucune société',
+        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.accountService.removeSpecial(this.userDetails.societe.nom) : this.accountService.removeSpecial('Aucune société'),
         numTelephone: localNumber,
         actif: this.userDetails.actif
       });
       this.selectedCountry = country;
     }
+
+    this.globalLoaderService.hideGlobalLoader();
   }
-  
+
 
   onSubmit(): void {
     if (!this.userForm.dirty) {
@@ -132,19 +148,44 @@ export class UserProfileComponent implements OnInit {
       this.toastr.error("Veuillez corriger les erreurs du formulaire.");
       return;
     }
+  
+    // Affiche le loader
+    this.loaderService.showLoader();
+  
     // Récupérer toutes les valeurs (même celles désactivées)
     const updatedUser: User = this.userForm.getRawValue();
+    updatedUser.firstName= this.accountService.removeSpecial(this.userForm.value.firstName);
+    updatedUser.lastName= this.accountService.removeSpecial(this.userForm.value.lastName);
+ 
+   
+    console.log(updatedUser);
+
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
-        this.userDetails = { ...this.userDetails, ...updatedUser };
+        // Conserver le token de l'utilisateur existant
+        const mergedUser: User = {
+          ...this.userDetails!,
+          ...updatedUser,
+          token: this.userDetails?.token || ''
+        };
+        
+  
+        // Mettre à jour le local storage et le signal
+        this.accountService.setCurrentUser(mergedUser);
+  
+        // Mettre à jour la variable locale
+        this.userDetails = mergedUser;
         this.toastr.success("Mise à jour effectuée avec succès.");
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error("Erreur lors de la mise à jour", error);
         this.toastr.error("Erreur lors de la mise à jour", error);
+        this.loaderService.hideLoader();
       }
     });
   }
+
 
   onCancel(): void {
     
@@ -156,13 +197,13 @@ export class UserProfileComponent implements OnInit {
         // Utilisez l'ID original et non le nom du pays :
         pays: this.userDetails.pays,
         role: this.userDetails.role,
-        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : 'Aucune société',
+        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : this.accountService.removeSpecial('Aucune société'),
         numTelephone: this.userDetails.numTelephone,
         actif: this.userDetails.actif
       });
     }
   }
-  
+
 
   togglePasswordVisibility(): void {
     this.passwordVisible = !this.passwordVisible;

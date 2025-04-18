@@ -1,36 +1,48 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
+using AutoMapper;
 using GestionTicketsAPI.DTOs;
+using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-  [Route("api/[controller]")]
   [ApiController]
-  [Authorize]
-  public class SocieteController : ControllerBase
+  //[Authorize]
+  public class SocieteController : BaseApiController
   {
     private readonly ISocieteService _societeService;
+    private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly IMapper _mapper;
 
-    public SocieteController(ISocieteService societeService)
+    public SocieteController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ISocieteService societeService)
     {
       _societeService = societeService;
+      _mapper = mapper;
+      _excelExportService = excelExportService;
     }
 
     // GET: api/Societe?searchTerm=...
-    [HttpGet]
-    public async Task<IActionResult> GetSocietes([FromQuery] string? searchTerm)
+    [HttpPost("search")]
+    public async Task<IActionResult> GetSocietes([FromBody] JsonElement body)
     {
+      // Tente de récupérer la propriété "searchTerm" depuis le corps JSON
+      string? searchTerm = body.TryGetProperty("searchTerm", out JsonElement searchTermProp)
+                           ? searchTermProp.GetString()
+                           : null;
+
       var societes = await _societeService.GetAllSocietesAsync(searchTerm);
       return Ok(societes);
     }
 
-  
+    // GET: api/Societe/paged?PageNumber=1&PageSize=10&SearchTerm=...
     [HttpPost("paged")]
     public async Task<ActionResult<PagedList<SocieteDto>>> GetSocietesPaged([FromBody] UserParams userParams)
     {
@@ -59,18 +71,29 @@ namespace GestionTicketsAPI.Controllers
       return Ok(societeDetails);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddSociete(SocieteDto societeDto)
-    {
-      // Vérifier si la société existe déjà (par exemple, sur la base du nom)
-      if (await _societeService.SocieteExists(societeDto.Nom))
-        return BadRequest("La société existe déjà");
 
-      var newSociete = await _societeService.AddSocieteAsync(societeDto);
-      return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
+
+    [HttpPost]
+    public async Task<IActionResult> AddSociete([FromBody] SocieteDto societe)
+    {
+            try
+            { 
+                //SocieteDto societe = JsonSerializer.Deserialize<SocieteDto>(societeDto.test);
+
+                if (await _societeService.SocieteExists(societe.Nom))
+                    return BadRequest("La société existe déjà");
+
+                var newSociete = await _societeService.AddSocieteAsync(societe);
+                return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Erreur : " + ex.Message);
+                return StatusCode(500, $"Une erreur est survenue : {ex.Message}");
+
+            }
     }
 
-    [HttpPut("{id}")]
+    [HttpPost("modif/{id}")]
     public async Task<IActionResult> UpdateSociete(int id, SocieteDto societeDto)
     {
       var updated = await _societeService.UpdateSocieteAsync(id, societeDto);
@@ -81,7 +104,7 @@ namespace GestionTicketsAPI.Controllers
 
 
     // DELETE: api/Societe/5
-    [HttpDelete("{id}")]
+    [HttpGet("delet/{id}")]
     public async Task<IActionResult> DeleteSociete(int id)
     {
       var deleted = await _societeService.DeleteSocieteAsync(id);
@@ -91,7 +114,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     // DELETE: api/Societe/supprimerSocietes
-    [HttpDelete("supprimerSocietes")]
+    [HttpGet("supprimerSocietes")]
     public async Task<IActionResult> DeleteSocietes([FromBody] List<int> ids)
     {
       if (ids == null || !ids.Any())
@@ -128,12 +151,37 @@ namespace GestionTicketsAPI.Controllers
       }
     }
 
-    [HttpDelete("{societeId}/users/{userId}")]
+    [HttpGet("{societeId}/delete/users/{userId}")]
     public async Task<IActionResult> DetachUser(int societeId, int userId)
     {
       if (await _societeService.DetachUserFromSocieteAsync(societeId, userId))
         return Ok("Utilisateur détaché de la société avec succès.");
       return BadRequest("Aucune association trouvée ou une erreur est survenue.");
+    }
+
+    [HttpPost("export")]
+    public async Task<IActionResult> ExportSocietes([FromBody] JsonElement body)
+    {
+      // Récupérer les propriétés "searchTerm" et "pays" depuis le corps JSON
+      string? searchTerm = body.TryGetProperty("searchTerm", out JsonElement searchTermProp)
+                           ? searchTermProp.GetString()
+                           : null;
+      string? pays = body.TryGetProperty("pays", out JsonElement paysProp)
+                     ? paysProp.GetString()
+                     : null;
+
+      // Récupérer les sociétés filtrées
+      var societes = await _societeService.GetAllSocietesAsync(searchTerm, pays);
+
+      // Mapper vers le DTO d'export
+      var societesExportDto = _mapper.Map<IEnumerable<SocieteExportDto>>(societes);
+
+      // Générer le fichier Excel
+      var content = _excelExportService.ExportToExcel(societesExportDto, "Societes");
+
+      return File(content,
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          $"SocietesExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
     }
   }
 }

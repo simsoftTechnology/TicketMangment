@@ -73,15 +73,13 @@
 
         <div class="form-group">
           <label for="societe">Société</label>
-          <select id="societe" formControlName="societe" class="form-control"
-            [class.is-invalid]="userForm.get('societe')?.touched && userForm.get('societe')?.invalid"
-            [disabled]="userForm.get('role')?.value !== 'Client'">
+          <select id="societe" formControlName="societeId" class="form-control">
             <option [ngValue]="null">Sélectionnez une société</option>
             <option *ngFor="let s of societesList" [ngValue]="s.id">
               {{ s.nom }}
             </option>
-          </select>
-        </div>        
+          </select>          
+        </div>                 
       </div>
 
       <div class="form-row">
@@ -129,7 +127,7 @@
             Numéro de téléphone est obligatoire
           </div>
           <div *ngIf="userForm.controls['numTelephone'].hasError('pattern')" class="invalid-feedback text-start">
-            Numéro de téléphone invalide (exemple :54 567 589)
+            Numéro de téléphone invalide (exemple : +216 54 567 589)
           </div>
         </div>        
       </div>
@@ -167,9 +165,16 @@
 
       <!-- Boutons -->
       <div class="button-group">
-        <button type="submit" class="btn-create">Sauvegarder</button>
+        <button type="submit" class="btn-create" [disabled]="userForm.invalid || isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">
+            Sauvegarder
+          </ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Sauvegarder
+          </ng-template>
+        </button>
         <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
-      </div>
+      </div>      
     </form>
   </div>
 
@@ -192,24 +197,25 @@
   <div *ngIf="activeTab === 'projets'" class="tab-pane">
     <table>
       <colgroup>
-        <col style="width: 32%;">
-        <col style="width: 32%;">
-        <col style="width: 32%;">
-        <col style="width: 4%;">
+        <col style="width: 25%;">
+        <col style="width: 35%;">
+        <col style="width: 15%;">
+        <col style="width: 15%;">
+        <col style="width: 10%;">
       </colgroup>
       <thead>
         <tr class="filter-row">
           <td colspan="1">
             <h3>Projets associés</h3>
           </td>
-          <td colspan="3">
+          <td colspan="4">
             <div class="search-wrapper">
               <button type="button" class="btn-create" (click)="openAttachProjectDialog()">Attacher</button>
             </div>
           </td>
         </tr>
         <tr class="filter-row">
-          <td colspan="4">
+          <td colspan="5">
             <div class="search-wrapper">
               <input type="text" class="search-input" placeholder="Rechercher un projet..."
                 [(ngModel)]="projectSearchTerm" (ngModelChange)="onProjectSearch()" />
@@ -333,9 +339,16 @@
           </div>
         </div>
         <div class="form-actions">
-          <button type="submit" class="btn-create" [disabled]="contratForm.invalid">Enregistrer</button>
+          <button type="submit" class="btn-create" [disabled]="contratForm.invalid || isLoading">
+            <ng-container *ngIf="!isLoading; else loadingTpl">
+              Enregistrer
+            </ng-container>
+            <ng-template #loadingTpl>
+              <span class="spinner"></span> Enregistrer
+            </ng-template>
+          </button>
           <button type="button" class="btn-cancel" (click)="cancelContrat()">Annuler</button>
-        </div>
+        </div>        
       </form>
     </div>
   </div>

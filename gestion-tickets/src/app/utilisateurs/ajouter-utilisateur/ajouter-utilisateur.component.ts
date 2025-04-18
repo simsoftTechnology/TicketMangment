@@ -21,7 +21,7 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
   selector: 'app-ajouter-utilisateur',
   imports: [CommonModule, ReactiveFormsModule, MatTooltipModule],
   templateUrl: './ajouter-utilisateur.component.html',
-  styleUrls: ['./ajouter-utilisateur.component.css']
+  styleUrls: ['./ajouter-utilisateur.component.scss']
 })
 export class AjouterUtilisateurComponent implements OnInit {
   registerForm: FormGroup;
@@ -43,7 +43,7 @@ export class AjouterUtilisateurComponent implements OnInit {
     private toastr: ToastrService,
     private router: Router,
     private loaderService: LoaderService,
-    private overlayModalService: OverlayModalService
+    private overlayModalService: OverlayModalService,
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -200,8 +200,8 @@ export class AjouterUtilisateurComponent implements OnInit {
       const userForRegister: any = {
         email: formValue.email,
         role: formValue.role.charAt(0).toUpperCase() + formValue.role.slice(1),
-        firstname: formValue.firstName,
-        lastname: formValue.lastName,
+        firstname: this.accountService.removeSpecial(formValue.firstName),
+        lastname: this.accountService.removeSpecial(formValue.lastName),
         numtelephone: fullPhoneNumber,
         pays: +formValue.pays,
         actif: formValue.actif,

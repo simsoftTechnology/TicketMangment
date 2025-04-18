@@ -1,6 +1,7 @@
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { map, Observable, from, throwError } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
 import { Ticket } from '../_models/ticket';
 import { PaginatedResult, Pagination } from '../_models/pagination';
 import { TicketUpdateDto } from '../_models/ticketUpdateDto';
@@ -8,6 +9,7 @@ import { TicketValidationDto } from '../_models/ticket-validation.dto';
 import { FinishTicketDto } from '../_models/finish-ticket-dto';
 import { environment } from '../../environment/environment';
 import { AccountService } from './account.service';
+import { TicketCreateDto } from '../_models/ticketCreateDto';
 
 @Injectable({
   providedIn: 'root'
@@ -21,94 +23,73 @@ export class TicketService {
   ) { }
 
   getPaginatedTickets(
-    pageNumber?: number,
-    pageSize?: number,
-    searchTerm?: string,
-    filterType?: string  // Nouveau paramètre optionnel
+    pageNumber: number,
+    pageSize: number,
+    filters: any
   ): Observable<PaginatedResult<Ticket[]>> {
-   
-  
-    // Récupération de l'utilisateur courant via AccountService
-    const currentUser = this.accountService.currentUser();
-   
     const params = {
-      pageNumber: pageNumber,
-      pageSize: pageSize,
-      searchTerm: searchTerm,
-      userId:currentUser?.id.toString(),
-      role:currentUser?.role
-     };
-    // Ajout du filtre s'il est précisé et si l'utilisateur est un chef de projet ou collaborateur
-    if (filterType && (currentUser?.role.toLowerCase() === 'chef de projet' || currentUser?.role.toLowerCase() === 'collaborateur')) {
-     
-      const params = {
-        pageNumber: pageNumber,
-        pageSize: pageSize,
-        searchTerm: searchTerm,
-        userId:currentUser?.id.toString(),
-        role:currentUser?.role,
-        filterType:filterType
+      pageNumber,
+      pageSize,
+      ...filters
+    };
   
-      };
-    }
-    return this.http.post<any>(this.baseUrl + '/paged', params, { observe: 'response' })
-    .pipe(
-      map((response: HttpResponse<any>) => {
-        // Now response.headers is available
-        const paginationHeader = response.headers.get('Pagination');
-        console.log('pagination get:', paginationHeader);
-        
-        const paginatedResult: PaginatedResult<Ticket[]> = {
-          items: response.body || [],
-          pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
-        };
-        return paginatedResult;
-      })
-    );
-
-   
-
-    // return this.http.get<Ticket[]>(this.baseUrl, { observe: 'response', params })
-    //   .pipe(
-    //     map((response: HttpResponse<any>) => {
-    //       const body = response.body;
-    //       const items = Array.isArray(body) ? body : body?.items ?? [];
-    //       const pagination = response.headers.get('Pagination')
-    //         ? JSON.parse(response.headers.get('Pagination')!)
-    //         : { currentPage: 1, pageSize: items.length, totalCount: items.length, totalPages: 1 };
-    //       const paginatedResult: PaginatedResult<Ticket[]> = {
-    //         items: items,
-    //         pagination: pagination
-    //       };
-    //       return paginatedResult;
-    //     })
-    //   );
+    return this.http.post<any>(`${this.baseUrl}/paged`, params, { observe: 'response' })
+      .pipe(
+        map(response => {
+          const paginationHeader = response.headers.get('Pagination');
+          const paginatedResult: PaginatedResult<Ticket[]> = {
+            items: response.body || [],
+            pagination: paginationHeader ? JSON.parse(paginationHeader) : {} as Pagination
+          };
+          return paginatedResult;
+        })
+      );
   }
-
 
   getTicket(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
-  createTicket(formData: FormData): Observable<Ticket> {
-    return this.http.post<Ticket>(this.baseUrl, formData);
+  // Convert file to base64 using a Promise; used internally by createTicket when needed.
+  convertFileToBase64(file: File): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = error => reject(error);
+    });
   }
 
+  // Create ticket returns an Observable.
+  createTicket(ticket: TicketCreateDto, file?: File): Observable<any> {
+    // If a file is provided, convert it to base64 and then post the ticket.
+    if (file) {
+      return from(this.convertFileToBase64(file)).pipe(
+        switchMap(base64 => {
+          ticket.attachmentBase64 = base64;
+          ticket.attachmentFileName = file.name;
+          return this.http.post(this.baseUrl, ticket);
+        }),
+        catchError(error => {
+          console.error("Erreur lors de la conversion du fichier", error);
+          return throwError(error);
+        })
+      );
+    } else {
+      return this.http.post(this.baseUrl, ticket);
+    }
+  }
+  
   updateTicket(id: number, ticket: TicketUpdateDto): Observable<any> {
     return this.http.put(`${this.baseUrl}/${id}`, ticket);
   }
 
 
-  deleteTicket(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
-  }
 
-  // Méthode pour supprimer plusieurs tickets (appel vers DELETE api/tickets/bulk)
-  deleteMultipleTickets(ticketIds: number[]): Observable<any> {
-    return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
-  }
-
-  // Pour la mise à jour avec attachment
+  // For updating with attachment.
   uploadAttachment(formData: FormData): Observable<{ secureUrl: string }> {
     return this.http.post<{ secureUrl: string }>(`${this.baseUrl}/upload`, formData);
   }
@@ -124,8 +105,13 @@ export class TicketService {
   updateResponsible(ticketId: number, responsibleDto: { responsibleId: number }): Observable<any> {
     return this.http.post(`${this.baseUrl}/updateResponsible/${ticketId}`, responsibleDto);
   }
-  getTicketCountByStatus() {
+
+  getTicketCountByStatus(): Observable<any[]> {
     return this.http.get<any[]>(`${this.baseUrl}/status-count`);
+  }
+
+  exportTickets(filters: any): Observable<Blob> {
+    return this.http.post(`${this.baseUrl}/export`, filters, { responseType: 'blob' });
   }
 
 }

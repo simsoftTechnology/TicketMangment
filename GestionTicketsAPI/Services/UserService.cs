@@ -84,49 +84,44 @@ namespace GestionTicketsAPI.Services
 
     // Ajout de la fonctionnalité de mise à jour d'un utilisateur
     public async Task<bool> UpdateUserAsync(UserUpdateDto userUpdateDto)
-    {
-      // Récupération complète de l'utilisateur (avec Role et SocieteUsers)
-      var userFromRepo = await _userRepository.GetUserByIdAsync(userUpdateDto.Id);
-      if (userFromRepo == null)
+{
+    // Récupération complète de l'utilisateur (avec Role et SocieteUsers)
+    var userFromRepo = await _userRepository.GetUserByIdAsync(userUpdateDto.Id);
+    if (userFromRepo == null)
         return false;
 
-      // Mapper les propriétés simples du DTO vers l'entité
-      _mapper.Map(userUpdateDto, userFromRepo);
+    // Mapper les propriétés simples du DTO vers l'entité existante
+    _mapper.Map(userUpdateDto, userFromRepo);
 
-      // Mise à jour du mot de passe s'il y a une nouvelle valeur
-      if (!string.IsNullOrWhiteSpace(userUpdateDto.NouveauPassword))
-      {
+    // Mise à jour du mot de passe s'il y a une nouvelle valeur
+    if (!string.IsNullOrWhiteSpace(userUpdateDto.NouveauPassword))
+    {
         CreatePasswordHash(userUpdateDto.NouveauPassword, out byte[] passwordHash, out byte[] passwordSalt);
         userFromRepo.PasswordHash = passwordHash;
         userFromRepo.PasswordSalt = passwordSalt;
-      }
+    }
 
-      // Gestion de la relation Société pour les clients
-      // Assurez-vous que le rôle est bien chargé (par exemple, via l'Include dans le repository)
-      if (userFromRepo.Role != null &&
-          userFromRepo.Role.Name.Equals("Client", StringComparison.OrdinalIgnoreCase))
-      {
+    // Gestion de la relation Société pour les clients
+    if (userFromRepo.Role != null &&
+        userFromRepo.Role.Name.Equals("Client", StringComparison.OrdinalIgnoreCase))
+    {
         // Vider la collection existante
         userFromRepo.SocieteUsers.Clear();
 
         // Si une nouvelle société est renseignée, l'ajouter
         if (userUpdateDto.SocieteId.HasValue)
         {
-          userFromRepo.SocieteUsers.Add(new SocieteUser
-          {
-            SocieteId = userUpdateDto.SocieteId.Value,
-            UserId = userFromRepo.Id
-          });
+            userFromRepo.SocieteUsers.Add(new SocieteUser
+            {
+                SocieteId = userUpdateDto.SocieteId.Value,
+                UserId = userFromRepo.Id
+            });
         }
-      }
-      // Pour les autres rôles, on ne fait pas de mise à jour de la relation société
-
-      _userRepository.Update(userFromRepo);
-      return await _userRepository.SaveAllAsync();
     }
 
-
-
+    _userRepository.Update(userFromRepo);
+    return await _userRepository.SaveAllAsync();
+}
 
     private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
     {
@@ -144,5 +139,13 @@ namespace GestionTicketsAPI.Services
       var users = await _userRepository.GetUsersByRoleAsync(roleName);
       return _mapper.Map<IEnumerable<UserDto>>(users);
     }
+
+    public async Task<IEnumerable<UserDto>> GetUsersFilteredAsync(UserParams userParams)
+    {
+      var users = await _userRepository.GetUsersFilteredAsync(userParams);
+      return _mapper.Map<IEnumerable<UserDto>>(users);
+    }
+
+
   }
 }

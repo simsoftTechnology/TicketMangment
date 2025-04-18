@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Route("api/[controller]")]
-  public class CommentairesController : ControllerBase
+  public class CommentairesController : BaseApiController
   {
     private readonly ICommentService _commentService;
 

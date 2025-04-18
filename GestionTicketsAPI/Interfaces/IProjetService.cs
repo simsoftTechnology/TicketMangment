@@ -7,10 +7,11 @@ namespace GestionTicketsAPI.Interfaces
   public interface IProjetService
   {
     Task<IEnumerable<ProjetDto>> GetProjetsAsync();
-    Task<PagedList<ProjetDto>> GetProjetsPagedAsync(UserParams projetParams);
+    Task<PagedList<ProjetDto>> GetProjetsPagedAsync(ProjectFilterParams filterParams);
+    Task<IEnumerable<ProjetDto>> GetProjetsFilteredAsync(ProjectFilterParams filterParams);
     Task<ProjetDto?> GetProjetByIdAsync(int id);
     Task<ProjetDto> AddProjetAsync(ProjetDto projetDto);
-    Task<bool> UpdateProjetAsync(int id, ProjetDto projetDto);
+    Task<bool> UpdateProjetAsync(int id, ProjetUpdateDto projetUpdateDto);
     Task<bool> DeleteProjetAsync(int id);
     Task<bool> DeleteProjetsAsync(List<int> ids);
     Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId);
