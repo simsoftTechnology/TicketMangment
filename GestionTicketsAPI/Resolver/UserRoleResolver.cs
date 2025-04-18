@@ -6,42 +6,42 @@ using GestionTicketsAPI.Entities;
 public class UserRoleResolver : IValueResolver<UserUpdateDto, User, Role>
 {
 
-  private readonly DataContext _context;
-
-  public UserRoleResolver(DataContext context)
-  {
-    _context = context ?? throw new ArgumentNullException(nameof(context));
-  }
-  public Role Resolve(UserUpdateDto source, User destination, Role destMember, ResolutionContext context)
-  {
-    int roleId = destination.RoleId; // valeur par défaut
-    // Normaliser la valeur reçue
-    var roleName = source.Role?.Trim().ToLower() ?? string.Empty;
-
-    switch (roleName)
+    private readonly DataContext _context;
+    
+    public UserRoleResolver(DataContext context)
     {
-      case "super admin":
-        roleId = 1;
-        break;
-      case "chef de projet":
-        roleId = 2;
-        break;
-      case "collaborateur":
-        roleId = 3;
-        break;
-      case "client":
-        roleId = 4;
-        break;
-      default:
-        // Conserver la valeur existante ou lever une exception
-        break;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
+    public Role Resolve(UserUpdateDto source, User destination, Role destMember, ResolutionContext context)
+    {
+        // Exemple de mapping statique, à adapter à votre logique
+        int roleId = destination.RoleId; // valeur par défaut
 
-    // Mettre à jour l'entité
-    destination.RoleId = roleId;
-    // Retourner le Role correspondant (pour la navigation)
-    var role = _context.Roles.Find(roleId);
-    return role;
-  }
+        switch(source.Role.ToLower())
+        {
+            case "Super Admin":
+                roleId = 1;
+                break;
+            case "Chef de Projet":
+                roleId = 2;
+                break;
+            case "Collaborateur":
+                roleId = 3;
+                break;
+            case "Client":
+                roleId = 4;
+                break;
+            default:
+                // Si aucun match n'est trouvé, vous pouvez décider de conserver la valeur existante
+                break;
+        }
 
+        // Mettre à jour RoleId dans l'entité
+        destination.RoleId = roleId;
+        
+        // Récupérer le Role depuis le DbContext : 
+        // Cela retourne l'instance déjà suivie (ou la récupère en base si ce n'est pas déjà en cache)
+        var role = _context.Roles.Find(roleId);
+        return role;
+    }
 }

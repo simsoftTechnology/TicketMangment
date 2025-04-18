@@ -6,6 +6,7 @@ import { NgIf } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { LoaderService } from '../../_services/loader.service';
 import { ToastrService } from 'ngx-toastr';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-ajouter-pays',
@@ -23,6 +24,7 @@ export class AjouterPaysComponent {
               public route: ActivatedRoute,
               private loaderService: LoaderService,
               private toastr: ToastrService,
+              private accountService:AccountService
             ) 
   {
     this.loaderService.isLoading$.subscribe((loading) => {
@@ -47,7 +49,7 @@ export class AjouterPaysComponent {
       return;
     }
   
-    const nom = this.paysForm.value.nom;
+    const nom = this.accountService.removeSpecial(this.paysForm.value.nom);
     const codeTel = this.paysForm.value.codeTel;
     this.loaderService.showLoader();
   

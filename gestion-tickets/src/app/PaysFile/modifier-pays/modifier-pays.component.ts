@@ -6,10 +6,11 @@ import { Pays } from '../../_models/pays';
 import { LoaderService } from '../../_services/loader.service';
 import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-modifier-pays',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, RouterLink, CommonModule],
   templateUrl: './modifier-pays.component.html',
   styleUrls: ['./modifier-pays.component.css']
 })
@@ -28,6 +29,7 @@ export class ModifierPaysComponent implements OnInit {
     public route: ActivatedRoute,
     private loaderService: LoaderService,
     private toastr: ToastrService,
+    private accountService: AccountService,
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
       this.isLoading = loading;
@@ -68,35 +70,36 @@ export class ModifierPaysComponent implements OnInit {
     const hasFileChanged = !!this.selectedFile;
   
     if (!hasNomChanged && !hasCodeTelChanged && !hasFileChanged) {
-      this.toastr.warning("Veuillez modifier au moins un champ.");
+      this.toastr.warning("veuillez modifier au moins un champs");
+  
     }
-  
-    const paysUpdateDto: any = {
-      nom: this.paysForm.value.nom || this.originalPays.nom,
-      codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
-    };
-  
-    const fileToSend = hasFileChanged ? this.selectedFile : undefined;
-    this.loaderService.showLoader();
-  
-    // Utiliser await pour récupérer l'observable
-    const updateObservable = await this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend);
-    updateObservable.subscribe(() => {
-      this.loaderService.hideLoader();
-      this.toastr.success("Pays mis à jour avec succéss");
-      this.router.navigate(['/home/Pays']);
+    else{
+
+      const paysUpdateDto: any = {
+        nom: this.accountService.removeSpecial(this.paysForm.value.nom) || this.accountService.removeSpecial(this.originalPays.nom),
+        codeTel: this.paysForm.value.codeTel || this.originalPays.codeTel
+      };
+    
+      const fileToSend = hasFileChanged ? this.selectedFile : undefined;
+      this.loaderService.showLoader();
+    
+      // Utiliser await pour récupérer l'observable
+      const updateObservable = await this.paysService.updatePays(this.paysId, paysUpdateDto, fileToSend);
+      updateObservable.subscribe((res) => {
+        this.loaderService.hideLoader();
+        this.toastr.success("Pays mis à jour avec succéss");
+        this.router.navigate(['/home/Pays']);
+      },
+    
+    (error)=>{
+      console.log(error);
+      
+      this.toastr.error("Erreur se produit", error);
     });
-  }
-  onCancel(): void {
-    if (this.originalPays) {
-      // Réinitialise le formulaire avec les valeurs originales
-      this.paysForm.reset({
-        nom: this.originalPays.nom,
-        codeTel: this.originalPays.codeTel,
-        file: null 
-      });
-      this.selectedFile = undefined;
     }
+  }
+  annuler(){
+    this.paysForm.patchValue({ nom: this.originalPays?.nom.trim() ,  codeTel : this.originalPays?.codeTel.trim() });
   }
   
 }

@@ -33,4 +33,5 @@ public class Ticket
 
     public string? CompletionComment { get; set; }
     public int? HoursSpent { get; set; }
+    public DateTime? FinishedAt { get; set; }
 }

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, 
 import { User } from '../_models/user';
 import { AccountService } from '../_services/account.service';
 import { PaysService } from '../_services/pays.service';
+import { SocieteService } from '../_services/societe.service';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -54,9 +55,8 @@ export class UserProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    
-    this.initForm();
     this.globalLoaderService.showGlobalLoader();
+    this.initForm();
     // Charger la liste des pays avant de charger l'utilisateur
     this.paysService.getPays().subscribe({
       next: (pays) => {
@@ -128,7 +128,7 @@ export class UserProfileComponent implements OnInit {
         email: this.userDetails.email,
         pays: this.userDetails.pays,
         role: this.userDetails.role,
-        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : 'Aucune société',
+        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.accountService.removeSpecial(this.userDetails.societe.nom) : this.accountService.removeSpecial('Aucune société'),
         numTelephone: localNumber,
         actif: this.userDetails.actif
       });
@@ -154,7 +154,12 @@ export class UserProfileComponent implements OnInit {
   
     // Récupérer toutes les valeurs (même celles désactivées)
     const updatedUser: User = this.userForm.getRawValue();
+    updatedUser.firstName= this.accountService.removeSpecial(this.userForm.value.firstName);
+    updatedUser.lastName= this.accountService.removeSpecial(this.userForm.value.lastName);
+ 
+   
     console.log(updatedUser);
+
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         // Conserver le token de l'utilisateur existant
@@ -180,9 +185,10 @@ export class UserProfileComponent implements OnInit {
       }
     });
   }
-  
+
 
   onCancel(): void {
+    
     if (this.userDetails) {
       this.userForm.patchValue({
         lastName: this.userDetails.lastName,
@@ -191,7 +197,7 @@ export class UserProfileComponent implements OnInit {
         // Utilisez l'ID original et non le nom du pays :
         pays: this.userDetails.pays,
         role: this.userDetails.role,
-        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : 'Aucune société',
+        societe: this.userDetails.societe && this.userDetails.societe.nom ? this.userDetails.societe.nom : this.accountService.removeSpecial('Aucune société'),
         numTelephone: this.userDetails.numTelephone,
         actif: this.userDetails.actif
       });

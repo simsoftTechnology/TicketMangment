@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { TicketService } from '../../_services/ticket.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -23,11 +23,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
 @Component({
   selector: 'app-list-tickets',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    RouterLink,
-    TicketFilterComponent,
+  imports: [CommonModule, FormsModule, RouterLink, TicketFilterComponent,
     MatMenuModule,
     MatIconModule,
     MatButtonModule,
@@ -36,6 +32,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
   styleUrls: ['./list-tickets.component.css']
 })
 export class ListTicketsComponent implements OnInit {
+
   currentUser: User | null = null;
   pageNumber: number = 1;
   pageSize: number = 9;
@@ -52,12 +49,9 @@ export class ListTicketsComponent implements OnInit {
   statuses: { id: number, name: string }[] = [];
 
   baseRoute: string = '/home/Tickets'; 
-  filterVisible: boolean = false;
-  
-  // Variables de chargement spécifiques
-  isExportLoading: boolean = false;
-  isDeleteMultipleLoading: boolean = false;
 
+  filterVisible: boolean = false;
+  isLoading: boolean = false;
   constructor(
     private ticketService: TicketService,
     private route: ActivatedRoute,
@@ -71,13 +65,10 @@ export class ListTicketsComponent implements OnInit {
     private loaderService: LoaderService,
     private globalLoaderService: GlobalLoaderService
   ) {
-    // Ici, nous n'utilisons plus de variable globale "isLoading" pour les actions spécifiques
     this.loaderService.isLoading$.subscribe((loading) => {
-      // Vous pouvez toujours utiliser la gestion globale si nécessaire,
-      // mais pour les boutons, nous utilisons nos variables spécifiques
+      this.isLoading = loading;
     });
   }
-  
   ngOnInit(): void {
     // Récupérer le filtre passé par la route
     this.route.data.subscribe(data => {
@@ -90,17 +81,20 @@ export class ListTicketsComponent implements OnInit {
       this.getTickets();
     });
     
+
     this.currentUser = this.accountService.currentUser();
     this.loadQualifications();
     this.loadPriorities();
     this.loadStatuses();
 
-    // Gestion du paramètre newTicket
+    // Si un ticket vient d'être ajouté, gérer l'affichage du nouveau ticket (paramètre newTicket)
     this.route.queryParams.subscribe(params => {
       const newTicket = params['newTicket'];
       if (newTicket) {
         this.newTicketId = +newTicket;
+        // Actualiser la liste
         this.getTickets();
+        // Réinitialiser l'URL pour retirer le paramètre newTicket
         this.router.navigate([], {
           queryParams: { newTicket: null },
           queryParamsHandling: 'merge',
@@ -141,31 +135,35 @@ export class ListTicketsComponent implements OnInit {
     // Afficher le loader global avant le début de la requête
     this.globalLoaderService.showGlobalLoader();
     
-    this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, filters)
-      .subscribe({
-        next: (response) => {
-          const updatedItems = (response.items ?? []).map(ticket => {
-            ticket.createdAt = new Date(ticket.createdAt);
-            if (ticket.updatedAt) {
-              ticket.updatedAt = new Date(ticket.updatedAt);
-            }
-            return { ...ticket, selected: ticket.selected ?? false };
-          });
-          this.paginatedResult = {
-            items: updatedItems,
-            pagination: response.pagination
-          };
-        },
-        error: (error) => {
-          console.error("Erreur lors du chargement des tickets", error);
-          this.toastr.error("Erreur lors du chargement des tickets");
-        },
-        complete: () => {
-          // Masquer le loader global une fois terminé
-          this.globalLoaderService.hideGlobalLoader();
-        }
-      });
+    this.ticketService.getPaginatedTickets(
+      this.pageNumber,
+      this.pageSize,
+      filters
+    ).subscribe({
+      next: (response) => {
+        const updatedItems = (response.items ?? []).map(ticket => {
+          ticket.createdAt = new Date(ticket.createdAt);
+          if (ticket.updatedAt) {
+            ticket.updatedAt = new Date(ticket.updatedAt);
+          }
+          return { ...ticket, selected: ticket.selected ?? false };
+        });
+        this.paginatedResult = {
+          items: updatedItems,
+          pagination: response.pagination
+        };
+      },
+      error: (error) => {
+        console.error("Erreur lors du chargement des tickets", error);
+        this.toastr.error("Erreur lors du chargement des tickets");
+      },
+      complete: () => {
+        // Masquer le loader global une fois l'opération terminée
+        this.globalLoaderService.hideGlobalLoader();
+      }
+    });
   }
+  
 
   onSearchChange(): void {
     this.pageNumber = 1;
@@ -199,43 +197,13 @@ export class ListTicketsComponent implements OnInit {
     }
   }
 
-  // Suppression en masse des tickets avec confirmation et loader dédié
-  deleteSelectedTickets(): void {
-    const selectedIds = (this.paginatedResult?.items ?? [])
-      .filter(ticket => ticket.selected)
-      .map(ticket => ticket.id);
 
-    if (selectedIds.length === 0) {
-      this.toastr.warning("Aucun ticket sélectionné pour la suppression.");
-      return;
-    }
 
-    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
-    modalInstance.message = "Êtes-vous sûr de vouloir supprimer les tickets sélectionnés ?";
-
-    modalInstance.confirmed.subscribe(() => {
-      this.isDeleteMultipleLoading = true;
-      this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
-        next: () => {
-          this.toastr.success("Tickets supprimés avec succès.");
-          this.getTickets();
-          this.isDeleteMultipleLoading = false;
-        },
-        error: error => {
-          console.error("Erreur lors de la suppression des tickets", error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
-          this.isDeleteMultipleLoading = false;
-        }
-      });
-      this.overlayModalService.close();
-    });
-
-    modalInstance.cancelled.subscribe(() => {
-      this.overlayModalService.close();
-    });
+  // Méthode utilitaire pour l'affichage de la pagination
+  range(start: number, end: number): number[] {
+    return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
 
-  // Méthodes utilitaires pour l'affichage des labels et classes des priorités, qualifications et statuts
   getPriorityClass(priorityId: number): string {
     switch (priorityId) {
       case 1: return 'priority-urgent';
@@ -261,20 +229,20 @@ export class ListTicketsComponent implements OnInit {
     return found ? found.name : '';
   }
 
-  toggleFilterPanel(): void {
+  toggleFilterPanel() {
     this.filterVisible = !this.filterVisible;
   }
 
-  onApplyFilter(filterValues: any): void {
+  onApplyFilter(filterValues: any) {
     this.currentFilters = filterValues;
     this.pageNumber = 1;
     this.getTickets();
   }
   
-  // Export des tickets avec variable de chargement dédiée
+
   exportTickets(): void {
-    // Active le loader spécifique pour l'export
-    this.isExportLoading = true;
+    // Active le loader
+    this.loaderService.showLoader();
     this.ticketService.exportTickets(this.currentFilters).subscribe({
       next: (fileBlob: Blob) => {
         const objectUrl = URL.createObjectURL(fileBlob);
@@ -283,19 +251,15 @@ export class ListTicketsComponent implements OnInit {
         a.download = `TicketsExport_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(objectUrl);
-        // Désactive le loader spécifique après l'export
-        this.isExportLoading = false;
+        // Désactive le loader après l'export
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error("Erreur lors de l'export des tickets", err);
         this.toastr.error("Erreur lors de l'export des tickets");
         // Désactive le loader même en cas d'erreur
-        this.isExportLoading = false;
+        this.loaderService.hideLoader();
       }
     });
-  }
-
-  range(start: number, end: number): number[] {
-    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 }

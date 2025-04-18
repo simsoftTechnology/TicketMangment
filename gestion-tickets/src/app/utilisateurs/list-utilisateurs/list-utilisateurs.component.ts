@@ -19,9 +19,9 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
     selector: 'app-list-utilisateurs',
     imports: [NgFor, NgIf, NgClass, FormsModule, RouterLink, CommonModule,
       MatMenuModule,
-      MatIconModule,
-      MatButtonModule,
-      UserFilterComponent
+    MatIconModule,
+    MatButtonModule,
+    UserFilterComponent
     ],
     templateUrl: './list-utilisateurs.component.html',
     styleUrls: ['./list-utilisateurs.component.css']
@@ -39,11 +39,7 @@ export class ListUtilisateursComponent implements OnInit {
   filterParams: any = {};
 
   newUserId: number | null = null;
-
-  // Variables de chargement spécifiques
-  isExportLoading: boolean = false;
-  isDeleteLoading: boolean = false;
-
+  isLoading: boolean = false;
   constructor(
     public accountService: AccountService,
     private route: ActivatedRoute,
@@ -53,12 +49,10 @@ export class ListUtilisateursComponent implements OnInit {
     private loaderService: LoaderService,
     private globalLoaderService: GlobalLoaderService
   ) {
-    // Vous pouvez toujours conserver la souscription globale si nécessaire,
-    // mais ici nous gérons les loaders spécifiques par action.
-    // this.loaderService.isLoading$.subscribe((loading) => {
-    //   this.isLoading = loading;
-    // });
-  } 
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   } 
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
@@ -88,6 +82,7 @@ export class ListUtilisateursComponent implements OnInit {
 
   getUsers(): void {
     this.globalLoaderService.showGlobalLoader();
+    // Combinez la recherche globale et les filtres avancés
     const searchTerm = this.usersSearchTerm || '';
     this.accountService.getUsers(this.pageNumber, this.pageSize, searchTerm, this.filterParams)
       .subscribe({
@@ -180,22 +175,18 @@ export class ListUtilisateursComponent implements OnInit {
     return Array(end - start + 1).fill(0).map((_, i) => start + i);
   }
 
-  // Suppression d'un utilisateur avec confirmation
   deleteUser(user: User): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = `Voulez-vous vraiment supprimer l'utilisateur ${user.firstName} ${user.lastName} ?`;
   
     modalInstance.confirmed.subscribe(() => {
-      this.isDeleteLoading = true;
       this.accountService.deleteUser(user.id).subscribe({
         next: () => {
           this.toastr.success('Utilisateur supprimé avec succès.');
           this.getUsers();
-          this.isDeleteLoading = false;
         },
         error: error => {
           console.error("Erreur lors de la suppression de l'utilisateur", error);
-          this.isDeleteLoading = false;
         }
       });
       this.overlayModalService.close();
@@ -206,10 +197,12 @@ export class ListUtilisateursComponent implements OnInit {
     });
   }
 
-  // Export des utilisateurs avec variable de chargement dédiée
   exportUsers(): void {
     const searchTerm = this.usersSearchTerm || '';
-    this.isExportLoading = true;
+    
+    // Afficher le loader
+    this.loaderService.showLoader();
+  
     this.accountService.exportUsers(searchTerm, this.filterParams)
       .subscribe({
         next: (blob: Blob) => {
@@ -219,12 +212,16 @@ export class ListUtilisateursComponent implements OnInit {
           a.download = `UsersExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
           a.click();
           window.URL.revokeObjectURL(url);
-          this.isExportLoading = false;
+          // Masquer le loader
+          this.loaderService.hideLoader();
         },
         error: error => {
           console.error("Erreur lors de l'export Excel des utilisateurs", error);
-          this.isExportLoading = false;
+          // Masquer le loader en cas d'erreur
+          this.loaderService.hideLoader();
         }
       });
   }  
+  
 }
+

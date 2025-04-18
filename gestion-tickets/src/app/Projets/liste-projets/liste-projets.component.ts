@@ -15,14 +15,12 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ProjetFilterComponent } from '../../_filters/projet-filter/projet-filter.component';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
   selector: 'app-liste-projets',
-  imports: [
-    NgFor,
-    NgIf,
-    FormsModule,
-    RouterLink,
+  imports: [NgFor, NgIf, FormsModule, RouterLink,
     MatMenuModule,
     MatIconModule,
     MatButtonModule,
@@ -38,54 +36,63 @@ export class ListeProjetsComponent implements OnInit {
   jumpPage!: number;
   projetsSearchTerm: string = '';
 
+  // Ajout de la propriété currentFilters
   currentFilters: any = {};
-
-  // Variables de chargement spécifiques pour chaque action
-  isExportLoading: boolean = false;
-  isDeleteLoading: boolean = false;
-  isDeleteMultipleLoading: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     private projetsService: ProjetService,
     public accountService: AccountService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
-    private toastr: ToastrService
-  ) {}
+    private toastr: ToastrService,
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
-    this.route.data.subscribe(() => {
+    this.route.data.subscribe(data => {
       this.getProjets();
     });
   }
 
   onSearchChange(): void {
+    // Réinitialise la pagination (page 1)
     this.pageNumber = 1;
     this.getProjets();
   }
 
   getProjets(): void {
+    this.globalLoaderService.showGlobalLoader();
+    
     const filters = { 
       ...this.currentFilters, 
       searchTerm: this.projetsSearchTerm,
       role: this.accountService.currentUser()?.role,
       userId: this.accountService.currentUser()?.id
     };
-
+  
     this.projetsService.getPaginatedProjets(this.pageNumber, this.pageSize, filters.searchTerm, filters)
       .subscribe({
         next: (response) => {
           this.paginatedResult = response;
+          this.globalLoaderService.hideGlobalLoader();
         },
         error: (error) => {
+          this.globalLoaderService.hideGlobalLoader();
           console.error('Erreur lors du chargement des projets paginés', error);
           this.toastr.error('Erreur lors du chargement des projets paginés');
         }
       });
   }
+  
 
-  // Getter qui filtre la liste actuelle en fonction de la recherche
+  // Getter qui applique le filtre sur la liste des projets de la page actuelle
   get filteredProjets(): Projet[] {
     const projets = this.paginatedResult?.items || [];
     if (!this.projetsSearchTerm.trim()) {
@@ -115,22 +122,23 @@ export class ListeProjetsComponent implements OnInit {
     }
   }
 
-  // Suppression d'un seul projet avec confirmation via modal
+  // Suppression d'un projet via le modal de confirmation
   deleteProjet(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer ce projet ?";
 
     modalInstance.confirmed.subscribe(() => {
-      this.isDeleteLoading = true;
+      this.loaderService.showLoader();
       this.projetsService.deleteProjet(id).subscribe({
         next: () => {
           this.toastr.success("Projet supprimé avec succès");
           this.getProjets();
-          this.isDeleteLoading = false;
+          this.loaderService.hideLoader();
         },
         error: (err) => {
           console.error("Erreur lors de la suppression du projet", err);
-          this.isDeleteLoading = false;
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
         }
       });
       this.overlayModalService.close();
@@ -157,7 +165,7 @@ export class ListeProjetsComponent implements OnInit {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
-  // Suppression en masse des projets sélectionnés avec confirmation via modal
+  // Suppression en masse des projets via le modal de confirmation
   deleteSelectedProjects(): void {
     const projets = this.paginatedResult?.items || [];
     const selectedIds = projets.filter(projet => projet.selected).map(projet => projet.id);
@@ -171,15 +179,16 @@ export class ListeProjetsComponent implements OnInit {
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les projets sélectionnés ?";
 
     modalInstance.confirmed.subscribe(() => {
-      this.isDeleteMultipleLoading = true;
+      this.loaderService.showLoader();
       this.projetsService.deleteSelectedProjets(selectedIds).subscribe({
         next: () => {
           this.toastr.success("Les projets sélectionnés ont été supprimés avec succès.");
           this.getProjets();
-          this.isDeleteMultipleLoading = false;
+          this.loaderService.hideLoader();
         },
         error: error => {
-          this.isDeleteMultipleLoading = false;
+          this.toastr.error("Erreur lors de la suppression");
+          this.loaderService.hideLoader();
         }
       });
       this.overlayModalService.close();
@@ -192,13 +201,13 @@ export class ListeProjetsComponent implements OnInit {
 
   onApplyFilter(filters: any): void {
     this.currentFilters = filters;
-    this.pageNumber = 1;
+    this.pageNumber = 1; // Réinitialiser la pagination
     this.getProjets();
   }
+  
 
-  // Export des projets en Excel
   exportProjets(): void {
-    this.isExportLoading = true;
+    this.loaderService.showLoader();
     this.projetsService.exportProjets(this.currentFilters).subscribe({
       next: (fileBlob: Blob) => {
         const objectUrl = URL.createObjectURL(fileBlob);
@@ -207,12 +216,12 @@ export class ListeProjetsComponent implements OnInit {
         a.download = `ProjetsExport_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(objectUrl);
-        this.isExportLoading = false;
+        this.loaderService.hideLoader();
       },
       error: (err) => {
         console.error("Erreur lors de l'export des projets", err);
         this.toastr.error("Erreur lors de l'export des projets");
-        this.isExportLoading = false;
+        this.loaderService.hideLoader();
       }
     });
   }

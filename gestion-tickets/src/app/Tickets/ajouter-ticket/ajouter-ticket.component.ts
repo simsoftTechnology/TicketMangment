@@ -299,8 +299,8 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
 
     const currentUser = this.accountService.currentUser();
     const ticket: TicketCreateDto = {
-      title: this.addTicketForm.get('title')?.value,
-      description: cleanedDescription,
+      title: this.accountService.removeAccents(this.addTicketForm.get('title')?.value),
+      description: this.accountService.removeSpecial(cleanedDescription),
       qualificationId: +this.addTicketForm.get('qualificationId')?.value,
       priorityId: +this.addTicketForm.get('priorityId')?.value,
       problemCategoryId: +this.addTicketForm.get('problemCategoryId')?.value,

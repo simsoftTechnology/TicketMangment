@@ -86,7 +86,7 @@ namespace GestionTicketsAPI.Controllers
 
 
     // PUT : api/CategorieProbleme/5
-    [HttpPatch("{id}")]
+    [HttpPost("put/{id}")]
     public async Task<IActionResult> UpdateCategorie(int id, [FromBody] CategorieProbleme categorie)
     {
       if (categorie == null || categorie.Id != id)

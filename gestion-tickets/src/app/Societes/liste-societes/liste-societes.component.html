@@ -8,7 +8,7 @@
 
   <table>
     <thead>
-      <!-- Ligne de filtres -->
+      <!-- Ligne de filtres (optionnelle) -->
       <tr class="filter-row">
         <td colspan="3">
           <div class="search-wrapper">
@@ -24,18 +24,18 @@
         </td>
         <td class="checkbox-column"></td>
         <td colspan="3" class="filter-actions">
-          <!-- Bouton d'export avec chargement spécifique -->
-          <button class="export-btn" (click)="exportSocietes()" [disabled]="isExportLoading">
-            <ng-container *ngIf="!isExportLoading; else loadingExportTpl">
+          <button class="export-btn" (click)="exportSocietes()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingExportTpl">
               <span class="material-icons">download</span> Export Excel
             </ng-container>
             <ng-template #loadingExportTpl>
               <span class="spinner"></span> Export Excel
             </ng-template>
-          </button>
+          </button>          
           <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>
+      
           <!-- Définition du matMenu contenant le composant de filtre basé sur le pays -->
           <mat-menu #filterMenu="matMenu" class="societe-filter-menu" disableClose>
             <div>
@@ -57,15 +57,14 @@
         <th>Adresse</th>
         <th>Téléphone</th>
         <th class="actions">
-          <!-- Bouton de suppression en masse avec variable de chargement spécifique -->
-          <button class="delete-btn" (click)="deleteSelectedSocietes()" [disabled]="isDeleteMultipleLoading">
-            <ng-container *ngIf="!isDeleteMultipleLoading; else loadingBulkDeleteTpl">
+          <button class="delete-btn" (click)="deleteSelectedSocietes()" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingBulkDeleteTpl">
               <span class="material-icons">delete</span>
             </ng-container>
             <ng-template #loadingBulkDeleteTpl>
               <span class="spinner"></span>
             </ng-template>
-          </button>
+          </button>          
         </th>
       </tr>
     </thead>
@@ -81,7 +80,7 @@
                 [id]="'societe' + i"
                 class="custom-checkbox"
                 [(ngModel)]="societe.selected"
-              >
+              />
               <label [for]="'societe' + i" class="checkbox-label"></label>
             </div>
           </td>
@@ -93,15 +92,14 @@
             <button class="edit-btn" [routerLink]="['/home', 'Societes', 'modifierSociete', societe.id]">
               <span class="material-icons">edit</span>
             </button>
-            <!-- Bouton de suppression individuel avec variable de chargement spécifique -->
-            <button class="delete-btn" (click)="deleteSociete(societe.id)" [disabled]="isDeleteLoading">
-              <ng-container *ngIf="!isDeleteLoading; else loadingDeleteTpl">
+            <button class="delete-btn" (click)="deleteSociete(societe.id)" [disabled]="isLoading">
+              <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
                 <span class="material-icons">delete</span>
               </ng-container>
               <ng-template #loadingDeleteTpl>
                 <span class="spinner"></span>
               </ng-template>
-            </button>
+            </button>            
           </td>
         </tr>
       </ng-container>
@@ -109,7 +107,7 @@
       <!-- Aucun résultat -->
       <ng-template #noSocietes>
         <tr>
-          <td colspan="7">
+          <td colspan="4">
             <div class="no-content">
               <span class="icon">✕</span>
               <p>Aucune société trouvée</p>
@@ -117,10 +115,10 @@
           </td>
         </tr>
       </ng-template>
-
+      
       <!-- Pagination -->
       <tr>
-        <td colspan="7">
+        <td colspan="6">
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de
@@ -132,7 +130,7 @@
                   (paginatedResult?.pagination?.totalItems || 0)
                   ? (paginatedResult?.pagination?.totalItems || 0)
                   : ((paginatedResult?.pagination?.currentPage || 1) *
-                  (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
+                     (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
               sur {{ paginatedResult?.pagination?.totalItems || 0 }} résultats
             </div>
             <div class="per-page-selector">
@@ -148,8 +146,8 @@
               </button>
 
               <input type="number" [(ngModel)]="jumpPage" (keyup.enter)="jumpToPage()"
-                     [max]="paginatedResult?.pagination?.totalPages ?? 1" min="1" class="page-input">
-              
+                     [max]="paginatedResult?.pagination?.totalPages ?? 1" min="1" class="page-input" />
+
               <span class="total-pages">
                 / {{ paginatedResult?.pagination?.totalPages || 1 }}
               </span>

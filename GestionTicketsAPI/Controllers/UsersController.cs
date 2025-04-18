@@ -67,7 +67,7 @@ namespace GestionTicketsAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new { errors = new string[] { ex.Message } });
+                return BadRequest(ex.Message);
 
             }
     }
@@ -91,7 +91,7 @@ namespace GestionTicketsAPI.Controllers
 
 
     [HttpPost("{id:int}")]
-    public async Task<ActionResult> UpdateUser(int id, [FromBody] UserUpdateDto userUpdateDto)
+    public async Task<ActionResult<PagedList<UserUpdateDto>>> UpdateUser(int id, [FromBody] UserUpdateDto userUpdateDto)
     {
       if (id != userUpdateDto.Id)
         return BadRequest("L'ID de l'URL ne correspond pas à celui du body.");
@@ -100,7 +100,7 @@ namespace GestionTicketsAPI.Controllers
       if (!result)
         return NotFound("Utilisateur non trouvé.");
 
-      return NoContent();
+      return Ok(result);
     }
 
 

@@ -13,12 +13,10 @@ namespace GestionTicketsAPI.Services
   {
     private readonly IAccountRepository _accountRepository;
     private readonly ISocieteRepository _societeRepository;
-    private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly IMapper _mapper;
 
     public AccountService(
-        IUserRepository userRepository,
         IAccountRepository accountRepository,
         ISocieteRepository societeRepository,
         ITokenService tokenService,
@@ -26,7 +24,6 @@ namespace GestionTicketsAPI.Services
     {
       _accountRepository = accountRepository;
       _societeRepository = societeRepository;
-      _userRepository = userRepository;
       _tokenService = tokenService;
       _mapper = mapper;
     }
@@ -123,33 +120,9 @@ namespace GestionTicketsAPI.Services
 
       var userDto = _mapper.Map<UserDto>(user);
       userDto.Token = _tokenService.CreateToken(user);
-
+      
 
       return userDto;
     }
-
-    public async Task SaveResetTokenAsync(int userId, string token, DateTime expires)
-    {
-      // Récupérer l'utilisateur concerné
-      var user = await _userRepository.GetUserByIdAsync(userId);
-      if (user == null)
-        throw new Exception("Utilisateur non trouvé.");
-
-      user.PasswordResetToken = token;
-      user.PasswordResetTokenExpires = expires;
-
-      // Sauvegarder les modifications dans la base de données.
-      if (!await _accountRepository.SaveAllAsync())
-        throw new Exception("Erreur lors de la sauvegarde du token.");
-    }
-    public async Task<User> GetUserByResetTokenAsync(string token)
-    {
-      // Vous devez ajouter une méthode dans votre repository pour rechercher un utilisateur par token.
-      var user = await _accountRepository.GetUserByResetTokenAsync(token);
-
-      return user;
-    }
-
-
   }
 }

@@ -125,37 +125,109 @@ namespace GestionTicketsAPI.Controllers
       var chefProjet = ticketFromDb.Projet?.ChefProjet;
       if (chefProjet != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{chefProjet.FirstName} {chefProjet.LastName}",
-            chefProjet.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {chefProjet.FirstName} {chefProjet.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}) pour le projet '{ticketFromDb.Projet.Nom}'."
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                    $"{chefProjet.FirstName} {chefProjet.LastName}",
+                    chefProjet.Email,
+                    "Nouveau ticket créé",
+                      $@"
+                        < html >
+                        < body style = 'font-family: Arial, sans-serif; color: #333; font-size: 14px;' >
+                        < h3 style = 'color: #2c3e50;' > Nouveau ticket de support </ h3 >
+
+
+                        < p > Bonjour {chefProjet.FirstName} {chefProjet.LastName},</ p >
+
+                        < p >                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.                </ p >
+
+                        < p >                    Une nouvelle Ticket a été créée par M./ Mme { ticket.Owner.FirstName}                { ticket.Owner.LastName}.      </ p >
+
+                        < p >    Vous pouvez consulter ce ticket à tout moment ici :   < a href = 'https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style = 'color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;' > Ticket N° { ticket.Id}     </ a >    </ p >
+
+                        < ul >
+                            < li >< strong > Sujet :</ strong > { ticket.Title}</ li >
+                            < li >< strong > Projet :</ strong > { ticketFromDb.Projet.Nom}</ li >
+                            < li >< strong > Statut :</ strong > Ouvert </ li >
+                        </ ul >
+
+                        < p style = 'margin-top: 20px;' >   Nous restons à votre disposition pour toute information complémentaire.  </ p >
+
+                        < p > Cordialement, </ p >
+
+                        < p >< strong > Support Technique </ strong > </ p >
+
+                        < p > SIMSOFT TECHNOLOGIES </ p >
+
+
+                        </ body >
+                        </ html > "
         ));
       }
+           
+
+
 
       var client = ticketFromDb.Owner;
       if (client != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{client.FirstName} {client.LastName}",
-            client.Email,
-            "Confirmation de création de ticket",
-            $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-            $"Votre ticket intitulé '{ticket.Title}' (n° {ticket.Id}) a été créé avec succès. Nous vous remercions pour votre confiance."
-        ));
-      }
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+             $"{client.FirstName} {client.LastName}",
+             client.Email,
+             "Nouveau ticket créé",
+             $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+
+                <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                <p>
+                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.
+                </p>
+
+                <p>
+                    Une nouvelle Ticket a été créée par M./Mme {ticket.Owner.FirstName} {ticket.Owner.LastName}.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici : <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticketFromDb.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Ouvert</li>
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+    
+                </body>
+                </html>
+             "
+         ));
+            }
 
       var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
       foreach (var admin in superAdmins)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}). Veuillez vérifier les détails dans l'application."
-        ));
+        //BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+        //    $"{admin.FirstName} {admin.LastName}",
+        //    admin.Email,
+        //    "Nouveau ticket créé",
+        //    $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
+        //    $"Le client {ticket.Owner.FirstName} {ticket.Owner.LastName} a créé un nouveau ticket <br><br>" +
+        //    $"intitulé : {ticket.Title} <br><br>" +
+        //    $"N° :{ticket.Id}). <br><br>" +
+        //    $" Veuillez vérifier les détails dans l'application.< br >< br >" +
+        //    $"Cordialement.< br >< br >" +
+        //     $"SIMSOFT TECHNOLOGIES"
+        //));
       }
 
       var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
@@ -202,8 +274,37 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket accepté",
-              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-              $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été accepté."
+               $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3>Support Technique </h3>  
+
+                <p>Bonjour {client.FirstName} {client.LastName},</p> 
+
+                <p>                    Ceci est une notification de validation de ticket de support .                </p>
+
+                <p>                    Votre ticket a été accepté avec succée.                </p>
+
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> En cours</li>
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+                </body>
+                </html>
+                "
+             
           ));
         }
 
@@ -222,8 +323,36 @@ namespace GestionTicketsAPI.Controllers
                 $"{responsible.FirstName} {responsible.LastName}",
                 responsible.Email,
                 "Nouveau ticket assigné",
-                $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-                $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+                 $@"
+                   <html>
+                     <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                    <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+                    <p>Bonjour  {responsible.FirstName} {responsible.LastName},</p>
+
+                     <p>               Ceci est une notification d'assignement de ticket de support .            </p>
+
+                    <p>                  Vous avez été désigné comme responsable du Ticket.               </p>
+
+                     <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                    <ul>
+                     <li><strong>Sujet :</strong> {ticket.Title}</li>
+                     <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                     <li><strong>Statut :</strong> En cours</li>
+                    </ul>
+
+                    <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                    <p> Cordialement, </p>
+
+                    <p><strong>  Support Technique</strong> </p>
+
+                    <p> SIMSOFT TECHNOLOGIES </p>
+
+                    </body>
+                    </html>
+                    " 
             ));
           }
         }
@@ -243,8 +372,45 @@ namespace GestionTicketsAPI.Controllers
               $"{client.FirstName} {client.LastName}",
               client.Email,
               "Ticket refusé",
-              $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-              $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été refusé. Raison : {ticket.ValidationReason}"
+               $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3>Support Technique </h3>  
+
+                <p>Bonjour {client.FirstName} {client.LastName},</p>
+
+                <p>
+                    Ceci est une notification de validation de ticket de support .
+                </p>
+
+                <p>
+                    Votre ticket a été  refusé.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Refusé </li>
+                    <li><strong>Raison :</strong>  {ticket.ValidationReason} </li>
+                </ul>
+
+                <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+                </body>
+                </html>
+                "
+
+
+
           ));
         }
       }
@@ -343,8 +509,34 @@ namespace GestionTicketsAPI.Controllers
             $"{ticket.Owner.FirstName} {ticket.Owner.LastName}",
             ticket.Owner.Email,
             "Ticket terminé",
-            $"Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},<br><br>" +
-            $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
+             $@"
+        <html>
+   <body style='font-family: Arial, sans-serif; color: #051678; font-size: 14px;'>
+              <h3>Support Technique </h3>
+                <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                <p>              Ceci est une notification  de ticket de support .               </p>
+
+                <p>                    Votre ticket a été  {ticket.Statut.Name}.{commentText}.                </p>
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                   <li><strong>Statut :</strong> Terminer </li>
+                    <li><strong>Date de début :</strong> {ticket.CreatedAt:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Date de fin :</strong> {completionDto.CompletionDate:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Nombre d'heures :</strong> {completionDto.HoursSpent} </li>
+                </ul>
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+                <p><strong>  Support Technique</strong> </p>
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+</body>
+</html>
+"
+          
         ));
       }
 
@@ -354,32 +546,66 @@ namespace GestionTicketsAPI.Controllers
             $"{ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName}",
             ticket.Projet.ChefProjet.Email,
             "Ticket terminé",
-            $"Bonjour {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) du projet '{ticket.Projet.Nom}' est {ticket.Statut.Name}.{commentText}"
+
+             $@"
+        <html>
+   <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+              
+ <h3>Bonjour  {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},</h3>
+
+                <p>              Ceci est une notification  de ticket de support .               </p>
+
+                <p>                    la ticket de Mr/Mme  {ticket.Owner.FirstName} {ticket.Owner.LastName}  a été  {ticket.Statut.Name}.{commentText}.                </p>
+
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Terminer </li>
+                    <li><strong>Date de début :</strong> {ticket.CreatedAt:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Date de fin :</strong> {completionDto.CompletionDate:dd/MM/yyyy HH:mm} </li>
+                    <li><strong>Nombre d'heures :</strong> {completionDto.HoursSpent} </li>
+
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+                <p><strong>  Support Technique</strong> </p>
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+</body>
+</html>
+"
+    
         ));
       }
 
       if (ticket.Responsible != null)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
-            ticket.Responsible.Email,
-            "Ticket terminé",
-            $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) qui vous a été assigné est {ticket.Statut.Name}.{commentText}"
-        ));
+      //  BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+      //      $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
+      //      ticket.Responsible.Email,
+      //      "Ticket terminé",
+      //      $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br>" +
+      //      $"Le ticket {ticket.Title} N°{ticket.Id}  qui vous a été assigné est {ticket.Statut.Name}.{commentText}" +
+      //        $"Cordialement. <br>" +
+      //       $"SIMSOFT TECHNOLOGIES"
+      //  ));
       }
 
       var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
       foreach (var admin in superAdmins)
       {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Ticket terminé",
-            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
-            $"Le ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
-        ));
+        //BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+        //    $"{admin.FirstName} {admin.LastName}",
+        //    admin.Email,
+        //    "Ticket terminé",
+        //    $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
+        //    $"Le ticket :  {ticket.Title} N°{ticket.Id} est {ticket.Statut.Name}.{commentText}" +
+        //    $"Cordialement. <br>" +
+        //    $"SIMSOFT TECHNOLOGIES"
+        //));
       }
 
       string resolutionStatus = completionDto.IsResolved ? "résolu" : "non résolu";
@@ -446,7 +672,9 @@ namespace GestionTicketsAPI.Controllers
           responsible.Email,
           "Ticket mis à jour - Nouveau responsable assigné",
           $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
-          $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+          $"Vous avez été désigné comme responsable du Ticket intitulé {ticket.Title} N°{ticket.Id}." +
+            $"Cordialement. <br>" +
+             $"SIMSOFT TECHNOLOGIES"
         ));
       }
 

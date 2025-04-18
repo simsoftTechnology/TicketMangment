@@ -11,7 +11,7 @@ import { GlobalLoaderService } from '../_services/global-loader.service';
 export class GlobalLoaderComponent implements OnInit {
   isLoading = false;
 
-  constructor(public globalLoaderService: GlobalLoaderService) {}
+  constructor(private globalLoaderService: GlobalLoaderService) {}
 
   ngOnInit(): void {
     this.globalLoaderService.isGlobalLoading$.subscribe(loading => {

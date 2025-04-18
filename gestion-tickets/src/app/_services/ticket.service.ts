@@ -7,15 +7,16 @@ import { PaginatedResult, Pagination } from '../_models/pagination';
 import { TicketUpdateDto } from '../_models/ticketUpdateDto';
 import { TicketValidationDto } from '../_models/ticket-validation.dto';
 import { FinishTicketDto } from '../_models/finish-ticket-dto';
+import { environment } from '../../environment/environment';
 import { AccountService } from './account.service';
 import { TicketCreateDto } from '../_models/ticketCreateDto';
-import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TicketService {
-  private baseUrl = environment.apiUrl+"tickets";
+  private   baseUrl = environment.URLAPI+'tickets';
+
   constructor(
     private http: HttpClient,
     private accountService: AccountService
@@ -86,13 +87,7 @@ export class TicketService {
     return this.http.put(`${this.baseUrl}/${id}`, ticket);
   }
 
-  deleteTicket(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
-  }
 
-  deleteMultipleTickets(ticketIds: number[]): Observable<any> {
-    return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
-  }
 
   // For updating with attachment.
   uploadAttachment(formData: FormData): Observable<{ secureUrl: string }> {
@@ -118,5 +113,5 @@ export class TicketService {
   exportTickets(filters: any): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/export`, filters, { responseType: 'blob' });
   }
-  
+
 }

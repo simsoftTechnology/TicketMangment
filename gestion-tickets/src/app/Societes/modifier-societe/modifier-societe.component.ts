@@ -173,6 +173,11 @@ export class ModifierSocieteComponent implements OnInit {
           ...this.societeDetails,
           ...this.societeForm.value
         };
+
+
+        updatedSociete.nom= this.accountService.removeSpecial(updatedSociete.nom)
+        updatedSociete.adresse= this.accountService.removeSpecial(updatedSociete.adresse)
+        
         // Active le loader avant l'appel
         this.loaderService.showLoader();
         this.societeService.updateSociete(this.societeDetails.id, updatedSociete).subscribe({
@@ -388,7 +393,7 @@ export class ModifierSocieteComponent implements OnInit {
   }
 
   viewProjet(projetId: number): void {
-    this.router.navigate(['/home/Projets/details', projetId]);
+    this.router.navigate(['/home/projets/details', projetId]);
   }
 
   range(start: number, end: number): number[] {
@@ -399,7 +404,7 @@ export class ModifierSocieteComponent implements OnInit {
     this.accountService.getAllUsers().subscribe({
       next: (allUsers: User[]) => {
         const dialogRef = this.dialog.open(UserSelectorDialogComponent, {
-          data: { availableUsers: allUsers }
+          data: { availableUsers: allUsers.filter((res)=>{return res.role =="Client"  && res.societeId== null}) }
         });
         
         dialogRef.afterClosed().subscribe((selectedUser: User) => {
@@ -422,11 +427,14 @@ export class ModifierSocieteComponent implements OnInit {
         if (result) {
           this.toastr.success("Utilisateur attaché avec succès");
           this.loadSocieteUsers();
-        } 
+        } else {
+          this.toastr.error("L'utilisateur est déjà associé à cette société");
+        }
         this.loaderService.hideLoader();
       },
       error: error => {
         console.error("Erreur lors de l'attachement de l'utilisateur", error);
+        this.toastr.error("Erreur lors de l'attachement de l'utilisateur");
         this.loaderService.hideLoader();
       }
     });

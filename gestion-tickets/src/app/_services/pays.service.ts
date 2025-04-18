@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Pays } from '../_models/pays';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PaysService {
-  private baseUrl = environment.apiUrl;
+   baseUrl = environment.URLAPI;
 
   constructor(private http: HttpClient) {}
 
@@ -19,7 +19,7 @@ export class PaysService {
       map(paysList =>
         paysList.map(pays => {
           if (pays.photoUrl) {
-            pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+            pays.photoUrl = `https://support.simsoft.tn:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
           }
           return pays;
         })
@@ -32,7 +32,7 @@ export class PaysService {
     return this.http.get<Pays>(`${this.baseUrl}pays/${idPays}`).pipe(
       map((pays) => {
         if (pays.photoUrl) {
-          pays.photoUrl = `https://localhost:5001/${pays.photoUrl.replace(/\\/g, '/')}`;
+          pays.photoUrl = `https://support.simsoft.tn:8055/${pays.photoUrl.replace(/\\/g, '/')}`;
         }
         return pays;
       })
@@ -68,13 +68,13 @@ export class PaysService {
       codeTel: paysUpdateDto.codeTel,
       file: fileBase64 
     };
-    return this.http.put(`${this.baseUrl}pays/ModifierPays/${idPays}`, body);
+    return this.http.post(`${this.baseUrl}pays/ModifierPays/${idPays}`, body);
   }
   
   
 
   deletePays(idPays: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/pays/supprimerPays/${idPays}`);
+    return this.http.get(`${this.baseUrl}pays/supprimerPays/${idPays}`);
   }
   
   
@@ -94,5 +94,5 @@ export class PaysService {
   
     return this.http.put(`${this.baseUrl}pays/${paysId}/modifier-photo`, formData);
   }
-  
+
 }

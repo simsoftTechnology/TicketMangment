@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
 import { ContractDialogComponent } from '../../contract-dialog/contract-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { LoaderService } from '../../_services/loader.service';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
     selector: 'app-ajouter-societe',
@@ -24,6 +25,7 @@ export class AjouterSocieteComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private societeService: SocieteService,
+    private accountService: AccountService,
     private paysService: PaysService,
     private router: Router,
     private toastr: ToastrService,
@@ -102,8 +104,8 @@ export class AjouterSocieteComponent implements OnInit {
     if (this.societeForm.valid) {
       const formValue = this.societeForm.value;
       const societeForAdd: any = {
-        nom: formValue.nom,
-        adresse: formValue.adresse,
+        nom: this.accountService.removeSpecial(formValue.nom),
+        adresse: this.accountService.removeSpecial(formValue.adresse),
         telephone: formValue.telephone,
         paysId: +formValue.paysId
       };

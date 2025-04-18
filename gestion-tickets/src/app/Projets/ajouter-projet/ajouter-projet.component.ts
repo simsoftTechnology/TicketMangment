@@ -67,9 +67,8 @@ export class AjouterProjetComponent implements OnInit {
     private paysService: PaysService,
     private userService: AccountService,
     private router: Router,
-    private dropdownService: DropdownService,
-    public route: ActivatedRoute,
-    private overlayModalService: OverlayModalService,
+    private accountService: AccountService,
+    public route: ActivatedRoute, 
     private toastr: ToastrService,
     private loaderService: LoaderService
   ) {
@@ -137,8 +136,8 @@ export class AjouterProjetComponent implements OnInit {
     }
   
     const formValue = this.projetForm.value;
-    this.projet.nom = formValue.nom;
-    this.projet.description = formValue.description;
+    this.projet.nom = this.accountService.removeSpecial(formValue.nom);
+    this.projet.description = this.accountService.removeSpecial(formValue.description);
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;
     this.projet.chefProjetId = formValue.chefProjetId;

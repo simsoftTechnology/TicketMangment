@@ -1,3 +1,42 @@
+/* fallback */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/googleapi.woff2') format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+.material-icon {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
 /* Container styles */
 .container {
   padding: 50px 50px;
@@ -139,7 +178,7 @@ td {
 .search-wrapper {
   position: relative;
   width: 300px;
-  margin-left: -50px;
+  margin-left: -30px;
 }
 
 .search-icon {
@@ -496,19 +535,15 @@ input, select, button {
   background-color: rgba(61, 219, 68, 0.1);
 }
 
-.cdk-overlay-container {
-  overflow: visible !important;
+/* styles.scss ou un fichier de styles global, pas dans un composant.scss isolé */
+::ng-deep .ticket-filter-menu {
+  overflow: visible !important; /* Permet au contenu de déborder */
+  max-height: none !important; /* Supprime la hauteur maximale */
 }
 
 .ticket-filter-content {
   max-height: 300px; /* Maintient le défilement interne */
   overflow-y: auto;
-}
-
-
-::ng-deep .ticket-filter-menu {
-  overflow: visible !important; /* Permet au contenu de dépasser */
-  max-height: none !important;   /* Supprime la hauteur maximale imposée par défaut */
 }
 
 

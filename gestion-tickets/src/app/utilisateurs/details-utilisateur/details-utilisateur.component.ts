@@ -122,7 +122,7 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.userForm.get('pays')?.valueChanges.subscribe(value => {
       this.selectedCountry = this.paysList.find(p => p.idPays === +value);
     });
-  
+
     // Souscription à la recherche sur les tickets avec débounce
     this.ticketSearchSubject.pipe(
       debounceTime(300),
@@ -132,7 +132,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.ticketPageNumber = 1;
       this.loadTickets();
     });
-  
+
     // Écouter les changements dans les paramètres de la route
     this.route.params.subscribe(params => {
       const userId = params['id'];
@@ -141,14 +141,14 @@ export class DetailsUtilisateurComponent implements OnInit {
         this.loadUserDetails(+userId);
       }
     });
-  
+
     // (Optionnel) Écouter également les queryParams
     this.route.queryParams.subscribe(queryParams => {
-      console.log("QueryParams mis à jour :", queryParams);
+      // console.log("QueryParams mis à jour :", queryParams);
       // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
     });
   }
-  
+
 
 
   openAttachProjectDialog(): void {
@@ -168,13 +168,13 @@ export class DetailsUtilisateurComponent implements OnInit {
             this.loadProjects();
           },
           error: (err) => {
-            console.error("Erreur lors de l'attachement du projet");
+            this.toastr.error("Erreur lors de l'attachement du projet");
           }
         });
       }
     });
   }
-  
+
 
   loadPays(): void {
     this.paysService.getPays().subscribe({
@@ -323,11 +323,13 @@ export class DetailsUtilisateurComponent implements OnInit {
       return;
     }
   
-    const updatedUser: User = this.userForm.value;
-    
+    const updatedUser: User = this.userForm.value;  
+
+    updatedUser.firstName= this.accountService.removeSpecial(this.userForm.value.firstName)
+    updatedUser.lastName= this.accountService.removeSpecial(this.userForm.value.lastName)
+
     // Afficher le loader
-    this.loaderService.showLoader();
-  
+    this.loaderService.showLoader();  
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         // Mise à jour locale de la variable utilisateur
@@ -342,9 +344,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }  
-
-  onCancel(): void {
-    // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
+  onCancel(): void {    
     if (this.user) {
       this.userForm.patchValue({
         lastName: this.user.lastName,
@@ -357,6 +357,8 @@ export class DetailsUtilisateurComponent implements OnInit {
         actif: this.user.actif
         // Les champs de mot de passe restent vides
       });
+      // console.log('2', this.userForm);
+      
     }
   }
 
@@ -505,6 +507,7 @@ export class DetailsUtilisateurComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors de la suppression du projet', error);
+          this.toastr.error('Une erreur est survenue lors de la suppression.');
         }
       });
       this.overlayModalService.close();

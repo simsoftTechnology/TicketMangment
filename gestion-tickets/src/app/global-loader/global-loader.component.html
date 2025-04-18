@@ -1,4 +1,3 @@
-<div *ngIf="globalLoaderService.isGlobalLoading$ | async" 
-     [ngClass]="{'global-loader-overlay': true, 'active': true}">
+<div *ngIf="isLoading" class="global-loader-overlay">
   <div class="spinner"></div>
 </div>

@@ -200,8 +200,8 @@ export class AjouterUtilisateurComponent implements OnInit {
       const userForRegister: any = {
         email: formValue.email,
         role: formValue.role.charAt(0).toUpperCase() + formValue.role.slice(1),
-        firstname: formValue.firstName,
-        lastname: formValue.lastName,
+        firstname: this.accountService.removeSpecial(formValue.firstName),
+        lastname: this.accountService.removeSpecial(formValue.lastName),
         numtelephone: fullPhoneNumber,
         pays: +formValue.pays,
         actif: formValue.actif,

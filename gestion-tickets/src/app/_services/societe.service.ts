@@ -1,26 +1,27 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Societe } from '../_models/societe';
 import { PaginatedResult, Pagination } from '../_models/pagination';
 import { User } from '../_models/user';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SocieteService {
+ 
   getSocieteById(societeId: number) {
     throw new Error('Method not implemented.');
   }
-  private apiUrl = environment.apiUrl+"societe";
+  private apiUrl = environment.URLAPI+'societe/'; 
   paginatedResult: PaginatedResult<Societe[]> | null = null;
 
   constructor(private http: HttpClient) { }
 
   getSocietes(searchTerm?: string): Observable<Societe[]> {
     const body = { searchTerm: searchTerm || '' };
-    return this.http.post<Societe[]>(`${this.apiUrl}/search`, body);
+    return this.http.post<Societe[]>(`${this.apiUrl}search`, body);
   }
 
   // Méthode pour récupérer les projets paginés
@@ -37,7 +38,7 @@ export class SocieteService {
       ...extraFilters
     };
   
-    return this.http.post<any>(this.apiUrl + '/paged', params, { observe: 'response' })
+    return this.http.post<any>(this.apiUrl + 'paged', params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<Societe[]>) => {
           const paginationHeader = response.headers.get('Pagination');
@@ -52,26 +53,32 @@ export class SocieteService {
   
 
   getSociete(id: number): Observable<Societe> {
-    return this.http.get<Societe>(`${this.apiUrl}/${id}`);
+    return this.http.get<Societe>(`${this.apiUrl}${id}`);
   }
 
   getSocieteDetails(id: number): Observable<Societe> {
-    return this.http.get<Societe>(`${this.apiUrl}/details/${id}`);
+    return this.http.get<Societe>(`${this.apiUrl}details/${id}`);
   }
 
   addSociete(societe: Societe): Observable<Societe> {
-    return this.http.post<Societe>(this.apiUrl, societe);
+    const headers = new HttpHeaders()
+    .set('Content-Type', 'application/json; charset=utf-8')
+    .set('Accept', 'application/json; charset=utf-8');
+
+    console.log("json encode ",  societe);
+    
+    return this.http.post<Societe>(this.apiUrl,   societe, { headers });
   }
 
   updateSociete(id: number, societe: Societe): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}`, societe);
+    return this.http.post<void>(`${this.apiUrl}modif/${id}`, societe);
   }
 
   deleteSociete(id: number): Observable<void> {
     const headers = new HttpHeaders()
   .set('Content-Type', 'application/json; charset=utf-8')
   .set('Accept', 'application/json; charset=utf-8');
-    return this.http.get<void>(`${this.apiUrl}/delet/${id}`, { headers });
+    return this.http.get<void>(`${this.apiUrl}delet/${id}`, { headers });
   }
 
   deleteSelectedSocietes(ids: number[]): Observable<void> {
@@ -92,7 +99,7 @@ export class SocieteService {
       ...extraFilters
     };
   
-    return this.http.post<any>(`${this.apiUrl}/${societeId}/users/paged`, params, { observe: 'response' })
+    return this.http.post<any>(`${this.apiUrl}${societeId}/users/paged`, params, { observe: 'response' })
       .pipe(
         map((response: HttpResponse<User[]>) => {
           const paginationHeader = response.headers.get('Pagination');
@@ -107,7 +114,7 @@ export class SocieteService {
 
   attachUser(societeId: number, userId: number): Observable<any> {
     return this.http.post(
-      `${this.apiUrl}/${societeId}/users/${userId}`,
+      `${this.apiUrl}${societeId}/users/${userId}`,
       null,
       { responseType: 'text' }  // Précise que la réponse sera du texte
     );
@@ -115,7 +122,7 @@ export class SocieteService {
 
 
   detachUser(societeId: number, userId: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${societeId}/delete/users/${userId}`, { responseType: 'text' });
+    return this.http.get(`${this.apiUrl}${societeId}/delete/users/${userId}`, { responseType: 'text' });
   }
 
   exportSocietes(searchTerm: string, extraFilters: any): Observable<Blob> {
@@ -123,7 +130,7 @@ export class SocieteService {
     if (extraFilters && extraFilters.pays) {
       body.pays = extraFilters.pays;
     }
-    return this.http.post(`${this.apiUrl}/export`, body, { responseType: 'blob' });
+    return this.http.post(`${this.apiUrl}export`, body, { responseType: 'blob' });
   }
 
 }

@@ -46,7 +46,7 @@ namespace GestionTicketsAPI.Controllers
     }
 
     [Authorize]
-    [HttpPut("ModifierPays/{idPays}")]
+    [HttpPost("ModifierPays/{idPays}")]
     public async Task<ActionResult> UpdatePays(int idPays, [FromBody] Dictionary<string, string> data)
     {
       if (!data.TryGetValue("nom", out var nom))
@@ -113,8 +113,7 @@ namespace GestionTicketsAPI.Controllers
         return BadRequest(ex.Message);
       }
     }
-
-    [Authorize]
+ 
     [HttpGet("supprimerPays/{idPays}")]
     public async Task<ActionResult> DeletePays(int idPays)
     {

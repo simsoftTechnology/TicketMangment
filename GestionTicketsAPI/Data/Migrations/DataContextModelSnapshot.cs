@@ -392,6 +392,9 @@ namespace GestionTicketsAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("FinishedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("HoursSpent")
                         .HasColumnType("int");
 
@@ -482,12 +485,6 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<byte[]>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("longblob");
-
-                    b.Property<string>("PasswordResetToken")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime?>("PasswordResetTokenExpires")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<byte[]>("PasswordSalt")
                         .IsRequired()
@@ -646,7 +643,7 @@ namespace GestionTicketsAPI.Migrations
                     b.HasOne("GestionTicketsAPI.Entities.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("GestionTicketsAPI.Entities.Priorite", "Priority")

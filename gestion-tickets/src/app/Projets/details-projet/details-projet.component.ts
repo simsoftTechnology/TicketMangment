@@ -314,6 +314,8 @@ export class DetailsProjetComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Confirmez-vous la modification du projet ?";
     modalInstance.confirmed.subscribe(() => {
+    this.projet.nom = this.accountService.removeSpecial(this.projet.nom)
+
       this.loaderService.showLoader();
       this.projetService.updateProjet(this.projet).subscribe({
         next: () => {
@@ -384,7 +386,7 @@ export class DetailsProjetComponent implements OnInit {
           },
           error: (err) => {
             if (err.status === 409) {
-              //this.toastr.error(err.message, 'Erreur');
+              this.toastr.error(err.error.message, 'Erreur');
             } else {
               console.error('Erreur lors de l’ajout de l’utilisateur', err);
             }

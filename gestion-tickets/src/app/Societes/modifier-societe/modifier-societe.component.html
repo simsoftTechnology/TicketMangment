@@ -100,7 +100,7 @@
           <td colspan="3">
             <div class="project-actions">
               <button (click)="openProjectModal()" class="btn btn-primary">
-                <span class="material-icons">add</span> Créer
+                <span class="material-icons"></span> Créer projet
               </button>
             </div>                        
           </td>
@@ -121,9 +121,9 @@
             <td>{{ projet.nomPays || "Aucun pays" }}</td>
             <td>{{ projet.description || "Aucune description" }}</td>
             <td class="actions">
-              <button class="view-btn" (click)="viewProjet(projet.id)">
+              <!-- <button class="view-btn" (click)="viewProjet(projet.id)">
                 <span class="material-icons">visibility</span>
-              </button>
+              </button> -->
             </td>
           </tr>
         </ng-container>
@@ -213,11 +213,11 @@
             <td>{{ utilisateur.email }}</td>
             <td><span class="role">{{ utilisateur.role }}</span></td>
             <td>
-              <button class="delet-btn"
+              <!-- <button class="delet-btn"
                 *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
                 (click)="detachUser(utilisateur)">
                 <span class="material-icons">delete</span>
-              </button>
+              </button> -->
             </td>
           </tr>
         </ng-container>

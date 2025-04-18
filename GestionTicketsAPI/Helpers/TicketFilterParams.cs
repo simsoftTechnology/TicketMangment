@@ -19,7 +19,5 @@ namespace GestionTicketsAPI.Helpers
 
         public string? FilterType { get; set; }
         public int? SocieteId { get; set; }
-        public DateTime? StartDate { get; set; } // Date de début (par exemple pour CreatedAt)
-        public DateTime? EndDate { get; set; }
     }
 }

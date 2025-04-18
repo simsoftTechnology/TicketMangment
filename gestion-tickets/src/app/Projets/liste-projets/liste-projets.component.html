@@ -1,9 +1,7 @@
 <div class="container">
   <div class="header">
     <h2>Liste des projets</h2>
-    <button class="add-user-btn" 
-      *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" 
-      routerLink="/home/Projets/ajouterProjet">
+    <button class="add-user-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" routerLink="/home/Projets/ajouterProjet">
       <span class="material-icons">add</span> Ajouter
     </button>
   </div>
@@ -19,15 +17,14 @@
               <span class="material-icons search-icon">search</span>
             </div>
             <div class="filter-actions">
-              <!-- Bouton d'export avec chargement spécifique -->
-              <button class="export-btn" (click)="exportProjets()" [disabled]="isExportLoading">
-                <ng-container *ngIf="!isExportLoading; else loadingExportTpl">
+              <button class="export-btn" (click)="exportProjets()" [disabled]="isLoading">
+                <ng-container *ngIf="!isLoading; else loadingExportTpl">
                   <span class="material-icons">download</span> Export Excel
                 </ng-container>
                 <ng-template #loadingExportTpl>
                   <span class="spinner"></span> Export en cours...
                 </ng-template>
-              </button>
+              </button>                           
               <button mat-icon-button [matMenuTriggerFor]="filterMenu">
                 <span class="material-icons">filter_list</span>
               </button>
@@ -54,15 +51,8 @@
         <th>Société</th>
         <th>Pays</th>
         <th class="actions">
-          <button class="delete-btn" 
-            *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" 
-            (click)="deleteSelectedProjects()" [disabled]="isDeleteMultipleLoading">
-            <ng-container *ngIf="!isDeleteMultipleLoading; else loadingDeleteMultipleTpl">
-              <span class="material-icons">delete</span>
-            </ng-container>
-            <ng-template #loadingDeleteMultipleTpl>
-              <span class="spinner"></span>
-            </ng-template>
+          <button class="delete-btn"  *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteSelectedProjects()">
+            <span class="material-icons">delete</span>
           </button>
         </th>
       </tr>
@@ -86,23 +76,22 @@
           <button class="view-btn" [routerLink]="['/home', 'Projets', 'details', projet.id]">
             <span class="material-icons">visibility</span>
           </button>
-          <!-- Bouton Supprimer d'un projet -->
-          <button class="delete-btn" 
-            *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" 
-            (click)="deleteProjet(projet.id)" [disabled]="isDeleteLoading">
-            <ng-container *ngIf="!isDeleteLoading; else loadingDeleteTpl">
+          <!-- Bouton Supprimer -->
+          <button class="delete-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin'" (click)="deleteProjet(projet.id)" [disabled]="isLoading">
+            <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
               <span class="material-icons">delete</span>
             </ng-container>
             <ng-template #loadingDeleteTpl>
               <span class="spinner"></span>
             </ng-template>
-          </button>
+          </button>                 
         </td>
       </tr>
+
       <!-- Message si aucune donnée -->
       <ng-container *ngIf="filteredProjets && filteredProjets.length === 0">
         <tr>
-          <td colspan="6">
+          <td colspan="4">
             <div class="no-content">
               <span class="icon">✕</span>
               <p>Aucun projet trouvé</p>
@@ -112,21 +101,19 @@
       </ng-container>
       <!-- Pagination -->
       <tr>
-        <td colspan="6">
+        <td colspan="5">
           <div class="pagination-container">
             <div class="pagination-info">
               Affichage de
               {{ (((paginatedResult?.pagination?.currentPage || 1) - 1) *
                   (paginatedResult?.pagination?.itemsPerPage || pageSize)) + 1 }}
               à
-              {{
-                ((paginatedResult?.pagination?.currentPage || 1) *
-                (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
-                (paginatedResult?.pagination?.totalItems || 0)
+              {{ ((paginatedResult?.pagination?.currentPage || 1) *
+                  (paginatedResult?.pagination?.itemsPerPage || pageSize)) >
+                  (paginatedResult?.pagination?.totalItems || 0)
                   ? (paginatedResult?.pagination?.totalItems || 0)
                   : ((paginatedResult?.pagination?.currentPage || 1) *
-                  (paginatedResult?.pagination?.itemsPerPage || pageSize))
-              }}
+                     (paginatedResult?.pagination?.itemsPerPage || pageSize)) }}
               sur {{ paginatedResult?.pagination?.totalItems || 0 }} résultats
             </div>
             <div class="per-page-selector">
@@ -140,8 +127,10 @@
                       title="Cliquez pour la page précédente ou double-cliquez pour saisir une page">
                 &laquo;
               </button>
+
               <input type="number" [(ngModel)]="jumpPage" (keyup.enter)="jumpToPage()"
                      [max]="paginatedResult?.pagination?.totalPages ?? 1" min="1" class="page-input" />
+
               <span class="total-pages">
                 / {{ paginatedResult?.pagination?.totalPages || 1 }}
               </span>

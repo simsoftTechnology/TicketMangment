@@ -70,7 +70,7 @@ export class ProjectModalComponent {
     private paysService: PaysService,
     private userService: AccountService,
     private router: Router,
-    private dropdownService: DropdownService,
+    private accountService: AccountService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
@@ -141,7 +141,7 @@ export class ProjectModalComponent {
     }
   
     const formValue = this.projetForm.value;
-    this.projet.nom = formValue.nom;
+    this.projet.nom = this.accountService.removeSpecial(formValue.nom);
     this.projet.description = formValue.description;
     this.projet.societeId = formValue.societeId;
     this.projet.idPays = +formValue.idPays;

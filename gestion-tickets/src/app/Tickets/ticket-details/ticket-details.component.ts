@@ -129,7 +129,7 @@ export class TicketDetailsComponent implements OnInit {
   onAddComment(): void {
     if (!this.newComment || this.newComment.trim() === '') return;
     this.loaderService.showLoader();
-    this.commentService.addComment({ contenu: this.newComment, ticketId: this.ticketId }).subscribe({
+    this.commentService.addComment({ contenu: this.accountService.removeSpecial(this.newComment), ticketId: this.ticketId }).subscribe({
       next: (comment) => {
         this.newComment = '';
         this.comments.push(comment);

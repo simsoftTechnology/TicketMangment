@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using GestionTicketsAPI.DTOs;
+using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
@@ -14,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
-  [Authorize]
+  //[Authorize]
   public class SocieteController : BaseApiController
   {
     private readonly ISocieteService _societeService;
@@ -70,18 +71,29 @@ namespace GestionTicketsAPI.Controllers
       return Ok(societeDetails);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddSociete(SocieteDto societeDto)
-    {
-      // Vérifier si la société existe déjà (par exemple, sur la base du nom)
-      if (await _societeService.SocieteExists(societeDto.Nom))
-        return BadRequest("La société existe déjà");
 
-      var newSociete = await _societeService.AddSocieteAsync(societeDto);
-      return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
+
+    [HttpPost]
+    public async Task<IActionResult> AddSociete([FromBody] SocieteDto societe)
+    {
+            try
+            { 
+                //SocieteDto societe = JsonSerializer.Deserialize<SocieteDto>(societeDto.test);
+
+                if (await _societeService.SocieteExists(societe.Nom))
+                    return BadRequest("La société existe déjà");
+
+                var newSociete = await _societeService.AddSocieteAsync(societe);
+                return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Erreur : " + ex.Message);
+                return StatusCode(500, $"Une erreur est survenue : {ex.Message}");
+
+            }
     }
 
-    [HttpPut("{id}")]
+    [HttpPost("modif/{id}")]
     public async Task<IActionResult> UpdateSociete(int id, SocieteDto societeDto)
     {
       var updated = await _societeService.UpdateSocieteAsync(id, societeDto);
@@ -128,28 +140,16 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost("{societeId}/users/{userId}")]
     public async Task<IActionResult> AttachUser(int societeId, int userId)
     {
-      
-      try
+      bool attached = await _societeService.AttachUserToSocieteAsync(societeId, userId);
+      if (attached)
       {
-        bool attached = await _societeService.AttachUserToSocieteAsync(societeId, userId);
-        if (attached)
-        {
-          return Ok("Utilisateur attaché à la société avec succès.");
-        }
-        else
-        {
-          return Conflict("Cet utilisateur est déjà attaché à la société.");
-
-        }
+        return Ok(new { message = "Utilisateur attaché à la société avec succès." });
       }
-      catch (Exception ex)
+      else
       {
-        // Loggez l'exception en détail pour analyser le problème
-        return StatusCode(500, new { message = ex.Message });
+        return Conflict(new { message = "Cet utilisateur est déjà attaché à la société." });
       }
     }
-    
-
 
     [HttpGet("{societeId}/delete/users/{userId}")]
     public async Task<IActionResult> DetachUser(int societeId, int userId)
