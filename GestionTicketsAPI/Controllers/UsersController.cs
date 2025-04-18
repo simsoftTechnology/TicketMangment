@@ -67,7 +67,7 @@ namespace GestionTicketsAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { errors = new string[] { ex.Message } });
 
             }
     }

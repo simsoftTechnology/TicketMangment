@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, map, tap } from 'rxjs';
 import { PaginatedResult, Pagination } from './../_models/pagination';
 import { User } from '../_models/user';
@@ -7,6 +7,7 @@ import { Pays } from '../_models/pays';
 import { Projet } from '../_models/Projet';
 import { Ticket } from '../_models/ticket';
 import { environment } from '../../environment/environment';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -197,37 +198,59 @@ export class AccountService {
   
     return this.http.post(this.baseUrl + 'users/export', cleanedFilters, { responseType: 'blob' });
   }
+
+  forgotPassword(model: any): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.baseUrl + 'account/forgot-password', model);
+  }
+
+  resetPassword(model: any): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(this.baseUrl + 'account/reset-password', model);
+  }
   
   removeAccents(input: string): string {
+
     const accentsMap: { [key: string]: string } = {
+
       'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ã': 'a', 'å': 'a',
+
       'é': 'e', 'è': 'e', 'ë': 'e', 'ê': 'e',
+
       'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i',
+
       'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'õ': 'o',
+
       'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u',
+
       'ç': 'c', 'ñ': 'n',
+
       'Á': 'A', 'À': 'A', 'Ä': 'A', 'Â': 'A', 'Ã': 'A', 'Å': 'A',
+
       'É': 'E', 'È': 'E', 'Ë': 'E', 'Ê': 'E',
+
       'Í': 'I', 'Ì': 'I', 'Ï': 'I', 'Î': 'I',
+
       'Ó': 'O', 'Ò': 'O', 'Ö': 'O', 'Ô': 'O', 'Õ': 'O',
+
       'Ú': 'U', 'Ù': 'U', 'Ü': 'U', 'Û': 'U',
+
       'Ç': 'C', 'Ñ': 'N'
+
     };
+
  
-  
     return input.replace(/[áàäâãåéèëêíìïîóòöôõúùüûçñÁÀÄÂÃÅÉÈËÊÍÌÏÎÓÒÖÔÕÚÙÜÛÇÑ]/g, match => accentsMap[match]);
+
   }
+
   removeSpecial(input:string): string{
+
     let data = this.removeAccents(input);
+
     data = data.replace(/"/g, "'");  // Replace double quotes with single quotes
-    data = data.replace(/°/g, ' ');
-    data = data.replace(/€/g, ' ');  // Replace degree symbol with space
-    data = data.replace(/%/g, 'pourcent');  // Replace degree symbol with space
-    data = data.replace(/£/g, ' ');  // Replace degree symbol with space
-    data = data.replace(/¤/g, ' ');  // Replace degree symbol with space
-    data = data.replace(/§/g, '$');  // Replace degree symbol with space
-    data = data.replace(/¨/g, "'");  // Replace degree symbol with space
-     
-    return data; 
+
+    data = data.replace(/°/g, ' ');  // Replace degree symbol with space
+
+    return data;
+
   }
 }

@@ -1,8 +1,8 @@
 <div class="container">
   <div class="header">
     <h2>Liste des catégories de problèmes</h2>
-    <button class="add-user-btn" (click)="openCategorieModal()" [disabled]="isLoading">
-      <ng-container *ngIf="!isLoading; else loadingAjoutTpl">
+    <button class="add-user-btn" (click)="openCategorieModal()" [disabled]="isAddLoading">
+      <ng-container *ngIf="!isAddLoading; else loadingAjoutTpl">
         <span class="material-icons">add</span> Ajouter
       </ng-container>
       <ng-template #loadingAjoutTpl>
@@ -29,8 +29,9 @@
           </div>
         </td>
         <td colspan="2" class="filter-actions">
-          <button class="export-btn" (click)="exportCategories()" [disabled]="isLoading">
-            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+          <!-- Bouton d'export avec loader spécifique -->
+          <button class="export-btn" (click)="exportCategories()" [disabled]="isExportLoading">
+            <ng-container *ngIf="!isExportLoading; else loadingExportTpl">
               <span class="material-icons">download</span> Export Excel
             </ng-container>
             <ng-template #loadingExportTpl>
@@ -84,7 +85,7 @@
           </ng-template>
         </td>
         <td>
-          <!-- Si on est en mode édition, afficher les boutons Save/Cancel -->
+          <!-- Boutons Save/Cancel en mode édition -->
           <ng-container *ngIf="categorie.editing">
             <button class="save-btn" (click)="saveEdit(categorie)">
               <span class="material-icons">check</span>
@@ -99,15 +100,15 @@
           <button class="edit-btn" (click)="editCategorie(categorie)">
             <span class="material-icons">edit</span>
           </button>
-          <!-- Bouton pour supprimer individuellement -->
-          <button class="delete-btn" (click)="deleteCategorie(categorie.id)" [disabled]="isLoading">
-            <ng-container *ngIf="!isLoading; else loadingDeleteTpl">
+          <!-- Bouton pour supprimer individuellement avec loader spécifique -->
+          <button class="delete-btn" (click)="deleteCategorie(categorie.id)" [disabled]="isDeleteLoading">
+            <ng-container *ngIf="!isDeleteLoading; else loadingDeleteTpl">
               <span class="material-icons">delete</span>
             </ng-container>
             <ng-template #loadingDeleteTpl>
               <span class="spinner"></span>
             </ng-template>
-          </button>          
+          </button>
         </td>
       </tr>
       <tr *ngIf="categories.length === 0">
@@ -119,7 +120,7 @@
         </td>
       </tr>
     </tbody>
-    <!-- Ligne de pagination et per-page-selector -->
+    <!-- Ligne de pagination -->
     <tfoot>
       <tr>
         <td colspan="4">

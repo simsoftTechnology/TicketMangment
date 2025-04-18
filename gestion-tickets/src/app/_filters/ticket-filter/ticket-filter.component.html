@@ -1,5 +1,33 @@
 <div class="filter-panel">
   <form [formGroup]="filterForm" (ngSubmit)="onSubmit()">
+
+    <!-- Filtres par Date -->
+    <div class="form-group">
+      <label for="startDate">Date de début</label>
+      <input 
+        type="date" 
+        id="startDate" 
+        formControlName="startDate" 
+        class="form-control" 
+        (click)="toggleDatepicker($event)" 
+        (focus)="onDateInputFocus()"
+        (blur)="onDateInputBlur()"
+      />
+    </div>
+    
+    <div class="form-group">
+      <label for="endDate">Date de fin</label>
+      <input 
+        type="date" 
+        id="endDate" 
+        formControlName="endDate" 
+        class="form-control" 
+        (click)="toggleDatepicker($event)" 
+        (focus)="onDateInputFocus()"
+        (blur)="onDateInputBlur()"
+      />
+    </div>    
+
     <!-- Client -->
     <div class="form-group" *ngIf="!isClient">
       <label for="client">Client</label>
@@ -8,6 +36,7 @@
           <div class="selected-item">
             {{ selectedClient ? (selectedClient.firstName + ' ' + selectedClient.lastName) : 'Sélectionnez un client' }}
           </div>                   
+          </div>
           <span class="arrow">▼</span>
         </div>
         <div class="dropdown-content" [class.show]="isClientDropdownOpen">
@@ -137,13 +166,13 @@
         <div class="dropdown-content" [class.show]="isQualificationDropdownOpen">
           <div class="search-box">
             <input type="text" placeholder="Rechercher une qualification..." [(ngModel)]="qualificationSearchTerm"
-               [ngModelOptions]="{standalone: true}"
-               (ngModelChange)="filterQualifications()" 
-               (click)="$event.stopPropagation()"/>
+              [ngModelOptions]="{standalone: true}" (ngModelChange)="filterQualifications()"
+              (click)="$event.stopPropagation()" />
           </div>
           <div class="option-list">
             <ng-container *ngIf="filteredQualifications.length > 0; else noQualificationResults">
-              <div *ngFor="let q of filteredQualifications" class="option-item" (click)="selectQualification(q); $event.stopPropagation()">
+              <div *ngFor="let q of filteredQualifications" class="option-item"
+                (click)="selectQualification(q); $event.stopPropagation()">
                 {{ q.name }}
               </div>
             </ng-container>
@@ -168,13 +197,13 @@
         <div class="dropdown-content" [class.show]="isProjetDropdownOpen">
           <div class="search-box">
             <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="projetSearchTerm"
-              [ngModelOptions]="{standalone: true}"
-              (ngModelChange)="filterProjets()" 
-              (click)="$event.stopPropagation()"/>
+              [ngModelOptions]="{standalone: true}" (ngModelChange)="filterProjets()"
+              (click)="$event.stopPropagation()" />
           </div>
           <div class="option-list">
             <ng-container *ngIf="filteredProjets.length > 0; else noProjetResults">
-              <div *ngFor="let p of filteredProjets" class="option-item" (click)="selectProjet(p); $event.stopPropagation()">
+              <div *ngFor="let p of filteredProjets" class="option-item"
+                (click)="selectProjet(p); $event.stopPropagation()">
                 {{ p.nom }}
               </div>
             </ng-container>
@@ -199,13 +228,13 @@
         <div class="dropdown-content" [class.show]="isSocieteDropdownOpen">
           <div class="search-box">
             <input type="text" placeholder="Rechercher une société..." [(ngModel)]="societeSearchTerm"
-               [ngModelOptions]="{standalone: true}"
-               (ngModelChange)="filterSocietes()" 
-               (click)="$event.stopPropagation()"/>
+              [ngModelOptions]="{standalone: true}" (ngModelChange)="filterSocietes()"
+              (click)="$event.stopPropagation()" />
           </div>
           <div class="option-list">
             <ng-container *ngIf="filteredSocietes.length > 0; else noSocieteResults">
-              <div *ngFor="let s of filteredSocietes" class="option-item" (click)="selectSociete(s); $event.stopPropagation()">
+              <div *ngFor="let s of filteredSocietes" class="option-item"
+                (click)="selectSociete(s); $event.stopPropagation()">
                 {{ s.nom }}
               </div>
             </ng-container>

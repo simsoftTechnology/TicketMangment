@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, 
 import { User } from '../_models/user';
 import { AccountService } from '../_services/account.service';
 import { PaysService } from '../_services/pays.service';
-import { SocieteService } from '../_services/societe.service';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
@@ -55,8 +54,9 @@ export class UserProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.globalLoaderService.showGlobalLoader();
+    
     this.initForm();
+    this.globalLoaderService.showGlobalLoader();
     // Charger la liste des pays avant de charger l'utilisateur
     this.paysService.getPays().subscribe({
       next: (pays) => {
@@ -157,9 +157,6 @@ export class UserProfileComponent implements OnInit {
     updatedUser.firstName= this.accountService.removeSpecial(this.userForm.value.firstName);
     updatedUser.lastName= this.accountService.removeSpecial(this.userForm.value.lastName);
  
-   
-    console.log(updatedUser);
-
     this.accountService.updateUser(updatedUser).subscribe({
       next: () => {
         // Conserver le token de l'utilisateur existant
@@ -185,6 +182,7 @@ export class UserProfileComponent implements OnInit {
       }
     });
   }
+  
 
 
   onCancel(): void {

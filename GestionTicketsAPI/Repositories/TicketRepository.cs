@@ -145,6 +145,27 @@ namespace GestionTicketsAPI.Repositories
                                  t.Description.ToLower().Contains(lowerSearchTerm));
       }
 
+      if (filterParams.StartDate.HasValue && filterParams.EndDate.HasValue)
+      {
+        // Si les deux dates sont renseignées, on sélectionne les tickets dont
+        // la date de création se situe entre StartDate et EndDate (incluses)
+        query = query.Where(t => t.CreatedAt >= filterParams.StartDate.Value &&
+                                 t.CreatedAt <= filterParams.EndDate.Value);
+      }
+      else
+      {
+        if (filterParams.StartDate.HasValue)
+        {
+          query = query.Where(t => t.CreatedAt >= filterParams.StartDate.Value);
+        }
+        if (filterParams.EndDate.HasValue)
+        {
+          // Ici, vous pouvez choisir la propriété qui doit être comparée avec EndDate,
+          // par exemple CreatedAt ou une autre propriété comme SolvedAt.
+          query = query.Where(t => t.CreatedAt <= filterParams.EndDate.Value);
+        }
+      }
+
       return await PagedList<Ticket>.CreateAsync(query, filterParams.PageNumber, filterParams.PageSize);
     }
 
@@ -291,6 +312,26 @@ namespace GestionTicketsAPI.Repositories
       {
         var lowerStatut = filterParams.Statut.ToLower();
         query = query.Where(t => t.Statut.Name.ToLower().Contains(lowerStatut));
+      }
+      if (filterParams.StartDate.HasValue && filterParams.EndDate.HasValue)
+      {
+        // Si les deux dates sont renseignées, on sélectionne les tickets dont
+        // la date de création se situe entre StartDate et EndDate (incluses)
+        query = query.Where(t => t.CreatedAt >= filterParams.StartDate.Value &&
+                                 t.CreatedAt <= filterParams.EndDate.Value);
+      }
+      else
+      {
+        if (filterParams.StartDate.HasValue)
+        {
+          query = query.Where(t => t.CreatedAt >= filterParams.StartDate.Value);
+        }
+        if (filterParams.EndDate.HasValue)
+        {
+          // Ici, vous pouvez choisir la propriété qui doit être comparée avec EndDate,
+          // par exemple CreatedAt ou une autre propriété comme SolvedAt.
+          query = query.Where(t => t.CreatedAt <= filterParams.EndDate.Value);
+        }
       }
 
       return await query.ToListAsync();

@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component';
-import { LayoutComponent } from './layout/layout.component'; // Composant qui contient header + sidenav
+import { LoginComponent } from './connexion/login/login.component';
+import { LayoutComponent } from './layout/layout.component'; 
 import { TestErrorsComponent } from './errors/test-errors/test-errors.component';
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
@@ -10,11 +10,15 @@ import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
 import { ListTicketsComponent } from './Tickets/list-tickets/list-tickets.component';
 import { TicketDetailsComponent } from './Tickets/ticket-details/ticket-details.component';
 import { AjouterTicketComponent } from './Tickets/ajouter-ticket/ajouter-ticket.component';
+import { ForgotPasswordComponent } from './connexion/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './connexion/reset-password/reset-password.component';
 
 export const routes: Routes = [
   // Page de login
   { path: '', component: LoginComponent },
 
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'reset-password', component: ResetPasswordComponent },
   // Layout principal : header + sidenav
   {
     path: 'home',
@@ -80,7 +84,7 @@ export const routes: Routes = [
 @NgModule({
   imports: [
     RouterModule.forRoot(routes, { 
-      useHash: true, // active la stratégie avec hash
+      useHash: true,
       anchorScrolling: 'enabled',
       scrollOffset: [0, 1000],
       onSameUrlNavigation: 'reload'

@@ -1,10 +1,7 @@
 <!-- Affichage du nom de l'utilisateur avec fallback via le pipe "default" -->
-<h1 *ngIf="userDetails; else loading">
+<h1 *ngIf="userDetails;">
   {{ userDetails.firstName ? userDetails.firstName : 'Aucun' }} {{ userDetails.lastName ? userDetails.lastName : '' }}
 </h1>
-<ng-template #loading>
-  <h2>Chargement...</h2>
-</ng-template>
 
 
 <!-- Formulaire de modification des informations de l'utilisateur -->

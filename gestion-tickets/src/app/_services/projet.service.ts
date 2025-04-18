@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Projet } from '../_models/Projet';
 import { ProjetMember } from '../_models/projet-member'; 
@@ -74,7 +74,7 @@ export class ProjetService {
   }
 
   // Ajouter un utilisateur à un projet
-  ajouterUtilisateurAuProjet(projetId: number, userId: number, role: string): Observable<void> {
+  ajouterUtilisateurAuProjet(projetId: number, userId: number, role: string): Observable<string> {
     const body = { userId: userId, role: role };
     return this.http.post<void>(`${this.baseUrl}${projetId}/utilisateurs`, body);
   }
@@ -118,5 +118,6 @@ export class ProjetService {
   exportProjets(filters: any): Observable<Blob> {
     return this.http.post(`${this.baseUrl}export`, filters, { responseType: 'blob' });
   }
-  
+
+
 }

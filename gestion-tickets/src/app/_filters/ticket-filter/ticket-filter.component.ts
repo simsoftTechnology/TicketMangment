@@ -11,11 +11,19 @@ import { AccountService } from '../../_services/account.service';
 import { StatusService } from '../../_services/status.service';
 import { CommonModule } from '@angular/common';
 import { LoaderService } from '../../_services/loader.service';
+import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-ticket-filter',
   standalone: true,
-  imports: [ReactiveFormsModule, CommonModule, FormsModule],
+  imports: [ReactiveFormsModule, CommonModule, FormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule
+  ],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' } // Pour que le datepicker soit en français
+  ],
   templateUrl: './ticket-filter.component.html',
   styleUrls: ['./ticket-filter.component.css']
 })
@@ -74,6 +82,7 @@ export class TicketFilterComponent implements OnInit {
 
   isClient: boolean = false;
   isLoading: boolean = false;
+  isDatepickerOpen: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -105,7 +114,9 @@ export class TicketFilterComponent implements OnInit {
       statut: [''],
       qualification: [''],
       projet: [''],
-      societe: ['']
+      societe: [''],
+      startDate: [new Date()],
+      endDate: [new Date()]
     });
 
     // Chargement des données depuis la base via les services
@@ -338,8 +349,32 @@ export class TicketFilterComponent implements OnInit {
     }
   }
 
+  toggleDatepicker(event: MouseEvent): void {
+    // Stopper la propagation pour éviter des fermetures non souhaitées
+    event.stopPropagation();
+    
+    const input = event.target as HTMLInputElement;
 
+    if (this.isDatepickerOpen) {
+      input.blur();
+      // La fermeture sera aussi gérée par onDateInputBlur
+    } else {
+      input.focus();
+      // L'ouverture sera prise en charge par onDateInputFocus
+    }
+  }
 
+  // Gestionnaire de focus
+  onDateInputFocus(): void {
+    this.isDatepickerOpen = true;
+  }
+
+  // Gestionnaire de blur
+  onDateInputBlur(): void {
+    this.isDatepickerOpen = false;
+  }
+  
+  
   private closeAllDropdowns(): void {
     this.isClientDropdownOpen = false;
     this.isCategorieDropdownOpen = false;

@@ -179,7 +179,9 @@ namespace GestionTicketsAPI.Repositories
     public async Task<bool> AttachUserToSocieteAsync(int societeId, int userId)
     {
       // Récupérer l'utilisateur pour connaître son rôle
-      var user = await _context.Users.FindAsync(userId);
+      var user = await _context.Users
+        .Include(u => u.Role) // Charger la relation Role
+        .FirstOrDefaultAsync(u => u.Id == userId);
       if (user == null)
       {
         // Gestion de l'erreur : utilisateur non trouvé
@@ -223,9 +225,6 @@ namespace GestionTicketsAPI.Repositories
         : $"Erreur lors de l'insertion dans la base pour SocieteId {societeId}, UserId {userId}");
       return result;
     }
-
-
-
 
 
     public async Task<bool> DetachUserFromSocieteAsync(int societeId, int userId)

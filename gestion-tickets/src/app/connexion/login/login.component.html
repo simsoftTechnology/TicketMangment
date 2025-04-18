@@ -55,13 +55,6 @@
           </div>
         </div>  
 
-        <!-- Remember Me -->
-        <div class="form-group">
-          <label>
-            <input type="checkbox" /> Se souvenir de moi
-          </label>
-        </div>
-
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary" [disabled]="isLoading">
           <ng-container *ngIf="!isLoading; else loadingTpl">Connexion</ng-container>
@@ -71,8 +64,8 @@
           </ng-template>
         </button>
         <div class="forgot-password">
-          <a href="#">Mot de passe oublié ?</a>
-        </div>
+          <a [routerLink]="['/forgot-password']">Mot de passe oublié ?</a>
+        </div>        
       </form>
     </div>
   </div>

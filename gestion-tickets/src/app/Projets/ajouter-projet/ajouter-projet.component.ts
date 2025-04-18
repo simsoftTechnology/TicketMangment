@@ -68,7 +68,9 @@ export class AjouterProjetComponent implements OnInit {
     private userService: AccountService,
     private router: Router,
     private accountService: AccountService,
-    public route: ActivatedRoute, 
+    private dropdownService: DropdownService,
+    public route: ActivatedRoute,
+    private overlayModalService: OverlayModalService,
     private toastr: ToastrService,
     private loaderService: LoaderService
   ) {

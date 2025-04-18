@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core'; 
-import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
-import { environment } from '../../environment/environment';
 import { PaginatedResult, Pagination } from '../_models/pagination';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'

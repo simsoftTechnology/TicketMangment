@@ -62,9 +62,9 @@
         <div class="form-group">
           <label for="role">Role <span class="required">*</span></label>
           <select id="role" formControlName="role" class="form-control"
-                  [class.is-invalid]="userForm.controls['role'].touched && userForm.controls['role'].invalid">
-                  <option [ngValue]="''">Sélectionnez une option</option>
-                  <option *ngFor="let r of roles" [ngValue]="r.name">{{ r.name }}</option>                  
+            [class.is-invalid]="userForm.controls['role'].touched && userForm.controls['role'].invalid">
+            <option [value]="''">Sélectionnez une option</option>
+            <option *ngFor="let r of roles" [value]="r.name">{{ r.name }}</option>                  
           </select>
           <div *ngIf="userForm.controls['role'].hasError('required')" class="invalid-feedback text-start">
             Role est obligatoire
@@ -267,11 +267,11 @@
   <div *ngIf="activeTab === 'tickets'" class="tab-pane">
     <table>
       <colgroup>
-        <col style="width: 25%;">
-        <col style="width: 35%;">
-        <col style="width: 15%;">
-        <col style="width: 15%;">
-        <col style="width: 10%;">
+        <col style="width: 20%;">
+        <col style="width: 20%;">
+        <col style="width: 20%;">
+        <col style="width: 20%;">
+        <col style="width: 20%;">
       </colgroup>
       <thead>
         <tr class="filter-row">

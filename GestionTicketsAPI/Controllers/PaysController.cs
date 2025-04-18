@@ -113,7 +113,8 @@ namespace GestionTicketsAPI.Controllers
         return BadRequest(ex.Message);
       }
     }
- 
+
+    [Authorize]
     [HttpGet("supprimerPays/{idPays}")]
     public async Task<ActionResult> DeletePays(int idPays)
     {

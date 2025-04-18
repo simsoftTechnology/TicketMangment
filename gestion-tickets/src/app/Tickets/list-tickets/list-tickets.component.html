@@ -18,24 +18,24 @@
           </div>
         </td>
         <td colspan="4" class="filter-actions">
-          <button class="export-btn" (click)="exportTickets()" [disabled]="isLoading">
-            <ng-container *ngIf="!isLoading; else loadingExportTpl">
+          <!-- Bouton d'export avec variable de chargement spécifique -->
+          <button class="export-btn" (click)="exportTickets()" [disabled]="isExportLoading">
+            <ng-container *ngIf="!isExportLoading; else loadingExportTpl">
               <span class="material-icons">download</span> Export Excel
             </ng-container>
             <ng-template #loadingExportTpl>
-              <span class="spinner"></span> Export Execl
+              <span class="spinner"></span> Export Excel
             </ng-template>
           </button>          
           <button mat-icon-button [matMenuTriggerFor]="filterMenu">
             <span class="material-icons">filter_list</span>
           </button>
-          
-          <!-- Définition du matMenu contenant le composant de filtre -->
+          <!-- MatMenu contenant le filtre -->
           <mat-menu #filterMenu="matMenu" panelClass="ticket-filter-menu" disableClose>
             <div class="ticket-filter-content">
               <app-ticket-filter (applyFilter)="onApplyFilter($event)"></app-ticket-filter>
             </div>
-          </mat-menu>                             
+          </mat-menu>                                              
         </td>
       </tr>
       <!-- En-tête des colonnes -->
@@ -82,7 +82,7 @@
           </span>
         </td>                        
         <td>
-          <span >
+          <span>
             {{ getStatusLabel(ticket.statutId) }}
           </span>
         </td>        

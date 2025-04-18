@@ -5,7 +5,6 @@ import { NgFor, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginatedResult } from '../../_models/pagination';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs'; // Import de forkJoin
 import { ToastrService } from 'ngx-toastr';
 
 // Importations pour le modal de confirmation
@@ -15,19 +14,21 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { SocieteFilterComponent } from '../../_filters/societe-filter/societe-filter.component';
-import { LoaderService } from '../../_services/loader.service';
-import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
-    selector: 'app-liste-societes',
-    imports: [NgFor, FormsModule, RouterLink, NgIf,
-      MatMenuModule,
+  selector: 'app-liste-societes',
+  imports: [
+    NgFor,
+    FormsModule,
+    RouterLink,
+    NgIf,
+    MatMenuModule,
     MatIconModule,
     MatButtonModule,
     SocieteFilterComponent
-    ],
-    templateUrl: './liste-societes.component.html',
-    styleUrls: ['./liste-societes.component.css']
+  ],
+  templateUrl: './liste-societes.component.html',
+  styleUrls: ['./liste-societes.component.css']
 })
 export class ListeSocietesComponent implements OnInit {
   societes: Societe[] = [];
@@ -40,20 +41,18 @@ export class ListeSocietesComponent implements OnInit {
   societesSearchTerm: string = '';
 
   filterParams: any = {};
-  isLoading: boolean = false;
+
+  // Variables de chargement spécifiques pour chaque action
+  isExportLoading: boolean = false;
+  isDeleteLoading: boolean = false;
+  isDeleteMultipleLoading: boolean = false;
 
   constructor(
     private societeService: SocieteService,
     public route: ActivatedRoute,
     private toastr: ToastrService,
-    private overlayModalService: OverlayModalService,
-    private loaderService: LoaderService,
-    private globalLoaderService: GlobalLoaderService
-  ) {
-    this.loaderService.isLoading$.subscribe(loading => {
-      this.isLoading = loading;
-    });
-  }
+    private overlayModalService: OverlayModalService
+  ) {}
 
   ngOnInit(): void {
     this.jumpPage = this.pageNumber;
@@ -77,9 +76,7 @@ export class ListeSocietesComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors du chargement des sociétés paginées', error);
-        },
-        complete: () => {
-          this.globalLoaderService.hideGlobalLoader();
+          this.toastr.error("Erreur lors du chargement des sociétés paginées");
         }
       });
   }
@@ -109,32 +106,33 @@ export class ListeSocietesComponent implements OnInit {
     }
   }
 
-  // Suppression d'une société via modal de confirmation
+  // Suppression d'une société via modal de confirmation (action individuelle)
   deleteSociete(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette société ?";
-    
+
     modalInstance.confirmed.subscribe(() => {
-      this.loaderService.showLoader();
+      this.isDeleteLoading = true;
       this.societeService.deleteSociete(id).subscribe({
         next: () => {
+          this.toastr.success("Société supprimée avec succès");
           this.loadSocietes();
-          this.loaderService.hideLoader();
+          this.isDeleteLoading = false;
         },
         error: (error) => {
-          console.error('Erreur lors de la suppression des sociétés', error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
-          this.loaderService.hideLoader();
+          console.error('Erreur lors de la suppression de la société', error);
+          this.isDeleteLoading = false;
         }
       });
       this.overlayModalService.close();
     });
-    
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
   }
 
+  // Sélectionner toutes les sociétés
   selectAll(event: Event): void {
     const checkbox = event.target as HTMLInputElement;
     this.societes = this.societes.map(societe => ({
@@ -143,41 +141,39 @@ export class ListeSocietesComponent implements OnInit {
     }));
   }
 
+  // Inverser la sélection d'une société
   toggleSelection(societe: Societe): void {
     societe.selected = !societe.selected;
   }
 
-  /**
-   * Méthode pour supprimer en masse les sociétés sélectionnées via modal de confirmation.
-   */
+  // Suppression en masse des sociétés sélectionnées via modal de confirmation
   deleteSelectedSocietes(): void {
     const selectedSocietes = this.societes.filter(societe => societe.selected);
     if (selectedSocietes.length === 0) {
       this.toastr.warning("Aucune société sélectionnée.");
       return;
     }
-    
+
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Êtes-vous sûr de vouloir supprimer les sociétés sélectionnées ?";
-    
+
     modalInstance.confirmed.subscribe(() => {
       const selectedIds = selectedSocietes.map(s => s.id);
-      this.loaderService.showLoader();
+      this.isDeleteMultipleLoading = true;
       this.societeService.deleteSelectedSocietes(selectedIds).subscribe({
         next: () => {
           this.toastr.success("Les sociétés sélectionnées ont été supprimées avec succès.");
           this.loadSocietes();
-          this.loaderService.hideLoader();
+          this.isDeleteMultipleLoading = false;
         },
         error: (error) => {
           console.error("Erreur lors de la suppression des sociétés", error);
-          this.toastr.error("Une erreur est survenue lors de la suppression.");
-          this.loaderService.hideLoader();
+          this.isDeleteMultipleLoading = false;
         }
       });
       this.overlayModalService.close();
     });
-    
+
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });
@@ -187,9 +183,9 @@ export class ListeSocietesComponent implements OnInit {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
+  // Export des sociétés en Excel avec variable de chargement dédiée
   exportSocietes(): void {
-    // Active le loader pour l'export
-    this.loaderService.showLoader();
+    this.isExportLoading = true;
     this.societeService.exportSocietes(this.societesSearchTerm, this.filterParams)
       .subscribe({
         next: (blob: Blob) => {
@@ -199,13 +195,12 @@ export class ListeSocietesComponent implements OnInit {
           a.download = `SocietesExport_${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}.xlsx`;
           a.click();
           window.URL.revokeObjectURL(url);
-          // Désactive le loader une fois l'export terminé
-          this.loaderService.hideLoader();
+          this.isExportLoading = false;
         },
         error: (error) => {
           console.error("Erreur lors de l'export Excel des sociétés", error);
           this.toastr.error("Erreur lors de l'export Excel des sociétés");
-          this.loaderService.hideLoader();
+          this.isExportLoading = false;
         }
       });
   }

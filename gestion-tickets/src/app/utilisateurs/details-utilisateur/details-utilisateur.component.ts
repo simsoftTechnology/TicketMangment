@@ -168,7 +168,7 @@ export class DetailsUtilisateurComponent implements OnInit {
             this.loadProjects();
           },
           error: (err) => {
-            this.toastr.error("Erreur lors de l'attachement du projet");
+            console.error("Erreur lors de l'attachement du projet");
           }
         });
       }
@@ -344,7 +344,9 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }  
-  onCancel(): void {    
+
+  onCancel(): void {
+    // Réinitialiser le formulaire avec les valeurs initiales si nécessaire
     if (this.user) {
       this.userForm.patchValue({
         lastName: this.user.lastName,
@@ -507,7 +509,6 @@ export class DetailsUtilisateurComponent implements OnInit {
         },
         error: (error) => {
           console.error('Erreur lors de la suppression du projet', error);
-          this.toastr.error('Une erreur est survenue lors de la suppression.');
         }
       });
       this.overlayModalService.close();

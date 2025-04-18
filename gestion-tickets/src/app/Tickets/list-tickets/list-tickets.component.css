@@ -539,11 +539,19 @@ input, select, button {
 ::ng-deep .ticket-filter-menu {
   overflow: visible !important; /* Permet au contenu de déborder */
   max-height: none !important; /* Supprime la hauteur maximale */
+.cdk-overlay-container {
+  overflow: visible !important;
 }
 
 .ticket-filter-content {
   max-height: 300px; /* Maintient le défilement interne */
   overflow-y: auto;
+}
+
+
+::ng-deep .ticket-filter-menu {
+  overflow: visible !important; /* Permet au contenu de dépasser */
+  max-height: none !important;   /* Supprime la hauteur maximale imposée par défaut */
 }
 
 

@@ -10,7 +10,7 @@ import { AccountService } from '../../_services/account.service';
 
 @Component({
   selector: 'app-modifier-pays',
-  imports: [ReactiveFormsModule, RouterLink, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './modifier-pays.component.html',
   styleUrls: ['./modifier-pays.component.css']
 })
@@ -98,8 +98,16 @@ export class ModifierPaysComponent implements OnInit {
     });
     }
   }
-  annuler(){
-    this.paysForm.patchValue({ nom: this.originalPays?.nom.trim() ,  codeTel : this.originalPays?.codeTel.trim() });
+  onCancel(): void {
+    if (this.originalPays) {
+      // Réinitialise le formulaire avec les valeurs originales
+      this.paysForm.reset({
+        nom: this.originalPays.nom,
+        codeTel: this.originalPays.codeTel,
+        file: null 
+      });
+      this.selectedFile = undefined;
+    }
   }
   
 }

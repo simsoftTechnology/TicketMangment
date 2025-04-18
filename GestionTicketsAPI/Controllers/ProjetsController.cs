@@ -148,12 +148,12 @@ namespace GestionTicketsAPI.Controllers
         var result = await _projetService.AjouterUtilisateurAuProjetAsync(projetId, projetUserDto);
         if (!result)
           return NotFound("Projet ou utilisateur non trouvé.");
-        return Ok(new { message = "Utilisateur ajouté au projet avec succès." });
+        return Ok("Utilisateur ajouté au projet avec succès.");
       }
       catch (InvalidOperationException ex)
       {
         // Renvoyer un statut 409 Conflict pour signaler le conflit
-        return Conflict(new { message = ex.Message });
+        return Conflict(ex.Message);
       }
     }
 
@@ -173,10 +173,23 @@ namespace GestionTicketsAPI.Controllers
     public async Task<IActionResult> SupprimerUtilisateurDuProjet(int projetId, int userId)
     {
       var result = await _projetService.SupprimerUtilisateurDuProjetAsync(projetId, userId);
+
       if (!result)
-        return NotFound();
+      {
+        // L'utilisateur est le chef de projet et ne peut être détaché.
+        // On retourne ainsi une réponse 400 avec un objet d'erreur structuré.
+        return BadRequest(new
+        {
+          errors = new string[]
+            {
+                "Impossible de détacher cet utilisateur car il est défini comme chef de projet. Veuillez d'abord réattribuer ce rôle à un autre utilisateur avant de procéder à la suppression."
+            }
+        });
+      }
+
       return NoContent();
     }
+
 
     // Supprimer plusieurs utilisateurs d'un projet
     [HttpGet("supprimerUtilisateursDuProjet")]
