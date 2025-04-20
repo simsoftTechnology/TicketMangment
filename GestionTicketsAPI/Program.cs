@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using GestionTicketsAPI.Extensions;
+using GestionTicketsAPI.hubs;
 using GestionTicketsAPI.Middleware;
+using GestionTicketsAPI.Services;
 using Hangfire;
 using Hangfire.MySql;
 using OfficeOpenXml;
@@ -29,9 +31,21 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
     });
+// Configuration WebPush (générer vos VAPID keys)
+builder.Services.AddPushServiceClient(options =>
+{
+    options.PublicKey  = builder.Configuration["WebPush:PublicKey"];
+    options.PrivateKey = builder.Configuration["WebPush:PrivateKey"];
+    options.Subject    = $"mailto:{builder.Configuration["WebPush:SubjectEmail"]}";
+});
+
+// SignalR + NotificationService
+builder.Services.AddSignalR();
+builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200", "http://localhost:8085").WithExposedHeaders("Pagination"));
 
