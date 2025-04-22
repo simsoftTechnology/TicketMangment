@@ -33,16 +33,16 @@ namespace GestionTicketsAPI.Services
 
     public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
     {
-      // Vérifier si l'utilisateur existe déjà
+      // 1. Vérifier si l'utilisateur existe déjà
       if (await _accountRepository.UserExistsAsync(registerDto.Firstname, registerDto.Lastname, registerDto.Email))
         throw new Exception("L'utilisateur existe déjà.");
 
-      // Récupération du pays
+      // 2. Récupérer le pays
       var pays = await _accountRepository.GetPaysByIdAsync(registerDto.Pays);
       if (pays == null)
         throw new Exception("Le pays spécifié est introuvable.");
 
-      // Si une société est spécifiée pour l'utilisateur, vérifier son existence
+      // 3. Si une société est spécifiée, vérifier son existence
       if (registerDto.SocieteId.HasValue)
       {
         var societe = await _societeRepository.GetSocieteByIdAsync(registerDto.SocieteId.Value);
@@ -50,8 +50,13 @@ namespace GestionTicketsAPI.Services
           throw new Exception("La société spécifiée est introuvable.");
       }
 
-      // Création de l'utilisateur avec hachage du mot de passe
+      // 4. Générer un mot de passe aléatoire de 8 caractères
+      string generatedPassword = GenerateRandomPassword(8);
+
+      // 5. Créer l'utilisateur et hacher son mot de passe
       using var hmac = new HMACSHA512();
+      var passwordBytes = Encoding.UTF8.GetBytes(generatedPassword);
+
       var user = new User
       {
         FirstName = registerDto.Firstname,
@@ -62,28 +67,25 @@ namespace GestionTicketsAPI.Services
         Pays = registerDto.Pays,
         PaysNavigation = pays,
         Actif = registerDto.Actif,
-        PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-        PasswordSalt = hmac.Key,
+        PasswordHash = hmac.ComputeHash(passwordBytes),
+        PasswordSalt = hmac.Key
       };
 
-      // Si une société est spécifiée, créer l'association via SocieteUser
+      // 6. Associer à une société si nécessaire
       if (registerDto.SocieteId.HasValue)
       {
         user.SocieteUsers.Add(new SocieteUser
         {
           SocieteId = registerDto.SocieteId.Value
-          // La liaison avec l'utilisateur sera gérée automatiquement lors de l'ajout en base
         });
       }
 
-      // Ajout de l'utilisateur en base
+      // 7. Enregistrer l'utilisateur en base
       await _accountRepository.AddUserAsync(user);
-
-      // Sauvegarder pour générer l'ID utilisateur
       if (!await _accountRepository.SaveAllAsync())
         throw new Exception("Erreur lors de l'enregistrement de l'utilisateur.");
 
-      // Gestion du contrat (optionnel) pour l'utilisateur, même s'il est lié à une société
+      // 8. Ajouter un contrat si fourni
       if (registerDto.Contract != null)
       {
         var contrat = new Contrat
@@ -93,17 +95,18 @@ namespace GestionTicketsAPI.Services
           TypeContrat = "Client-Societe",
           ClientId = user.Id
         };
-
         await _accountRepository.AddContractAsync(contrat);
-        await _accountRepository.SaveAllAsync();
+        if (!await _accountRepository.SaveAllAsync())
+          throw new Exception("Erreur lors de l'enregistrement du contrat.");
       }
 
+      // 9. Mapper vers UserDto, créer le token et exposer le mot de passe initial
       var userDto = _mapper.Map<UserDto>(user);
       userDto.Token = _tokenService.CreateToken(user);
+      userDto.InitialPassword = generatedPassword;
 
       return userDto;
     }
-
 
 
     public async Task<UserDto> LoginAsync(LoginDto loginDto)
@@ -150,6 +153,19 @@ namespace GestionTicketsAPI.Services
       return user;
     }
 
+    private static string GenerateRandomPassword(int length)
+    {
+      const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      var data = new byte[length];
+      using var rng = RandomNumberGenerator.Create();
+      rng.GetBytes(data);
+
+      var sb = new StringBuilder(length);
+      foreach (var b in data)
+        sb.Append(chars[b % chars.Length]);
+
+      return sb.ToString();
+    }
 
   }
 }
