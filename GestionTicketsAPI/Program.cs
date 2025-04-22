@@ -45,9 +45,13 @@ builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 
-app.MapHub<NotificationHub>("/hubs/notifications");
 
-app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200", "http://localhost:8085").WithExposedHeaders("Pagination"));
+
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins("http://localhost:4200", "https://localhost:4200", "http://localhost:8085")
+    .AllowCredentials()
+    .WithExposedHeaders("Pagination"));
+
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");
 

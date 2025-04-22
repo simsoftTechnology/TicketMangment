@@ -1,0 +1,105 @@
+/* Main container styling */
+:host {
+  display: block;
+  font-family: 'Roboto', Arial, sans-serif;
+  max-width: 450px;
+  height: 100%;             /* occupe tout l’espace vertical disponible */
+  overflow-y: auto;         /* active le scroll vertical */
+  -webkit-overflow-scrolling: touch; /* pour un scroll fluide sur iOS */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+
+/* Header styling */
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.notif-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #343a40;
+}
+
+.notif-header button {
+  background-color: transparent;
+  border: none;
+  color: #6c757d;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.notif-header button:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+/* Notification list */
+.notif-list {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-list li {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.notif-list li:last-child {
+  border-bottom: none;
+}
+
+.notif-list li:hover {
+  background-color: #f8f9fa;
+}
+
+.notif-list li.unread {
+  background-color: #e8f4fe;
+  position: relative;
+}
+
+.notif-list li.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 4px;
+  background-color: #0d6efd;
+}
+
+.notif-list li strong {
+  display: block;
+  font-size: 13px;
+  color: #6c757d;
+  margin-bottom: 6px;
+}
+
+.notif-list li p {
+  margin: 0;
+  color: #212529;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* Empty state */
+ng-template p {
+  text-align: center;
+  padding: 30px 20px;
+  color: #6c757d;
+  font-style: italic;
+}

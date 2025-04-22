@@ -7,6 +7,8 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 import { errorInterceptor } from './_interceptors/error.interceptor';
 import { jwtInterceptor } from './_interceptors/jwt.interceptor';
+import { provideServiceWorker } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [provideZoneChangeDetection({ eventCoalescing: true }),
@@ -19,5 +21,8 @@ export const appConfig: ApplicationConfig = {
     closeButton: true,
     progressAnimation: 'increasing',
   }),
+  provideServiceWorker('ngsw-worker.js', {
+    enabled: environment.production
+  })
   ]
 };

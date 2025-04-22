@@ -16,7 +16,7 @@ namespace GestionTicketsAPI.Data
     public DbSet<Commentaire> Commentaires { get; set; }
     public DbSet<Projet> Projets { get; set; }
     public DbSet<Contrat> Contrats { get; set; }
-    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<Notification> Notification { get; set; }
     public DbSet<Photo> Photos { get; set; }
     public DbSet<ProjetUser> ProjetUser { get; set; }
     public DbSet<CategorieProbleme> CategorieProblemes { get; set; }

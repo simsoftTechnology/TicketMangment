@@ -44,6 +44,10 @@
 
     <!-- Actions à droite -->
     <div class="actions" style="position: relative;">
+      <button class="action-item notif-button" (click)="toggleNotifications()">
+        <i class="fas fa-bell"></i>
+        <span *ngIf="unreadCount" class="badge">{{ unreadCount }}</span>
+      </button>
       <!-- Bouton affichant les initiales de l'utilisateur -->
       <button class="action-item" (click)="toggleMenu()">
         {{ userInitials }}
@@ -64,3 +68,13 @@
 
   </div>
 </header>
+
+<div class="notif-sidenav" [class.open]="isNotifOpen">
+  <!-- On réutilise directement le composant notifications -->
+  <app-notifications></app-notifications>
+</div>
+
+<div class="overlay" 
+     [class.show]="isNotifOpen" 
+     (click)="toggleNotifications()">
+</div>

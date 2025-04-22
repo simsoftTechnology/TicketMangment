@@ -9,6 +9,7 @@ import { authGuard } from './_guards/auth.guard';
 import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
 import { ForgotPasswordComponent } from './connexion/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './connexion/reset-password/reset-password.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 
 export const routes: Routes = [
   // Page de login
@@ -16,6 +17,7 @@ export const routes: Routes = [
 
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'notifications', component: NotificationsComponent},
   // Layout principal : header + sidenav
   {
     path: 'home',

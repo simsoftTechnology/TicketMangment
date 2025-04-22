@@ -23,9 +23,11 @@ namespace GestionTicketsAPI.Controllers
     private readonly IUserService _userService;
     private readonly ICommentService _commentService;
     private readonly ExcelExportServiceClosedXML _excelExportService;
+    private readonly NotificationService _notifService;
     private readonly IWebHostEnvironment _env;
 
-    public TicketsController(IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService)
+    public TicketsController(IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService,
+    NotificationService notifService)
     {
       _ticketService = ticketService;
       _mapper = mapper;
@@ -34,7 +36,8 @@ namespace GestionTicketsAPI.Controllers
       _emailService = emailService;
       _commentService = commentService;
       _excelExportService = excelExportService;
-      _env = env;
+      _env                = env;
+      _notifService       = notifService;
     }
 
     // GET api/tickets?...
@@ -75,91 +78,80 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost]
     public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
     {
-      if (await _ticketService.TicketExists(ticketCreateDto.Title))
-        return BadRequest("Un ticket avec ce titre existe déjà");
+        if (await _ticketService.TicketExists(ticketCreateDto.Title))
+            return BadRequest("Un ticket avec ce titre existe déjà");
 
-      // Variable pour stocker l'URL de l'attachement enregistré localement
-      string attachmentUrl = null;
+        // ... gestion de l'attachement ...
 
-      if (!string.IsNullOrEmpty(ticketCreateDto.AttachmentBase64) && !string.IsNullOrEmpty(ticketCreateDto.AttachmentFileName))
-      {
-        byte[] fileBytes = Convert.FromBase64String(ticketCreateDto.AttachmentBase64);
-        string assetsPath = Path.Combine(_env.WebRootPath, "assets");
-        if (!Directory.Exists(assetsPath))
+        var ticket = _mapper.Map<Ticket>(ticketCreateDto);
+        ticket.CreatedAt = DateTime.UtcNow;
+
+        var defaultStatus = await _ticketService.GetStatusByNameAsync("—");
+        if (defaultStatus == null) return BadRequest("Statut par défaut introuvable");
+        ticket.StatutId = defaultStatus.Id;
+
+        await _ticketService.AddTicketAsync(ticket);
+        await _ticketService.SaveAllAsync();
+
+        var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
+        if (ticketFromDb == null) return NotFound();
+
+        // Notifications to chef de projet
+        var chefProjet = ticketFromDb.Projet?.ChefProjet;
+        if (chefProjet != null)
         {
-          Directory.CreateDirectory(assetsPath);
+            BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                $"{chefProjet.FirstName} {chefProjet.LastName}",
+                chefProjet.Email,
+                "Nouveau ticket créé",
+                $"Bonjour {chefProjet.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
+            ));
+
+            BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+                chefProjet.Id,
+                $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName}"
+            ));
+            BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+                chefProjet.Id,
+                $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName}"
+            ));
         }
-        string fileName = $"{Guid.NewGuid()}_{ticketCreateDto.AttachmentFileName}";
-        string filePath = Path.Combine(assetsPath, fileName);
-        await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
 
-        // Utilisation d'une URL absolue
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        attachmentUrl = $"{baseUrl}/assets/{fileName}";
-      }
+        // Notifications to client
+        var client = ticketFromDb.Owner;
+        if (client != null)
+        {
+            BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                $"{client.FirstName} {client.LastName}",
+                client.Email,
+                "Confirmation de création de ticket",
+                $"Bonjour {client.FirstName}, votre ticket #{ticket.Id} a bien été créé."
+            ));
+        }
 
+        // Notifications to super-admins
+        var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+        foreach (var admin in superAdmins)
+        {
+            BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                $"{admin.FirstName} {admin.LastName}",
+                admin.Email,
+                "Nouveau ticket créé",
+                $"Bonjour {admin.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
+            ));
 
-      var ticket = _mapper.Map<Ticket>(ticketCreateDto);
-      ticket.CreatedAt = DateTime.UtcNow;
-      ticket.UpdatedAt = null;
+            BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+                admin.Id,
+                $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName}"
+            ));
+            BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+                admin.Id,
+                $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName}"
+            ));
+        }
 
-      var defaultStatus = await _ticketService.GetStatusByNameAsync("—");
-      if (defaultStatus == null)
-        return BadRequest("Statut par défaut introuvable");
-      ticket.StatutId = defaultStatus.Id;
-
-      if (!string.IsNullOrEmpty(attachmentUrl))
-      {
-        ticket.Attachments = attachmentUrl;
-      }
-
-      await _ticketService.AddTicketAsync(ticket);
-      await _ticketService.SaveAllAsync();
-
-      var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
-      if (ticketFromDb == null)
-      {
-        return NotFound();
-      }
-
-      var chefProjet = ticketFromDb.Projet?.ChefProjet;
-      if (chefProjet != null)
-      {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{chefProjet.FirstName} {chefProjet.LastName}",
-            chefProjet.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {chefProjet.FirstName} {chefProjet.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}) pour le projet '{ticketFromDb.Projet.Nom}'."
-        ));
-      }
-
-      var client = ticketFromDb.Owner;
-      if (client != null)
-      {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{client.FirstName} {client.LastName}",
-            client.Email,
-            "Confirmation de création de ticket",
-            $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
-            $"Votre ticket intitulé '{ticket.Title}' (n° {ticket.Id}) a été créé avec succès. Nous vous remercions pour votre confiance."
-        ));
-      }
-
-      var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
-      foreach (var admin in superAdmins)
-      {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
-            $"Le client '{ticket.Owner.FirstName} {ticket.Owner.LastName}' a créé un nouveau ticket intitulé '{ticket.Title}' (n° {ticket.Id}). Veuillez vérifier les détails dans l'application."
-        ));
-      }
-
-      var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
-      return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
+        var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
+        return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
     }
 
 
@@ -205,6 +197,14 @@ namespace GestionTicketsAPI.Controllers
               $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
               $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été accepté."
           ));
+          BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            client.Id,
+            $"Votre ticket #{ticket.Id} a été accepté."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            client.Id,
+            $"Votre ticket #{ticket.Id} a été accepté."
+        ));
         }
 
         if (ticketValidationDto.ResponsibleId.HasValue)
@@ -216,7 +216,7 @@ namespace GestionTicketsAPI.Controllers
           ticket.StatutId = inProgressStatus.Id;
 
           var responsible = await _userService.GetUserByIdAsync(ticket.ResponsibleId.Value);
-          if (responsible != null)
+          if (responsible != null && responsible.Id != currentUserId)
           {
             BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
                 $"{responsible.FirstName} {responsible.LastName}",
@@ -224,6 +224,14 @@ namespace GestionTicketsAPI.Controllers
                 "Nouveau ticket assigné",
                 $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
                 $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+            ));
+            BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+                responsible.Id,
+                $"Vous avez été désigné responsable du ticket #{ticket.Id}."
+            ));
+            BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+                responsible.Id,
+                $"Vous avez été désigné responsable du ticket #{ticket.Id}."
             ));
           }
         }
@@ -246,6 +254,14 @@ namespace GestionTicketsAPI.Controllers
               $"Bonjour {client.FirstName} {client.LastName},<br><br>" +
               $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) a été refusé. Raison : {ticket.ValidationReason}"
           ));
+          BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            client.Id,
+            $"Votre ticket #{ticket.Id} a été refusé. Raison : {ticket.ValidationReason}"
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            client.Id,
+            $"Votre ticket #{ticket.Id} a été refusé."
+        ));
         }
       }
 
@@ -346,9 +362,17 @@ namespace GestionTicketsAPI.Controllers
             $"Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},<br><br>" +
             $"Votre ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
         ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            ticket.Owner.Id,
+            $"Votre ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            ticket.Owner.Id,
+            $"Votre ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
       }
 
-      if (ticket.Projet?.ChefProjet != null)
+      if (ticket.Projet?.ChefProjet != null && ticket.Projet.ChefProjet.Id != currentUserId)
       {
         BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
             $"{ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName}",
@@ -357,9 +381,17 @@ namespace GestionTicketsAPI.Controllers
             $"Bonjour {ticket.Projet.ChefProjet.FirstName} {ticket.Projet.ChefProjet.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) du projet '{ticket.Projet.Nom}' est {ticket.Statut.Name}.{commentText}"
         ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            ticket.Projet.ChefProjet.Id,
+            $"Le ticket #{ticket.Id} du projet '{ticket.Projet.Nom}' est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            ticket.Projet.ChefProjet.Id,
+            $"Le ticket #{ticket.Id} du projet est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
       }
 
-      if (ticket.Responsible != null)
+      if (ticket.Responsible != null && ticket.Responsible.Id != currentUserId)
       {
         BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
             $"{ticket.Responsible.FirstName} {ticket.Responsible.LastName}",
@@ -368,10 +400,18 @@ namespace GestionTicketsAPI.Controllers
             $"Bonjour {ticket.Responsible.FirstName} {ticket.Responsible.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) qui vous a été assigné est {ticket.Statut.Name}.{commentText}"
         ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            ticket.Responsible.Id,
+            $"Le ticket #{ticket.Id} qui vous était assigné est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            ticket.Responsible.Id,
+            $"Le ticket #{ticket.Id} assigné est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
       }
 
       var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
-      foreach (var admin in superAdmins)
+      foreach (var admin in superAdmins.Where(a => a.Id != currentUserId))
       {
         BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
             $"{admin.FirstName} {admin.LastName}",
@@ -379,6 +419,14 @@ namespace GestionTicketsAPI.Controllers
             "Ticket terminé",
             $"Bonjour {admin.FirstName} {admin.LastName},<br><br>" +
             $"Le ticket '{ticket.Title}' (n°{ticket.Id}) est {ticket.Statut.Name}.{commentText}"
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            admin.Id,
+            $"Le ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            admin.Id,
+            $"Le ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}."
         ));
       }
 
@@ -447,6 +495,14 @@ namespace GestionTicketsAPI.Controllers
           "Ticket mis à jour - Nouveau responsable assigné",
           $"Bonjour {responsible.FirstName} {responsible.LastName},<br><br>" +
           $"Vous avez été désigné comme responsable du Ticket '{ticket.Title}' (n°{ticket.Id})."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(
+            responsible.Id,
+            $"Vous avez été désigné responsable du ticket #{ticket.Id}."
+        ));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(
+            responsible.Id,
+            $"Vous avez été désigné responsable du ticket #{ticket.Id}."
         ));
       }
 

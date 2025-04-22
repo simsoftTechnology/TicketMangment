@@ -18,4 +18,5 @@ public class Notification
     public int UtilisateurId { get; set; }
 
     public User? Utilisateur { get; set; }
+    public bool IsRead { get; set; } = false;
 }
