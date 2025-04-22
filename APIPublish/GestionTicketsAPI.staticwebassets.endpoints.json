@@ -1,0 +1,416 @@
+{
+  "Version": 1,
+  "ManifestType": "Publish",
+  "Endpoints": [
+    {
+      "Route": "assets/90f27a80-033f-44fb-8480-1184f3da3e18_UsersExport_20250407T092410.xg5m1ldrtc.xlsx",
+      "AssetFile": "assets/90f27a80-033f-44fb-8480-1184f3da3e18_UsersExport_20250407T092410.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6971"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"z5XFyfkHMnW9ayKD+cOXqvllMgVeLS6mMTn66OPbOEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 11:09:32 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "xg5m1ldrtc"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-z5XFyfkHMnW9ayKD+cOXqvllMgVeLS6mMTn66OPbOEE="
+        },
+        {
+          "Name": "label",
+          "Value": "assets/90f27a80-033f-44fb-8480-1184f3da3e18_UsersExport_20250407T092410.xlsx"
+        }
+      ]
+    },
+    {
+      "Route": "assets/90f27a80-033f-44fb-8480-1184f3da3e18_UsersExport_20250407T092410.xlsx",
+      "AssetFile": "assets/90f27a80-033f-44fb-8480-1184f3da3e18_UsersExport_20250407T092410.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "6971"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"z5XFyfkHMnW9ayKD+cOXqvllMgVeLS6mMTn66OPbOEE=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 11:09:32 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-z5XFyfkHMnW9ayKD+cOXqvllMgVeLS6mMTn66OPbOEE="
+        }
+      ]
+    },
+    {
+      "Route": "assets/9a23ab9b-f3e6-45c0-863b-cb2db233dbe1_TicketsExport_1744017521486.9re20jvgkv.xlsx",
+      "AssetFile": "assets/9a23ab9b-f3e6-45c0-863b-cb2db233dbe1_TicketsExport_1744017521486.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "7338"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"yyztzccdaLGWM2FmA0wWo+15033W4YMvMh8tTjQhVng=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 11:09:32 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "9re20jvgkv"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-yyztzccdaLGWM2FmA0wWo+15033W4YMvMh8tTjQhVng="
+        },
+        {
+          "Name": "label",
+          "Value": "assets/9a23ab9b-f3e6-45c0-863b-cb2db233dbe1_TicketsExport_1744017521486.xlsx"
+        }
+      ]
+    },
+    {
+      "Route": "assets/9a23ab9b-f3e6-45c0-863b-cb2db233dbe1_TicketsExport_1744017521486.xlsx",
+      "AssetFile": "assets/9a23ab9b-f3e6-45c0-863b-cb2db233dbe1_TicketsExport_1744017521486.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "7338"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"yyztzccdaLGWM2FmA0wWo+15033W4YMvMh8tTjQhVng=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 11:09:32 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-yyztzccdaLGWM2FmA0wWo+15033W4YMvMh8tTjQhVng="
+        }
+      ]
+    },
+    {
+      "Route": "assets/Maghreb.png",
+      "AssetFile": "assets/Maghreb.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "169206"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"hKAjMc0mYtgvqLvoBRW8SfzrVgOz2OZBitdIwTxfMUs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 26 Mar 2025 07:19:02 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-hKAjMc0mYtgvqLvoBRW8SfzrVgOz2OZBitdIwTxfMUs="
+        }
+      ]
+    },
+    {
+      "Route": "assets/Maghreb.wxo9ez413x.png",
+      "AssetFile": "assets/Maghreb.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "169206"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"hKAjMc0mYtgvqLvoBRW8SfzrVgOz2OZBitdIwTxfMUs=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 26 Mar 2025 07:19:02 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "wxo9ez413x"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-hKAjMc0mYtgvqLvoBRW8SfzrVgOz2OZBitdIwTxfMUs="
+        },
+        {
+          "Name": "label",
+          "Value": "assets/Maghreb.png"
+        }
+      ]
+    },
+    {
+      "Route": "assets/Tunisie.6z6ickqnzj.png",
+      "AssetFile": "assets/Tunisie.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "217906"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0q+T7GJTf1dDRT7cCxHRUsN/E7xmvzivJPiFLzclHbM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 26 Mar 2025 07:19:02 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "6z6ickqnzj"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-0q+T7GJTf1dDRT7cCxHRUsN/E7xmvzivJPiFLzclHbM="
+        },
+        {
+          "Name": "label",
+          "Value": "assets/Tunisie.png"
+        }
+      ]
+    },
+    {
+      "Route": "assets/Tunisie.png",
+      "AssetFile": "assets/Tunisie.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "217906"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"0q+T7GJTf1dDRT7cCxHRUsN/E7xmvzivJPiFLzclHbM=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Wed, 26 Mar 2025 07:19:02 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-0q+T7GJTf1dDRT7cCxHRUsN/E7xmvzivJPiFLzclHbM="
+        }
+      ]
+    },
+    {
+      "Route": "assets/senegal.png",
+      "AssetFile": "assets/senegal.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=3600, must-revalidate"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "79715"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"qbkwWos5O0M0CuSeuB8ZgqAYCLjSFMVnl+thA5HBObY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 15:38:08 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-qbkwWos5O0M0CuSeuB8ZgqAYCLjSFMVnl+thA5HBObY="
+        }
+      ]
+    },
+    {
+      "Route": "assets/senegal.tzmdk0rrna.png",
+      "AssetFile": "assets/senegal.png",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "79715"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "image/png"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"qbkwWos5O0M0CuSeuB8ZgqAYCLjSFMVnl+thA5HBObY=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Mon, 07 Apr 2025 15:38:08 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "tzmdk0rrna"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-qbkwWos5O0M0CuSeuB8ZgqAYCLjSFMVnl+thA5HBObY="
+        },
+        {
+          "Name": "label",
+          "Value": "assets/senegal.png"
+        }
+      ]
+    }
+  ]
+}

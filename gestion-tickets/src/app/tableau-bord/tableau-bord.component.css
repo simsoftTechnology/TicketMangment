@@ -198,12 +198,41 @@
   background-color: #f9fafb;
 }
 
+:host ::ng-deep .pie-chart-container
+{
+  display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: nowrap;
+    align-items: center;
+}
+
+:host ::ng-deep .ngx-charts-outer{
+  display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    width: auto;
+}
 /* Réactivité */
 @media (max-width: 1280px) {
   :host ::ng-deep .chart-legend {
-    display: none;
+    /* display: none; */
   }
 }
+/* Réactivité */
+@media (max-width: 717px) {
+  :host ::ng-deep .pie-chart  {
+    transform: translate(69%, 55%);
+  }
+}
+@media (min-width: 570px) {
+  :host ::ng-deep .pie-chart  {
+    /* transform: translate(69%, 55%); */
+  }
+}
+
+
 /* Grille pour écrans moyens/tablettes (max-width: 992px) */
 @media (max-width: 992px) {
   

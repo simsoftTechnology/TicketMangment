@@ -66,7 +66,7 @@ export class ListeSocietesComponent implements OnInit {
   }
 
   loadSocietes(): void {
-    this.globalLoaderService.showGlobalLoader();
+    // this.globalLoaderService.showGlobalLoader();
     this.societeService
       .getPaginatedSocietes(this.pageNumber, this.pageSize, this.societesSearchTerm, this.filterParams)
       .subscribe({

@@ -14,8 +14,14 @@ import { LoaderService } from '../../_services/loader.service';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 
+ 
+
+
+
 @Component({
   selector: 'app-ticket-filter',
+  templateUrl: './ticket-filter.component.html',
+  styleUrls: ['./ticket-filter.component.css'],
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, FormsModule,
     MatDatepickerModule,
@@ -24,8 +30,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
   providers: [
     { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' } // Pour que le datepicker soit en français
   ],
-  templateUrl: './ticket-filter.component.html',
-  styleUrls: ['./ticket-filter.component.css']
 })
 export class TicketFilterComponent implements OnInit {
   filterForm!: FormGroup;

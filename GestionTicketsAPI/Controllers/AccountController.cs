@@ -135,7 +135,7 @@ public class AccountController : BaseApiController
     await _accountService.SaveResetTokenAsync(user.Id, token, DateTime.UtcNow.AddHours(1));
 
     // Construction du lien de réinitialisation (adapter l’URL à votre configuration)
-    var resetLink = $"https://simsoft-gt.tn/reset-password?token={Uri.EscapeDataString(token)}";
+    var resetLink = $"http://localhost:4200/reset-password?token={Uri.EscapeDataString(token)}";
 
     // Envoi de l’email en tâche de fond avec Hangfire
     BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(

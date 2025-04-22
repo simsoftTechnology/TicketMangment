@@ -547,7 +547,7 @@ input, select, button {
   max-height: 300px; /* Maintient le défilement interne */
   overflow-y: auto;
 }
-
+}
 
 ::ng-deep .ticket-filter-menu {
   overflow: visible !important; /* Permet au contenu de dépasser */

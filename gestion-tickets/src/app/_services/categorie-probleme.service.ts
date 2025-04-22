@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { CategorieProbleme } from '../_models/categorie-probleme.model';
-import { PaginatedResult, Pagination } from '../_models/pagination';
-import { environment } from '../../environments/environment';
+import { PaginatedResult, Pagination } from '../_models/pagination'; 
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
