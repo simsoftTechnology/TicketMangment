@@ -24,7 +24,6 @@ import { NotificationsComponent } from "./notifications/notifications.component"
     NgxEditorModule,
     CommonModule,
     GlobalLoaderComponent,
-    NotificationsComponent
 ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']

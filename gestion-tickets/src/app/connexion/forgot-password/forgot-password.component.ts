@@ -19,6 +19,8 @@ export class ForgotPasswordComponent {
   formSubmitted: boolean = false;
   forgotPasswordError: any;
 
+  isErrorMessage = false;
+
   constructor(private fb: FormBuilder, private accountService: AccountService) {
     this.forgotPasswordForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
@@ -36,11 +38,13 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (res: any) => {
           this.message = res.message;
+          this.isErrorMessage = false; 
           this.isLoading = false;
         },
         error: (err) => {
           this.message = 'Une erreur est survenue. Veuillez réessayer plus tard.';
           // Vous pouvez ajouter ici un traitement détaillé des erreurs renvoyées par le backend
+          this.isErrorMessage = true;
           this.forgotPasswordError = err.error || {};
           this.isLoading = false;
         }

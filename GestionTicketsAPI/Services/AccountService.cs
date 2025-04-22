@@ -111,25 +111,33 @@ namespace GestionTicketsAPI.Services
 
     public async Task<UserDto> LoginAsync(LoginDto loginDto)
     {
+      // 1) Récupérer l'utilisateur par e-mail (avec Actif)
       var user = await _accountRepository.GetUserByEmailAsync(loginDto.Email);
       if (user == null)
-        throw new Exception("L'adresse e-mail est incorrecte");
+        throw new Exception("L'adresse e-mail est incorrecte.");
 
+      // 2) Vérifier que l'utilisateur est actif
+      if (!user.Actif)
+        throw new Exception("Votre compte n'est pas activé. Veuillez contacter un administrateur.");
+
+      // 3) Calcul du hash du mot de passe fourni
       using var hmac = new HMACSHA512(user.PasswordSalt);
       var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password));
 
+      // 4) Comparaison des hash
       for (int i = 0; i < computedHash.Length; i++)
       {
         if (computedHash[i] != user.PasswordHash[i])
-          throw new Exception("Le mot de passe est incorrect");
+          throw new Exception("Le mot de passe est incorrect.");
       }
 
+      // 5) Création du DTO et du token
       var userDto = _mapper.Map<UserDto>(user);
       userDto.Token = _tokenService.CreateToken(user);
 
-
       return userDto;
     }
+
 
     public async Task SaveResetTokenAsync(int userId, string token, DateTime expires)
     {
