@@ -71,7 +71,7 @@
 
 <div class="notif-sidenav" [class.open]="isNotifOpen">
   <!-- On réutilise directement le composant notifications -->
-  <app-notifications></app-notifications>
+  <app-notifications (closeSidenav)="toggleNotifications()"></app-notifications>
 </div>
 
 <div class="overlay" 

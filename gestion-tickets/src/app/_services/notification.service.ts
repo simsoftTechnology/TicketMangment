@@ -8,30 +8,30 @@ import { AppNotification } from '../_models/notification';
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private hubConnection!: signalR.HubConnection;
-  public notification$ = new Subject<string>();
+  public notification$ = new Subject<AppNotification>();
   private baseUrl = `${environment.apiUrl}notifications/`;
 
-  constructor(private http: HttpClient) {}  // <-- utilisez bien Angular HttpClient
+  constructor(private http: HttpClient) { }  // <-- utilisez bien Angular HttpClient
 
   public startConnection(userId: string) {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(
-        `${environment.signalRHubUrl}?userId=${userId}`,
-        {
-          withCredentials: true,
-          // accessTokenFactory: () => this.auth.getToken()  // si nécessaire
-        }
-      )
+      .withUrl(`${environment.signalRHubUrl}?userId=${userId}`, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection
-      .start()
-      .catch(err => console.error('Erreur démarrage SignalR :', err));
+    this.hubConnection.start().catch(err => console.error(err));
 
-    this.hubConnection.on('ReceiveNotification', (msg: string) => {
-      this.notification$.next(msg);
+    // Si le hub renvoie déjà un objet AppNotification :
+    this.hubConnection.on('ReceiveNotification', (dto: AppNotification) => {
+      this.notification$.next(dto);
     });
+
+    /* Si en fait le hub renvoie une chaîne JSON, décommentez plutôt :
+    this.hubConnection.on('ReceiveNotification', (msg: string) => {
+      const dto: AppNotification = JSON.parse(msg);
+      this.notification$.next(dto);
+    });
+    */
   }
 
   /** Récupère l'historique des notifications pour un utilisateur */
@@ -41,5 +41,8 @@ export class NotificationService {
 
   markAllAsRead(userId: string): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}markasread/${userId}`, {});
+  }
+  markAsRead(id: number) {
+    return this.http.post(`${this.baseUrl}markasread/one/${id}`, {});
   }
 }

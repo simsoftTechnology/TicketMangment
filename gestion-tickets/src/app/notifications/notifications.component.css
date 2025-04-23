@@ -1,62 +1,76 @@
-/* Main container styling */
 :host {
+  --primary: #fa9745;
+  --primary-light: #fff0e6;
+  --primary-dark: #e88a3a;
+  --text-dark: #2c2c2c;
+  --text-light: #ffffff;
+  --text-muted: #8a8a8a;
+  --bg-light: #ffffff;
+  --bg-gray: #f9f9f9;
+  --border-radius: 16px;
+  --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.04);
+  --transition: all 0.2s ease;
+  
   display: block;
-  font-family: 'Roboto', Arial, sans-serif;
-  max-width: 450px;
-  height: 100%;             /* occupe tout l’espace vertical disponible */
-  overflow-y: auto;         /* active le scroll vertical */
-  -webkit-overflow-scrolling: touch; /* pour un scroll fluide sur iOS */
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  max-width: 550px;
+  margin: 0 auto;
+  color: var(--text-dark);
 }
 
-
-/* Header styling */
 .notif-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  padding: 20px 24px;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-soft);
 }
 
 .notif-header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #343a40;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
 }
 
 .notif-header button {
   background-color: transparent;
+  color: var(--primary);
   border: none;
-  color: #6c757d;
-  font-size: 14px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
   cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: 8px;
+  transition: var(--transition);
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
 
 .notif-header button:hover {
-  background-color: #e9ecef;
-  color: #495057;
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
 }
 
-/* Notification list */
 .notif-list {
-  list-style-type: none;
+  list-style: none;
   margin: 0;
   padding: 0;
+  background-color: var(--bg-light);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 
 .notif-list li {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e9ecef;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  transition: var(--transition);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  position: relative;
 }
 
 .notif-list li:last-child {
@@ -64,42 +78,86 @@
 }
 
 .notif-list li:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-gray);
 }
 
 .notif-list li.unread {
-  background-color: #e8f4fe;
+  background-color: var(--primary-light);
   position: relative;
 }
 
+.notif-list li.unread:hover {
+  background-color: rgba(250, 151, 69, 0.08);
+}
+
+.notif-list li strong {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.notif-list li.unread strong {
+  color: var(--primary-dark);
+}
+
+.notif-list li p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.notif-list li.unread p {
+  font-weight: 500;
+}
+
+ng-template p {
+  text-align: center;
+  padding: 36px 24px;
+  color: var(--text-muted);
+  background-color: var(--bg-light);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.9rem;
+}
+
+/* Subtle indicator for unread notifications */
 .notif-list li.unread::before {
   content: '';
   position: absolute;
   left: 0;
   top: 0;
-  height: 100%;
-  width: 4px;
-  background-color: #0d6efd;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary);
 }
 
-.notif-list li strong {
-  display: block;
-  font-size: 13px;
-  color: #6c757d;
-  margin-bottom: 6px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :host {
+    max-width: 100%;
+    padding: 0 12px;
+  }
+  
+  .notif-header, .notif-list li {
+    padding: 16px 20px;
+  }
 }
 
-.notif-list li p {
-  margin: 0;
-  color: #212529;
-  font-size: 15px;
-  line-height: 1.4;
+/* Subtle animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Empty state */
-ng-template p {
-  text-align: center;
-  padding: 30px 20px;
-  color: #6c757d;
-  font-style: italic;
+.notif-list li {
+  animation: slideIn 0.25s ease-out backwards;
 }
+
+.notif-list li:nth-child(1) { animation-delay: 0.05s; }
+.notif-list li:nth-child(2) { animation-delay: 0.1s; }
+.notif-list li:nth-child(3) { animation-delay: 0.15s; }
+.notif-list li:nth-child(4) { animation-delay: 0.2s; }
+.notif-list li:nth-child(5) { animation-delay: 0.25s; }

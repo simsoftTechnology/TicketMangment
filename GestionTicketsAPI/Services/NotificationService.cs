@@ -1,14 +1,23 @@
+// GestionTicketsAPI/Services/NotificationService.cs
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.Entities;
 using Microsoft.AspNetCore.SignalR;
-using Lib.Net.Http.WebPush;             // PushSubscription, PushMessage
-using Lib.Net.Http.WebPush.Authentication;
+using Lib.Net.Http.WebPush;
+using Microsoft.EntityFrameworkCore;
+using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.hubs;
-using Microsoft.EntityFrameworkCore;  // PushEncryptionKeyName
 
 namespace GestionTicketsAPI.Services
 {
-  public class NotificationService
+  public interface INotificationService
+  {
+    Task NotifyRealtimeAsync(int userId, NotificationDto notification);
+    Task NotifyPushAsync(int userId, NotificationDto notification);
+    Task MarkAllAsReadAsync(int userId);
+    Task MarkAsReadAsync(int notificationId);
+  }
+
+  public class NotificationService : INotificationService
   {
     private readonly IHubContext<NotificationHub> _hub;
     private readonly DataContext _context;
@@ -24,48 +33,51 @@ namespace GestionTicketsAPI.Services
       _pushClient = pushClient;
     }
 
-    public async Task NotifyRealtimeAsync(int utilisateurId, string message)
+    public async Task NotifyRealtimeAsync(int userId, NotificationDto dto)
     {
+      // 1) Persister
       var notif = new Notification
       {
-        UtilisateurId = utilisateurId,
-        Message = message,
-        DateEnvoi = DateTime.UtcNow
+        UtilisateurId = userId,
+        Message = dto.Message,
+        DateEnvoi = dto.DateEnvoi,
+        IsRead = false,
+        EntityType = dto.EntityType,
+        EntityId = dto.EntityId
       };
       _context.Notification.Add(notif);
       await _context.SaveChangesAsync();
 
+      // 2) Récupérer l’ID généré
+      dto.Id = notif.Id;
+
+      // 3) Envoyer via SignalR
       await _hub
           .Clients
-          .Group(utilisateurId.ToString())
-          .SendAsync("ReceiveNotification", message);
+          .Group(userId.ToString())
+          .SendAsync("ReceiveNotification", dto);
     }
 
-    public async Task NotifyPushAsync(int utilisateurId, string message)
+    public async Task NotifyPushAsync(int userId, NotificationDto dto)
     {
-      var subs = _context
+      // Idem persistance si besoin (ou seulement push)
+      var subs = await _context
           .Set<PushSubscriptionEntity>()
-          .Where(s => s.UserId == utilisateurId.ToString())
-          .ToList();
+          .Where(s => s.UserId == userId.ToString())
+          .ToListAsync();
 
+      var webPushMessage = new PushMessage(dto.Message);
       foreach (var sub in subs)
       {
-        // Construire la subscription avec son dictionnaire de clés
         var pushSubscription = new PushSubscription
         {
           Endpoint = sub.Endpoint,
           Keys = new Dictionary<string, string>
                     {
-                        // La clé doit être en minuscules : "p256dh" et "auth"
                         { PushEncryptionKeyName.P256DH.ToString().ToLowerInvariant(), sub.P256DH },
                         { PushEncryptionKeyName.Auth.ToString().ToLowerInvariant(),    sub.Auth   }
                     }
         };
-
-        // Créez simplement le message
-        var webPushMessage = new PushMessage(message);
-
-        // Envoi : le client utilisera la config VAPID enregistrée via AddPushServiceClient
         await _pushClient.RequestPushMessageDeliveryAsync(pushSubscription, webPushMessage);
       }
     }
@@ -77,6 +89,17 @@ namespace GestionTicketsAPI.Services
           .ToListAsync();
 
       notifs.ForEach(n => n.IsRead = true);
+      await _context.SaveChangesAsync();
+    }
+
+    public async Task MarkAsReadAsync(int notificationId)
+    {
+      var notif = await _context.Notification
+          .FirstOrDefaultAsync(n => n.Id == notificationId);
+      if (notif == null)
+        throw new KeyNotFoundException($"Notification {notificationId} introuvable.");
+
+      notif.IsRead = true;
       await _context.SaveChangesAsync();
     }
   }

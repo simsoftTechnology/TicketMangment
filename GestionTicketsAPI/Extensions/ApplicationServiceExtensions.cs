@@ -61,6 +61,7 @@ namespace GestionTicketsAPI.Extensions
 
             services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<INotificationService, NotificationService>();
 
 
 

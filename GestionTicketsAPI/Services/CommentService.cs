@@ -25,8 +25,8 @@ public class CommentService : ICommentService
     IUserService userService,
     NotificationService notifService)    // ← ajouté
   {
-    _context     = context;
-    _mapper      = mapper;
+    _context = context;
+    _mapper = mapper;
     _emailService = emailService;
     _userService = userService;
     _notifService = notifService;            // ← ajouté
@@ -37,36 +37,33 @@ public class CommentService : ICommentService
     // 1) Création en base
     var commentaire = new Commentaire
     {
-      Contenu       = commentCreateDto.Contenu,
-      Date          = DateTime.UtcNow,
-      TicketId      = commentCreateDto.TicketId,
+      Contenu = commentCreateDto.Contenu,
+      Date = DateTime.UtcNow,
+      TicketId = commentCreateDto.TicketId,
       UtilisateurId = userId
     };
 
     _context.Commentaires.Add(commentaire);
-    if (await _context.SaveChangesAsync() <= 0) 
+    if (await _context.SaveChangesAsync() <= 0)
       return null;
 
-    // 2) Chargement du ticket et de ses relations
+    // 2) Chargement du ticket et ses relations utiles
     var ticket = await _context.Tickets
-      .Include(t => t.Owner)
-      .Include(t => t.Projet).ThenInclude(p => p.ChefProjet)
-      .Include(t => t.Responsible)
-      .FirstOrDefaultAsync(t => t.Id == commentaire.TicketId);
-
-    if (ticket == null) 
+        .Include(t => t.Owner)
+        .Include(t => t.Projet).ThenInclude(p => p.ChefProjet)
+        .Include(t => t.Responsible)
+        .FirstOrDefaultAsync(t => t.Id == commentaire.TicketId);
+    if (ticket == null)
       return null;
 
     // 3) Récupération de l’auteur
     var sender = await _userService.GetUserByIdAsync(userId);
-    if (sender == null) 
+    if (sender == null)
       return null;
-
     var senderRole = sender.Role?.ToLower();
 
-    // 4) Construction de la liste des destinataires (Id, Nom, Email)
+    // 4) Destinataires selon rôle
     var recipients = new List<(int Id, string Name, string Email)>();
-
     if (senderRole == "client")
     {
       if (ticket.Projet?.ChefProjet != null)
@@ -116,51 +113,54 @@ public class CommentService : ICommentService
                         ticket.Responsible.Email));
     }
 
-    // Toujours notifier aussi les super‑admins
+    // Toujours notifier aussi les super-admins
     var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
     recipients.AddRange(superAdmins.Select(sa =>
-      (sa.Id, $"{sa.FirstName} {sa.LastName}", sa.Email)));
+        (sa.Id, $"{sa.FirstName} {sa.LastName}", sa.Email)));
 
-    // 5) Préparation du message
-    var subject     = $"Nouveau commentaire sur le ticket #{ticket.Id}";
+    // 5) Sujet et corps de base
+    var subject = $"Nouveau commentaire sur le ticket #{ticket.Id}";
     var baseMessage = $"Un nouveau commentaire a été ajouté par {sender.FirstName} {sender.LastName} " +
                       $"au ticket '{ticket.Title}' (n°{ticket.Id}).<br><br>" +
                       $"Contenu : {commentaire.Contenu}";
 
-    // 6) Envoi mails + notifications, sans doublon et sans notifier l’auteur
+    // 6) Envoi mail + notifications enrichies
     foreach (var recipient in recipients
              .Where(r => r.Id != userId)                 // exclut l’auteur
-             .GroupBy(r => r.Id).Select(g => g.First()))  // unique par Id
+             .GroupBy(r => r.Id).Select(g => g.First())) // unique par Id
     {
+      // 6.a) Email
       var personalized = $"Bonjour {recipient.Name},<br><br>{baseMessage}";
-
-      // 6a) Email
       await _emailService.SendEmailAsync(
-        recipient.Name, recipient.Email, subject, personalized);
+          recipient.Name,
+          recipient.Email,
+          subject,
+          personalized);
 
-      // 6b) Notification realtime
-      BackgroundJob.Enqueue(() =>
-        _notifService.NotifyRealtimeAsync(
-          recipient.Id,
-          $"Nouveau commentaire sur votre ticket #{ticket.Id}."
-        ));
+      // 6.b) Préparer NotificationDto
+      var notifDto = new NotificationDto
+      {
+        Message = $"Nouveau commentaire sur le ticket #{ticket.Id}.",
+        DateEnvoi = DateTime.UtcNow,
+        EntityType = "Tickets",
+        EntityId = ticket.Id
+      };
 
-      // 6c) Notification push
+      // 6.c) Notifications Hangfire
       BackgroundJob.Enqueue(() =>
-        _notifService.NotifyPushAsync(
-          recipient.Id,
-          $"Nouveau commentaire sur le ticket #{ticket.Id}."
-        ));
+          _notifService.NotifyRealtimeAsync(recipient.Id, notifDto));
+      BackgroundJob.Enqueue(() =>
+          _notifService.NotifyPushAsync(recipient.Id, notifDto));
     }
 
     // 7) Retour du DTO
     return new CommentDto
     {
-      Id            = commentaire.Id,
-      Contenu       = commentaire.Contenu,
-      Date          = commentaire.Date,
+      Id = commentaire.Id,
+      Contenu = commentaire.Contenu,
+      Date = commentaire.Date,
       UtilisateurId = commentaire.UtilisateurId,
-      TicketId      = commentaire.TicketId
+      TicketId = commentaire.TicketId
     };
   }
 

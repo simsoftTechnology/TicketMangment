@@ -63,7 +63,7 @@ export class HeaderComponent implements OnInit {
     const user = this.accountService.currentUser();
     if (user?.id) {
       const uid = user.id.toString();
-
+      this.notifSvc.startConnection(user.id.toString());
       // Charge l’historique, compte seulement les non-lues 
       this.notifSvc.getNotifications(uid)
         .subscribe(notifs => {
@@ -72,13 +72,8 @@ export class HeaderComponent implements OnInit {
         });
 
       // En temps réel, on crée la notification avec isRead=false
-      this.notifSvc.notification$.subscribe(msg => {
-        this.notifications.unshift({
-          id: Date.now(),
-          message: msg,
-          dateEnvoi: new Date().toISOString(),
-          isRead: false
-        });
+      this.notifSvc.notification$.subscribe((dto: AppNotification) => {
+        this.notifications.unshift(dto);
         this.unreadCount++;
       });
     }
