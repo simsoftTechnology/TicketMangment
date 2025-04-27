@@ -15,6 +15,7 @@ namespace GestionTicketsAPI.Services
     Task NotifyPushAsync(int userId, NotificationDto notification);
     Task MarkAllAsReadAsync(int userId);
     Task MarkAsReadAsync(int notificationId);
+    Task SoftDeleteAsync(int notificationId);
   }
 
   public class NotificationService : INotificationService
@@ -102,5 +103,17 @@ namespace GestionTicketsAPI.Services
       notif.IsRead = true;
       await _context.SaveChangesAsync();
     }
+
+    public async Task SoftDeleteAsync(int notificationId)
+    {
+      var notif = await _context.Notification
+          .FirstOrDefaultAsync(n => n.Id == notificationId);
+      if (notif == null)
+        throw new KeyNotFoundException($"Notification {notificationId} introuvable.");
+
+      notif.IsDeleted = true;
+      await _context.SaveChangesAsync();
+    }
+
   }
 }

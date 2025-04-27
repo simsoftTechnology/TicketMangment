@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -20,9 +20,6 @@ export const appConfig: ApplicationConfig = {
     timeOut: 5000, // Durée d'affichage en ms (5 secondes)
     closeButton: true,
     progressAnimation: 'increasing',
-  }),
-  provideServiceWorker('ngsw-worker.js', {
-    enabled: environment.production
   })
   ]
 };

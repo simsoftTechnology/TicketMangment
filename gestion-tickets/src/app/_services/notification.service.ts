@@ -25,13 +25,6 @@ export class NotificationService {
     this.hubConnection.on('ReceiveNotification', (dto: AppNotification) => {
       this.notification$.next(dto);
     });
-
-    /* Si en fait le hub renvoie une chaîne JSON, décommentez plutôt :
-    this.hubConnection.on('ReceiveNotification', (msg: string) => {
-      const dto: AppNotification = JSON.parse(msg);
-      this.notification$.next(dto);
-    });
-    */
   }
 
   /** Récupère l'historique des notifications pour un utilisateur */
@@ -44,5 +37,8 @@ export class NotificationService {
   }
   markAsRead(id: number) {
     return this.http.post(`${this.baseUrl}markasread/one/${id}`, {});
+  }
+  hideNotification(id: number): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}hide/${id}`, {});
   }
 }

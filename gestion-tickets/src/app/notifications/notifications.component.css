@@ -62,15 +62,19 @@
   background-color: var(--bg-light);
   border-radius: 0 0 var(--border-radius) var(--border-radius);
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .notif-list li {
-  padding: 18px 24px;
+  padding: 10px 20px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.03);
   transition: var(--transition);
   cursor: pointer;
   position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .notif-list li:last-child {
@@ -90,6 +94,11 @@
   background-color: rgba(250, 151, 69, 0.08);
 }
 
+.notif-content {
+  flex: 1;
+  padding-right: 12px;
+}
+
 .notif-list li strong {
   display: block;
   font-size: 0.75rem;
@@ -105,6 +114,7 @@
 .notif-list li p {
   margin: 0;
   font-size: 0.9rem;
+  font-weight: 100;
   line-height: 1.5;
   color: var(--text-dark);
 }
@@ -134,6 +144,52 @@ ng-template p {
   background-color: var(--primary);
 }
 
+/* Style du bouton « × » de suppression */
+.delete-btn {
+  position: absolute;       /* conserve l’absolute déjà défini */
+  top: 0.5rem;              /* idem */
+  right: 0.5rem;            /* idem */
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;          /* un peu plus petit pour tenir dans le cercle */
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 1;               /* au cas où le li aurait un z-index plus élevé */
+}
+
+.delete-btn:hover {
+  background-color: var(--primary);
+  color: var(--text-light);
+}
+
+.no-content {
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.no-content .icon {
+  display: block;
+  font-size: 30px;
+  margin-bottom: 1rem;
+  color: #f97316;
+}
+
+
+.no-content p {
+  color: #696f7a;
+  font-size: 1rem;
+  margin: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   :host {
@@ -143,6 +199,12 @@ ng-template p {
   
   .notif-header, .notif-list li {
     padding: 16px 20px;
+  }
+  
+  .voir-link {
+    min-width: 50px;
+    font-size: 0.8rem;
+    padding: 3px 10px;
   }
 }
 

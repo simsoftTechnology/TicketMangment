@@ -3,6 +3,7 @@ using System;
 using GestionTicketsAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GestionTicketsAPI.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20250427175148_AddIsDeletedToNotification")]
+    partial class AddIsDeletedToNotification
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -266,33 +269,6 @@ namespace GestionTicketsAPI.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ProjetUser");
-                });
-
-            modelBuilder.Entity("GestionTicketsAPI.Entities.PushSubscriptionEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Auth")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Endpoint")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("P256DH")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PushSubscriptions");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Qualification", b =>

@@ -30,11 +30,17 @@ namespace GestionTicketsAPI.Controllers
 
     // 1) Enregistrer la subscription Push venant du frontend
     [HttpPost("subscribe")]
-    public async Task<IActionResult> Subscribe([FromBody] PushSubscriptionEntity sub)
+    public async Task<IActionResult> Subscribe([FromBody] PushSubscriptionEntity dto)
     {
-      _context.Set<PushSubscriptionEntity>().Add(sub);
-      await _context.SaveChangesAsync();
-      return Ok();
+        var entity = new PushSubscriptionEntity {
+            UserId   = dto.UserId,
+            Endpoint = dto.Endpoint,
+            P256DH   = dto.P256DH,
+            Auth     = dto.Auth
+        };
+        _context.Add(entity);
+        await _context.SaveChangesAsync();
+        return Ok();
     }
 
     // 2) Envoi manuel d'une NotificationDto
@@ -59,7 +65,7 @@ namespace GestionTicketsAPI.Controllers
     public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications(int userId)
     {
       var entities = await _context.Notification
-          .Where(n => n.UtilisateurId == userId)
+          .Where(n => n.UtilisateurId == userId && !n.IsDeleted)
           .OrderByDescending(n => n.DateEnvoi)
           .ToListAsync();
 
@@ -76,6 +82,7 @@ namespace GestionTicketsAPI.Controllers
       return Ok(dtos);
     }
 
+
     // 4) Marquer toutes les notifications comme lues
     [HttpPost("markasread/{userId}")]
     public async Task<IActionResult> MarkAllAsRead(int userId)
@@ -90,6 +97,20 @@ namespace GestionTicketsAPI.Controllers
       try
       {
         await _notifService.MarkAsReadAsync(id);
+        return NoContent();
+      }
+      catch (KeyNotFoundException)
+      {
+        return NotFound($"Notification {id} introuvable.");
+      }
+    }
+
+    [HttpPost("hide/{id}")]
+    public async Task<IActionResult> HideNotification(int id)
+    {
+      try
+      {
+        await _notifService.SoftDeleteAsync(id);
         return NoContent();
       }
       catch (KeyNotFoundException)

@@ -1,25 +1,28 @@
 <div class="notif-header">
-  <h3>Vos notifications</h3>
-  <button (click)="markAllAsRead()">Tout marquer comme lu</button>
+  <h3>Mes notifications</h3>
 </div>
 
 <div *ngIf="notifications.length; else noNotifs">
   <ul class="notif-list">
-    <li *ngFor="let n of notifications"
-        [class.unread]="!n.isRead">
+    <li *ngFor="let n of notifications" [class.unread]="!n.isRead">
       <div class="notif-content" (click)="goTo(n)">
         <strong>{{ n.dateEnvoi | date:'dd/MM/yyyy HH:mm' }}</strong>
         <p>{{ n.message }}</p>
       </div>
-        <a *ngIf="n.entityType !== 'Societes'" 
-        class="btn btn-link voir-link" 
-        (click)="goTo(n)">
-        Voir
-      </a>
+      <button
+        class="delete-btn"
+        aria-label="Supprimer notification"
+        (click)="openConfirm(n); $event.stopPropagation()">
+        ×
+      </button>
     </li>
-  </ul>
+  </ul>  
+  
 </div>
 
 <ng-template #noNotifs>
-  <p>Aucune notification pour l’instant.</p>
+      <div class="no-content">
+        <span class="icon">✕</span>
+        <p>Aucune notification pour l’instant.</p>
+      </div>
 </ng-template>

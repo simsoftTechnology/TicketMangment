@@ -19,6 +19,7 @@ public class Notification
 
     public User? Utilisateur { get; set; }
     public bool IsRead { get; set; } = false;
+    public bool IsDeleted { get; set; } = false;
 
     public string? EntityType { get; set; }   // ex: "Projets", "Tickets", "Societes"
     public int?    EntityId   { get; set; }

@@ -21,13 +21,14 @@ namespace GestionTicketsAPI.Data
     public DbSet<ProjetUser> ProjetUser { get; set; }
     public DbSet<CategorieProbleme> CategorieProblemes { get; set; }
 
-    // DbSet ajoutés
     public DbSet<Priorite> Priorities { get; set; }
     public DbSet<Qualification> Qualifications { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<StatutDesTicket> StatutsDesTickets { get; set; }
 
     public DbSet<SocieteUser> SocieteUsers { get; set; }
+    public DbSet<PushSubscriptionEntity> PushSubscriptions { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
