@@ -7,7 +7,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 import { errorInterceptor } from './_interceptors/error.interceptor';
 import { jwtInterceptor } from './_interceptors/jwt.interceptor';
-import { provideServiceWorker } from '@angular/service-worker';
+import { provideServiceWorker, SwPush } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {

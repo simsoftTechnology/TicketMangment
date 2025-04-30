@@ -80,7 +80,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // 5. Vos endpoints
-app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<NotificationHub>("/hubs/notifications")
+   .RequireCors("AllowClient");
 app.MapControllers();
 app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");
 

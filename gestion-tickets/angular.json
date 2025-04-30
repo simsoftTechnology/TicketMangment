@@ -23,24 +23,18 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/manifest.webmanifest",
               "src/sw-custom.js",
-          {
-               "glob": "custom-service-worker.js",
-               "input": "src/assets",
-               "output": "/assets"
-             },
-  
-             {
-               "glob": "manifest.webmanifest",
-               "input": "public",
-               "output": "/"
-             },
-
-             {
-               "glob": "**/*",
-               "input": "public/icons",
-               "output": "/icons"
-           }
+              {
+                "glob": "custom-service-worker.js",
+                "input": "src/assets",
+                "output": "/assets"
+              },
+              {
+                "glob": "**/*",
+                "input": "public/icons",
+                "output": "/icons"
+              }
             ],
 
             "styles": [
@@ -78,13 +72,13 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": false
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "serviceWorker": "ngsw-config.json"
+              "serviceWorker": false
             }
           },
           "defaultConfiguration": "production"

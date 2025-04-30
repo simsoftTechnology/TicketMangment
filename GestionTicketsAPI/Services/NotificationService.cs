@@ -6,6 +6,7 @@ using Lib.Net.Http.WebPush;
 using Microsoft.EntityFrameworkCore;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.hubs;
+using System.Text.Json;
 
 namespace GestionTicketsAPI.Services
 {
@@ -23,15 +24,17 @@ namespace GestionTicketsAPI.Services
     private readonly IHubContext<NotificationHub> _hub;
     private readonly DataContext _context;
     private readonly PushServiceClient _pushClient;
-
+    private readonly ILogger<NotificationService> _logger; 
     public NotificationService(
         IHubContext<NotificationHub> hub,
         DataContext context,
-        PushServiceClient pushClient)
+        PushServiceClient pushClient,
+        ILogger<NotificationService> logger)
     {
       _hub = hub;
       _context = context;
       _pushClient = pushClient;
+      _logger     = logger;
     }
 
     public async Task NotifyRealtimeAsync(int userId, NotificationDto dto)
@@ -61,27 +64,55 @@ namespace GestionTicketsAPI.Services
 
     public async Task NotifyPushAsync(int userId, NotificationDto dto)
     {
-      // Idem persistance si besoin (ou seulement push)
       var subs = await _context
-          .Set<PushSubscriptionEntity>()
+          .PushSubscriptions
           .Where(s => s.UserId == userId.ToString())
           .ToListAsync();
 
-      var webPushMessage = new PushMessage(dto.Message);
+      // Génération du titre et de l'URL
+      var title = dto.EntityType is not null && dto.EntityId.HasValue
+          ? $"Nouvel {dto.EntityType} #{dto.EntityId}"
+          : "Nouvelle notification";
+      var url = dto.EntityType is not null && dto.EntityId.HasValue
+          ? $"https://votre-client/#/{dto.EntityType.ToLower()}/{dto.EntityId}"
+          : null;
+
+      var payload = JsonSerializer.Serialize(new
+      {
+        title,
+        message = dto.Message,
+        url
+      });
+
+      var webPushMessage = new PushMessage(payload)
+      {
+        Urgency = PushMessageUrgency.High
+      };
+
       foreach (var sub in subs)
       {
         var pushSubscription = new PushSubscription
         {
           Endpoint = sub.Endpoint,
           Keys = new Dictionary<string, string>
-                    {
-                        { PushEncryptionKeyName.P256DH.ToString().ToLowerInvariant(), sub.P256DH },
-                        { PushEncryptionKeyName.Auth.ToString().ToLowerInvariant(),    sub.Auth   }
-                    }
+      {
+        { PushEncryptionKeyName.P256DH.ToString().ToLower(), sub.P256DH },
+        { PushEncryptionKeyName.Auth.ToString().ToLower(),    sub.Auth   }
+      }
         };
-        await _pushClient.RequestPushMessageDeliveryAsync(pushSubscription, webPushMessage);
+
+        try
+        {
+          await _pushClient.RequestPushMessageDeliveryAsync(pushSubscription, webPushMessage);
+        }
+        catch (Exception ex)
+        {
+          _logger.LogError(ex, "Échec de l’envoi push à {Endpoint}", sub.Endpoint);
+        }
       }
     }
+
+
 
     public async Task MarkAllAsReadAsync(int userId)
     {

@@ -34,19 +34,34 @@ export class AppComponent implements OnInit {
   private pushSubService   = inject(PushSubscriptionService);
   private notificationService = inject(NotificationService);
 
+  async ensurePermission(): Promise<boolean> {
+    if (Notification.permission === 'granted') return true;
+    const perm = await Notification.requestPermission();
+    return perm === 'granted';
+  }
+
   ngOnInit(): void {
     this.setCurrentUser();
 
+    if ('serviceWorker' in navigator) {
+      console.log('SW controller:', navigator.serviceWorker.controller);
+      navigator.serviceWorker.ready
+        .then(reg => console.log('SW ready, scope=', reg.scope));
+    }
     // 1) Récupérer l’ID utilisateur (ex. via localStorage ou token)
     const user = JSON.parse(localStorage.getItem('user') || 'null');
     if (user && user.id) {
       const userIdStr = user.id.toString();
 
-      // 2) Abonnement Web Push (on passe bien userId)
-      this.pushSubService.subscribeToPush(userIdStr);
-
-      // 3) Démarrer la connexion SignalR
-      this.notificationService.startConnection(userIdStr);
+      this.ensurePermission().then(granted => {
+        if (!granted) {
+          console.warn('Push notifications non autorisées par l’utilisateur');
+          return;
+        }
+        // ensuite : abonnement et SignalR…
+        this.pushSubService.subscribeToPush(userIdStr);
+        this.notificationService.startConnection(userIdStr);
+      });
 
       // 4) Écouter les notifications entrantes
       this.notificationService.notification$.subscribe(msg => {

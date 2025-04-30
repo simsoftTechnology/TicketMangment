@@ -5,6 +5,8 @@ export interface DashboardCountsDto {
   societesCount: number;
   statutsCount: number;
   usersCount: number;
+  clientsCount: number;
+  personnelCount: number;
   projectsCount: number;
   ticketsCount: number;
   ticketCountByStatus: {

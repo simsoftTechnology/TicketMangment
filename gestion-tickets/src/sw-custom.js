@@ -1,23 +1,30 @@
 self.addEventListener('push', event => {
-  // on récupère le payload JSON envoyé
-  const data = event.data?.json() || {};
-  const title   = data.title   || 'Nouvelle notification';
+  let data = { title: 'Notification', message: '' };
+  try {
+    data = event.data.json();
+  } catch {}  // fallback si ce n’est pas du JSON
   const options = {
-    body:    data.body    || data.message,
-    icon:    '/assets/icons/icon-192x192.png',
-    badge:   '/assets/icons/badge-72x72.png',
-    data:    data        // utile pour ouvrir la bonne URL ensuite
+    body: data.message,
+    icon: '/assets/icons/icon-192x192.png',
+    badge: '/assets/icons/badge-72x72.png',
+    data: data.url
   };
-
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
+  event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
 self.addEventListener('notificationclick', event => {
+  console.log('[sw-custom.js] Push reçu :', event);
+  if (event.data) {
+    console.log('[sw-custom.js] Payload :', event.data.text());
+  }
   event.notification.close();
-  const url = event.notification.data?.url || '/';
+  const url = event.notification.data;
   event.waitUntil(
-    clients.openWindow(url)
+    clients.matchAll({ type: 'window' }).then(winList => {
+      for (const win of winList) {
+        if (win.url === url) return win.focus();
+      }
+      return clients.openWindow(url);
+    })
   );
 });

@@ -19,28 +19,44 @@ namespace GestionTicketsAPI.Controllers
   {
     private readonly INotificationService _notifService;
     private readonly DataContext _context;
+    private readonly ILogger<NotificationsController> _logger;
 
     public NotificationsController(
         INotificationService notifService,
-        DataContext context)
+        DataContext context,
+        ILogger<NotificationsController> logger)
     {
       _notifService = notifService;
       _context = context;
+      _logger = logger;
     }
 
     // 1) Enregistrer la subscription Push venant du frontend
     [HttpPost("subscribe")]
     public async Task<IActionResult> Subscribe([FromBody] PushSubscriptionEntity dto)
     {
-        var entity = new PushSubscriptionEntity {
-            UserId   = dto.UserId,
-            Endpoint = dto.Endpoint,
-            P256DH   = dto.P256DH,
-            Auth     = dto.Auth
+      try
+      {
+        var entity = new PushSubscriptionEntity
+        {
+          UserId = dto.UserId,
+          Endpoint = dto.Endpoint,
+          P256DH = dto.P256DH,
+          Auth = dto.Auth
         };
         _context.Add(entity);
         await _context.SaveChangesAsync();
         return Ok();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Échec de l'abonnement push");
+        return StatusCode(500, new
+        {
+          error = ex.Message,
+          innerError = ex.InnerException?.Message
+        });
+      }
     }
 
     // 2) Envoi manuel d'une NotificationDto

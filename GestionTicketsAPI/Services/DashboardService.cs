@@ -26,14 +26,22 @@ namespace GestionTicketsAPI.Services
             // 1) Les counts visibles uniquement pour le super admin
             //    => si l’utilisateur est super admin, on compte tout ; sinon on ne renvoie rien (ou 0).
             bool isSuperAdmin = string.Equals(role, "super admin", StringComparison.OrdinalIgnoreCase);
+            
+            int totalUsers = _context.Users.Count();
 
+            // 1) Comptage distinct Clients vs Personnel (comparaison en ToLower())
+            int clients = _context.Users
+                .Count(u => u.Role.Name.ToLower() == "client");
+            int personnel = totalUsers - clients;
+            
             if (isSuperAdmin)
             {
                 dto.CategoriesCount = _context.CategorieProblemes.Count();
                 dto.PaysCount       = _context.Pays.Count();
                 dto.SocietesCount   = _context.Societes.Count();
                 dto.StatutsCount    = _context.StatutsDesTickets.Count();
-                dto.UsersCount      = _context.Users.Count();
+                dto.ClientsCount   = clients;
+                dto.PersonnelCount = personnel;
             }
 
             // 2) Comptage des Projets

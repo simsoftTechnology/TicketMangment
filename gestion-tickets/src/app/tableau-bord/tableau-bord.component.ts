@@ -45,6 +45,8 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   statutsCount: number = 0;
   ticketsCount: number = 0;
   usersCount: number = 0;
+  clientsCount = 0;
+  personnelCount = 0;
 
   constructor(
     private ticketService: TicketService,
@@ -117,6 +119,8 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
         this.statutsCount    = data.statutsCount;
         this.ticketsCount    = data.ticketsCount;
         this.usersCount      = data.usersCount;
+        this.clientsCount     = data.clientsCount;
+        this.personnelCount   = data.personnelCount;
       },
       error: (err) => {
         console.error('Erreur lors de la récupération des dashboard counts', err);

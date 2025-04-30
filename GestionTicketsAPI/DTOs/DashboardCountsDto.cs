@@ -9,7 +9,8 @@ public class DashboardCountsDto
     public int PaysCount { get; set; }
     public int SocietesCount { get; set; }
     public int StatutsCount { get; set; }
-    public int UsersCount { get; set; }
+    public int ClientsCount { get; set; }
+    public int PersonnelCount { get; set; }
 
     // Visible pour tout le monde (mais filtré si pas super admin)
     public int ProjectsCount { get; set; }
