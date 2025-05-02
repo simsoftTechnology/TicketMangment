@@ -228,6 +228,36 @@ h1::after {
   color: #9ca3af;
 }
 
+/* Barre de recherche dans le dropdown */
+.search-box {
+  position: sticky;
+  top: 0;
+  background: white;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 1;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #374151;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: #f57c00;
+  box-shadow: 0 0 0 3px rgba(245, 124, 0, 0.1);
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
 .option-list {
   padding: 6px 0;
 }
@@ -269,6 +299,7 @@ h1::after {
 .user-table thead {
   border-top: 1px solid #eee;
   background-color: #f8f9fa;
+  
 }
 .user-table th,
 .user-table td {
@@ -504,6 +535,9 @@ td.checkbox-column {
   font-size: 0.875rem;
   padding: 0 0.5rem;
 }
+
+
+
 
 /* Responsive Media Queries */
 @media (min-width: 1921px) {

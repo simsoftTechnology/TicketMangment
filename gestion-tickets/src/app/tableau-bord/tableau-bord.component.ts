@@ -7,21 +7,42 @@ import { Color, NgxChartsModule, ScaleType, LegendPosition } from '@swimlane/ngx
 import { TicketService } from '../_services/ticket.service';
 import { DashboardService } from '../_services/dashboard.service';
 import { GlobalLoaderService } from '../_services/global-loader.service';
+import { TicketStatDto } from '../_models/ticket-stat.dto';
+import { FormsModule } from '@angular/forms';
+import { TicketFilterRequest } from '../_models/TicketFilterRequest';
+import { curveBasis } from 'd3';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-tableau-bord',
   standalone: true,
-  imports: [NgFor, NgxChartsModule, RouterLink],
+  imports: [NgFor, NgIf, NgxChartsModule, RouterLink, FormsModule],
   templateUrl: './tableau-bord.component.html',
   styleUrls: ['./tableau-bord.component.css']
 })
 export class TableauBordComponent implements OnInit, AfterViewInit {
+  filter = {
+    userId: null as number|null,
+    clientId: null as number|null,
+    personnelId: null as number|null,
+    start: null as string|null,
+    end: null as string|null,
+    granularity: 'daily' as 'daily'|'weekly'|'monthly'|'yearly'|'none'
+  };
+  
+  users: User[] = [];            // Charger tous les utilisateurs si on veut filtrer
+  userSeries: any[] = [];        // pour ngx-charts-line-chart
+  statusSeries: { name: string; value: number }[] = [];
+
   LegendPosition = LegendPosition;
   currentUser: User | null = null;
   userInitials = "";
 
   ticketCounts: any[] = [];
   view: [number, number] = [1400, 500]; // Taille par défaut (sera mise à jour dynamiquement)
+
+  clients: User[] = [];
+  personnel: User[] = [];
 
   colorScheme: Color = {
     name: 'custom-gradient',
@@ -37,6 +58,13 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
     ]
   };
 
+  noDataScheme: Color = {
+    name: 'no-data',
+    selectable: false,
+    group: ScaleType.Ordinal,
+    domain: ['#cccccc']   // un seul gris
+  };
+
   // Propriétés pour les petits containers
   categoriesCount: number = 0;
   paysCount: number = 0;
@@ -45,8 +73,15 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   statutsCount: number = 0;
   ticketsCount: number = 0;
   usersCount: number = 0;
-  clientsCount = 0;
-  personnelCount = 0;
+
+  clientsCount: number = 0;
+  personnelCount: number = 0;
+  curve: any = curveBasis;
+
+  clientUsers: User[] = [];
+  personnelUsers: User[] = [];
+
+  myTicketsCount: number = 0;
 
   constructor(
     private ticketService: TicketService,
@@ -64,6 +99,10 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
       this.loadTicketCounts();
       this.loadDashboardCounts();
+      this.dashboardService.getMyTicketsCount()
+        .subscribe(count => this.myTicketsCount = count);
+      this.loadAllUsers();
+      this.applyFilters();
     }
     // Définition initiale de la taille du graphique
     this.setChartSize();
@@ -89,6 +128,10 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
     this.router.navigateByUrl('/');
   }
 
+  isPieNoData(): boolean {
+    return this.ticketCounts.length === 1
+        && this.ticketCounts[0].name === 'Aucune donnée';
+  }
   loadTicketCounts() {
     this.ticketService.getTicketCountByStatus().subscribe({
       next: (data: any[]) => {
@@ -119,8 +162,8 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
         this.statutsCount    = data.statutsCount;
         this.ticketsCount    = data.ticketsCount;
         this.usersCount      = data.usersCount;
-        this.clientsCount     = data.clientsCount;
-        this.personnelCount   = data.personnelCount;
+        this.clientsCount    = data.clientsCount;
+        this.personnelCount  = data.personnelCount;
       },
       error: (err) => {
         console.error('Erreur lors de la récupération des dashboard counts', err);
@@ -140,22 +183,15 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
 
   setChartSize(): void {
     const width = window.innerWidth;
-    let chartWidth = 1400; // Valeur par défaut pour grand écran
-
-    if (width < 576) {
-      chartWidth = width - 20; // pour mobile, prendre presque toute la largeur
-    }else if (width < 960) {
-      chartWidth = 800; // pour tablettes
-    } else if (width < 1089) {
-      chartWidth = 600; // pour tablettes
-    }else if (width < 1652) {
-      chartWidth = 800; // pour tablettes
-    }else if (width < 1290) {
-      chartWidth = 600; // pour tablettes
-    }
-    this.view = [chartWidth, 500];
+    let chartWidth = width / 2 - 24;  // 24 = 2 * gap (12px) ou ajustez selon votre gap
+    const chartHeight = 300;
+  
+    // bornes min/max si besoin
+    chartWidth = Math.max(300, Math.min(600, chartWidth));
+  
+    this.view = [chartWidth, chartHeight];
   }
-
+  
   isSuperAdmin(): boolean {
     return this.currentUser?.role === 'Super Admin';
   }
@@ -171,4 +207,132 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   isClient(): boolean {
     return this.currentUser?.role === 'Client';
   }
+
+  loadAllUsers() {
+    this.accountService.getAllUsers()
+      .subscribe(u => {
+        this.users = u;
+        // Une fois les users chargés, on remplit les listes filtrées
+        this.clientUsers = this.users.filter(x => x.role.toLowerCase() === 'client');
+        this.personnelUsers = this.users.filter(x => x.role.toLowerCase() !== 'client');
+      });
+  }
+  
+  
+
+  applyFilters(): void {
+    const currentUser = this.accountService.currentUser();
+    if (!currentUser) return;
+  
+    // Préparer les filtres date et granularité
+    const start = this.filter.start ?? undefined;
+    const end   = this.filter.end   ?? undefined;
+    const gran  = this.filter.granularity;
+  
+    // Filtres client/personnel sélectionnés (pour non-CP)
+    const clientId    = this.filter.clientId ?? undefined;
+    const personnelId = this.filter.personnelId ?? undefined;
+  
+    if (this.isChefDeProjet()) {
+      // ─── COURBE “Mes tickets” ───
+      const reqUser: TicketFilterRequest = {
+        userId:      currentUser.id,
+        clientId:    undefined,
+        personnelId: undefined,
+        start:       start,
+        end:         end,
+        granularity: gran
+      };
+      this.dashboardService.getTicketsByUser(reqUser)
+        .subscribe({
+          next: data => {
+            this.userSeries = data.length
+              ? [{ name: 'Mes tickets', series: data.map(d => ({ name: d.key, value: d.count })) }]
+              : [{ name: 'Aucune donnée', series: [{ name: '', value: 0 }] }];
+          },
+          error: err => {
+            console.error('Erreur getTicketsByUser', err);
+            this.userSeries = [{ name: 'Erreur', series: [{ name: '', value: 0 }] }];
+          }
+        });
+  
+      // ─── BAR + PIE “Mes tickets” ───
+      const reqStatusCP: TicketFilterRequest = {
+        userId:      undefined,
+        clientId:    undefined,
+        personnelId: currentUser.id,
+        start:       start,
+        end:         end,
+        granularity: 'none'
+      };
+      this.dashboardService.getTicketsByStatus(reqStatusCP)
+        .subscribe({
+          next: status => {
+            if (status.length) {
+              this.statusSeries = status.map(s => ({ name: s.key, value: s.count }));
+              this.ticketCounts = status.map(s => ({ id: 0, name: s.key, value: s.count }));
+            } else {
+              this.statusSeries = [{ name: 'Aucune donnée', value: 0 }];
+              this.ticketCounts  = [{ id: 0, name: 'Aucune donnée', value: 1 }];
+            }
+          },
+          error: err => {
+            console.error('Erreur getTicketsByStatus (CP)', err);
+            this.statusSeries = [{ name: 'Erreur', value: 0 }];
+            this.ticketCounts  = [{ id: 0, name: 'Erreur', value: 0 }];
+          }
+        });
+  
+    } else {
+      // ─── COURBE “Tous les tickets” ───
+      const reqFilt: TicketFilterRequest = {
+        userId:      undefined,
+        clientId:    clientId,
+        personnelId: personnelId,
+        start:       start,
+        end:         end,
+        granularity: gran
+      };
+      this.dashboardService.getTicketsFiltered(reqFilt)
+        .subscribe({
+          next: filtered => {
+            this.userSeries = filtered.length
+              ? [{ name: 'Tickets filtrés', series: filtered.map(f => ({ name: f.key, value: f.count })) }]
+              : [{ name: 'Aucune donnée', series: [{ name: '', value: 0 }] }];
+          },
+          error: err => {
+            console.error('Erreur getTicketsFiltered', err);
+            this.userSeries = [{ name: 'Erreur', series: [{ name: '', value: 0 }] }];
+          }
+        });
+  
+      // ─── BAR + PIE “Tous les tickets” ───
+      const reqStatus: TicketFilterRequest = {
+        userId:      undefined,
+        clientId:    clientId,
+        personnelId: personnelId,
+        start:       start,
+        end:         end,
+        granularity: 'none'
+      };
+      this.dashboardService.getTicketsByStatus(reqStatus)
+        .subscribe({
+          next: status => {
+            if (status.length) {
+              this.statusSeries = status.map(s => ({ name: s.key, value: s.count }));
+              this.ticketCounts = status.map(s => ({ id: 0, name: s.key, value: s.count }));
+            } else {
+              this.statusSeries = [{ name: 'Aucune donnée', value: 0 }];
+              this.ticketCounts  = [{ id: 0, name: 'Aucune donnée', value: 1 }];
+            }
+          },
+          error: err => {
+            console.error('Erreur getTicketsByStatus', err);
+            this.statusSeries = [{ name: 'Erreur', value: 0 }];
+            this.ticketCounts  = [{ id: 0, name: 'Erreur', value: 0 }];
+          }
+        });
+    }
+  }
+  
 }

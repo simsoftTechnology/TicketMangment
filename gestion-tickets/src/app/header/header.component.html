@@ -55,6 +55,16 @@
 
       <!-- Menu déroulant qui apparaît quand isMenuOpen est true -->
       <div class="profile-menu" *ngIf="isMenuOpen">
+        <!-- Nouveau bloc de greeting -->
+        <div class="user-greeting dropdown-greeting">
+          <div class="user-avatar">{{ userInitials }}</div>
+          <div class="greeting-text">
+            <h2>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h2>
+            <div class="user-role">{{ currentUser?.role }}</div>
+          </div>
+          <hr />
+        </div>
+
         <ul>
           <li (click)="navigateToProfile()">
             <i class="fas fa-user"></i> Mon Profil
@@ -63,7 +73,8 @@
             <i class="fas fa-sign-out-alt"></i> Déconnexion
           </li>
         </ul>
-      </div>      
+      </div>
+
     </div>
 
   </div>
@@ -74,7 +85,5 @@
   <app-notifications (closeSidenav)="toggleNotifications()"></app-notifications>
 </div>
 
-<div class="overlay" 
-     [class.show]="isNotifOpen" 
-     (click)="toggleNotifications()">
+<div class="overlay" [class.show]="isNotifOpen" (click)="toggleNotifications()">
 </div>

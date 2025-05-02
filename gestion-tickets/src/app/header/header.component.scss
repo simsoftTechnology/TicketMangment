@@ -304,6 +304,7 @@ body {
   animation: menuFadeIn 0.25s ease forwards;
 }
 
+
 @keyframes menuFadeIn {
   from {
     opacity: 0;
@@ -360,6 +361,42 @@ body {
   background-color: white;
   transform: rotate(45deg);
   box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.dropdown-greeting {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dropdown-greeting .user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+  background-color: #fa9745;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropdown-greeting .greeting-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-greeting h2 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.dropdown-greeting .user-role {
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .notif-button {

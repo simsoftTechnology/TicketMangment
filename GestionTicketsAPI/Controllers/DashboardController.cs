@@ -34,6 +34,73 @@ namespace GestionTicketsAPI.Controllers
       return Ok(result);
     }
 
+    [HttpGet("my-tickets-count")]
+    public ActionResult<int> GetMyTicketsCount()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null)
+            return BadRequest("Claim NameIdentifier manquant.");
+
+        int userId = int.Parse(userIdClaim.Value);
+        int count = _dashboardService.GetMyTicketsCount(userId);
+        return Ok(count);
+    }
+
+    [HttpPost("tickets-by-user")]
+    public ActionResult<IEnumerable<TicketStatDto>> GetTicketsByUser([FromBody] TicketFilterRequest req)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var role = User.FindFirst(ClaimTypes.Role)!.Value;
+
+      // On passe désormais filterUserId = req.UserId
+      var data = _dashboardService.GetTicketCountsByUserAndPeriod(
+          userId,                 // identité de l'appelant (pour rôle et fallback)
+          role,
+          req.Start,
+          req.End,
+          req.Granularity,
+          req.UserId              // <— filtre éventuel sur un autre utilisateur
+      );
+
+      return Ok(data);
+    }
+
+    [HttpPost("tickets-by-status")]
+    public ActionResult<IEnumerable<TicketStatDto>> GetTicketsByStatus([FromBody] TicketFilterRequest req)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var role = User.FindFirst(ClaimTypes.Role)!.Value;
+
+      var data = _dashboardService.GetTicketCountsByStatusAndPeriod(
+          userId,
+          role,
+          req.Start,
+          req.End,
+          req.Granularity,
+          req.ClientId,
+          req.PersonnelId
+      );
+
+      return Ok(data);
+    }
+    [HttpPost("tickets-filtered")] // nouvelle route
+    public ActionResult<IEnumerable<TicketStatDto>> GetTicketsFiltered([FromBody] TicketFilterRequest req)
+    {
+      var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+      var role = User.FindFirst(ClaimTypes.Role)!.Value;
+
+      var data = _dashboardService.GetTicketsFiltered(
+          userId,
+          role,
+          req.Start,
+          req.End,
+          req.Granularity,
+          req.ClientId,
+          req.PersonnelId
+      );
+
+      return Ok(data);
+    }
   }
 
 }
