@@ -7,6 +7,8 @@ import { ToastrService } from 'ngx-toastr';
 import { CommonModule } from '@angular/common';
 import { ContractDialogComponent } from '../../contract-dialog/contract-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
+import { LoaderService } from '../../_services/loader.service';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
     selector: 'app-ajouter-societe',
@@ -18,15 +20,22 @@ export class AjouterSocieteComponent implements OnInit {
   societeForm!: FormGroup;
   paysList: any[] = []; // Liste des pays
   societesList: any[] = []; // Liste des sociétés
+  isLoading: boolean = false;
 
   constructor(
     private fb: FormBuilder,
     private societeService: SocieteService,
+    private accountService: AccountService,
     private paysService: PaysService,
     private router: Router,
     private toastr: ToastrService,
     private dialog: MatDialog,
-  ) {}
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     // Création du formulaire incluant le groupe pour le contrat (optionnel)
@@ -95,12 +104,12 @@ export class AjouterSocieteComponent implements OnInit {
     if (this.societeForm.valid) {
       const formValue = this.societeForm.value;
       const societeForAdd: any = {
-        nom: formValue.nom,
-        adresse: formValue.adresse,
+        nom: this.accountService.removeSpecial(formValue.nom),
+        adresse: this.accountService.removeSpecial(formValue.adresse),
         telephone: formValue.telephone,
         paysId: +formValue.paysId
       };
-
+  
       if (formValue.contrat) {
         societeForAdd.contract = {
           dateDebut: formValue.contract.dateDebut,
@@ -110,16 +119,35 @@ export class AjouterSocieteComponent implements OnInit {
       } else {
         societeForAdd.contract = null;
       }
-
-      console.log('Objet société envoyé à l\'API :', societeForAdd);
+  
+      // Active le loader avant l'appel au service
+      this.loaderService.showLoader();
       this.societeService.addSociete(societeForAdd).subscribe({
         next: () => {
           this.toastr.success("Ajouté avec succès");
           this.router.navigate(['/home/Societes']);
+          this.loaderService.hideLoader();
         },
-        error: (err) => {
-          this.toastr.error("Erreur lors de l'ajout de la société");
-          console.error('Erreur lors de l\'ajout:', err);
+        error: (error) => {
+          console.error('Erreur ajout société', error);
+          let errMsg = "Erreur lors de l'ajout de la société.";
+          if (Array.isArray(error)) {
+            errMsg = error.join(' ');
+          } else if (typeof error === 'string') {
+            errMsg = error;
+          } else if (error.error) {
+            if (Array.isArray(error.error)) {
+              errMsg = error.error.join(' ');
+            } else if (typeof error.error === 'string') {
+              errMsg = error.error;
+            } else if (typeof error.error === 'object') {
+              errMsg = error.error.message || JSON.stringify(error.error);
+            }
+          } else if (error.message) {
+            errMsg = error.message;
+          }
+          this.toastr.error(errMsg);
+          this.loaderService.hideLoader();
         }
       });
     }

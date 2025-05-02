@@ -10,11 +10,13 @@ namespace GestionTicketsAPI.Services;
 public class ProjetService : IProjetService
 {
   private readonly IProjetRepository _projetRepository;
+  private readonly ISocieteRepository _societeRepository;
   private readonly IMapper _mapper;
 
-  public ProjetService(IProjetRepository projetRepository, IMapper mapper)
+  public ProjetService(IProjetRepository projetRepository, IMapper mapper, ISocieteRepository societeRepository)
   {
     _projetRepository = projetRepository;
+    _societeRepository = societeRepository;
     _mapper = mapper;
   }
 
@@ -24,9 +26,9 @@ public class ProjetService : IProjetService
     return _mapper.Map<IEnumerable<ProjetDto>>(projets);
   }
 
-  public async Task<PagedList<ProjetDto>> GetProjetsPagedAsync(UserParams projetParams)
+  public async Task<PagedList<ProjetDto>> GetProjetsPagedAsync(ProjectFilterParams filterParams)
   {
-    var projetsPaged = await _projetRepository.GetProjetsPagedAsync(projetParams);
+    var projetsPaged = await _projetRepository.GetProjetsPagedAsync(filterParams);
     var projetsDto = _mapper.Map<IEnumerable<ProjetDto>>(projetsPaged);
 
     var pagedProjetDtos = new PagedList<ProjetDto>(
@@ -37,6 +39,12 @@ public class ProjetService : IProjetService
     );
 
     return pagedProjetDtos;
+  }
+
+  public async Task<IEnumerable<ProjetDto>> GetProjetsFilteredAsync(ProjectFilterParams filterParams)
+  {
+    var projets = await _projetRepository.GetProjetsFilteredAsync(filterParams);
+    return _mapper.Map<IEnumerable<ProjetDto>>(projets);
   }
 
   public async Task<ProjetDto?> GetProjetByIdAsync(int id)
@@ -53,14 +61,28 @@ public class ProjetService : IProjetService
       throw new ArgumentException("Un projet doit être associé à une société.");
     }
 
+    // Mapper le DTO en entité Projet (le mapping ignore IdPays)
     var projet = _mapper.Map<Projet>(projetDto);
+
+    // Récupérer la société associée via son identifiant.
+    // Attention : vous devez disposer d'un moyen d'accéder à la société (via un repository ou le DataContext).
+    var societe = await _societeRepository.GetSocieteByIdAsync(projet.SocieteId.Value);
+    if (societe == null)
+    {
+      throw new Exception("La société associée n'a pas été trouvée.");
+    }
+    // Assigner la société à l'entité projet.
+    // Le setter de la propriété Societe affectera automatiquement IdPays
+    projet.Societe = societe;
+
     await _projetRepository.AddProjetAsync(projet);
     await _projetRepository.SaveAllAsync();
     return _mapper.Map<ProjetDto>(projet);
   }
 
 
-  public async Task<bool> UpdateProjetAsync(int id, ProjetDto projetDto)
+
+  public async Task<bool> UpdateProjetAsync(int id, ProjetUpdateDto projetDto)
   {
     if (id != projetDto.Id)
       return false;
@@ -86,9 +108,18 @@ public class ProjetService : IProjetService
 
   public async Task<bool> DeleteProjetAsync(int id)
   {
-    var projet = await _projetRepository.GetProjetByIdAsync(id);
-    if (projet == null) return false;
+    // Vérifier si le projet possède des tickets associés
+    bool hasTickets = await _projetRepository.ProjetHasTicketsAsync(id);
+    if (hasTickets)
+    {
+      throw new InvalidOperationException("Impossible de supprimer le projet car il contient des tickets associés.");
+    }
 
+    var projet = await _projetRepository.GetProjetByIdAsync(id);
+    if (projet == null)
+      return false;
+
+    // Supprimer les associations ProjetUser s'il y en a
     if (projet.ProjetUsers != null && projet.ProjetUsers.Any())
     {
       foreach (var pu in projet.ProjetUsers)
@@ -96,9 +127,11 @@ public class ProjetService : IProjetService
         _projetRepository.RemoveProjetUser(pu);
       }
     }
+
     _projetRepository.RemoveProjet(projet);
     return await _projetRepository.SaveAllAsync();
   }
+
 
   public async Task<bool> DeleteProjetsAsync(List<int> ids)
   {
@@ -115,15 +148,23 @@ public class ProjetService : IProjetService
     var projet = await _projetRepository.GetProjetByIdAsync(projetId);
     if (projet == null) return false;
 
-    // Création de l'association sans le rôle
+    // Vérifier si l'utilisateur est déjà associé au projet
+    var projetUserExists = await _projetRepository.GetProjetUserAsync(projetId, projetUserDto.UserId);
+    if (projetUserExists != null)
+    {
+      throw new InvalidOperationException("Cet utilisateur est déjà associé à ce projet.");
+    }
+
     var projetUser = new ProjetUser
     {
       ProjetId = projetId,
       UserId = projetUserDto.UserId
     };
+
     await _projetRepository.AddProjetUserAsync(projetUser);
     return await _projetRepository.SaveAllAsync();
   }
+
 
   // La méthode AssignerRoleAsync a été supprimée car le rôle n'est plus utilisé
 
@@ -139,4 +180,21 @@ public class ProjetService : IProjetService
     _projetRepository.RemoveProjetUser(projetUser);
     return await _projetRepository.SaveAllAsync();
   }
+
+  public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
+  {
+    return await _projetRepository.GetProjetsForUserAsync(userId);
+  }
+  public async Task<bool> ProjetExists(string nom)
+  {
+    return await _projetRepository.ProjetExists(nom);
+  }
+
+  public async Task<IEnumerable<ProjetDto>> GetProjetsBySocieteIdAsync(int societeId)
+  {
+    var projets = await _projetRepository.GetProjetsBySocieteIdAsync(societeId);
+    return _mapper.Map<IEnumerable<ProjetDto>>(projets);
+  }
+
+
 }

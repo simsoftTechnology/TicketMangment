@@ -17,12 +17,17 @@ import { PaysService } from '../../_services/pays.service';
 import { SocieteService } from '../../_services/societe.service';
 import { UserSelectorDialogComponent } from '../../user-selector-dialog/user-selector-dialog.component';
 import { PaginatedResult } from '../../_models/pagination';
+import { ToastrService } from 'ngx-toastr';
+import { OverlayModalService } from '../../_services/overlay-modal.service';
+import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
+import { LoaderService } from '../../_services/loader.service';
+import { GlobalLoaderService } from '../../_services/global-loader.service';
 
 @Component({
-    selector: 'app-details-projet',
-    imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule],
-    templateUrl: './details-projet.component.html',
-    styleUrls: ['./details-projet.component.css']
+  selector: 'app-details-projet',
+  imports: [FormsModule, CommonModule, NgSelectModule, MatDialogModule],
+  templateUrl: './details-projet.component.html',
+  styleUrls: ['./details-projet.component.scss']
 })
 export class DetailsProjetComponent implements OnInit {
   // --- Données du projet et membres ---
@@ -33,7 +38,7 @@ export class DetailsProjetComponent implements OnInit {
   pageNumber: number = 1;
   pageSize: number = 9;
   jumpPage: number = 1;
-  totalPages: number = 1; // Calculé à partir du nombre de membres filtrés
+  totalPages: number = 1;
 
   // Recherche dans le tableau des membres
   userSearchTerm: string = '';
@@ -55,7 +60,7 @@ export class DetailsProjetComponent implements OnInit {
 
   // --- Gestion des utilisateurs (pour la boîte modale) ---
   availableUsers: Partial<User>[] = [];
-  
+
   // (Optionnel) Pagination & recherche côté serveur pour les utilisateurs
   userPageNumber: number = 1;
   userPageSize: number = 1;
@@ -64,50 +69,106 @@ export class DetailsProjetComponent implements OnInit {
   displayedUsers: User[] = [];
   userJumpPage: number = 1;
 
+  isChefDropdownOpen: boolean = false;
+  searchChef: string = '';
+  availableChefs: User[] = []; 
+  filteredChefs: User[] = [];
+
+  isLoading: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private projetService: ProjetService,
     public accountService: AccountService,
     private paysService: PaysService,
     private societeService: SocieteService,
+    private toastr: ToastrService,
     public router: Router,
     private dialog: MatDialog,
     private location: Location,
-    private elementRef: ElementRef
-  ) {}
+    private elementRef: ElementRef,
+    private overlayModalService: OverlayModalService,
+    private loaderService: LoaderService,
+    private globalLoaderService: GlobalLoaderService 
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
-    this.getProjetDetails();
+    // S'abonner aux paramètres de la route pour détecter les changements de l'ID du projet
+    this.route.params.subscribe(params => {
+      const id = Number(params['id']);
+      if (id) {
+        this.getProjetDetails(id);
+      }
+    });
     this.getAvailableUsers();
+    this.getAvailableChefs();
     this.loadPays();
     this.loadSocietes();
     this.loadUsers(); // Pour la recherche/pagination côté serveur (si nécessaire)
   }
 
   // --- Chargement du projet et de ses membres ---
-  getProjetDetails(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (id) {
-      this.projetService.getProjetById(id).subscribe({
-        next: (data) => {
-          this.projet = data;
-          this.getMembres();
-        },
-        error: (err) => { console.error('Erreur lors de la récupération du projet', err); }
-      });
-    }
+  getProjetDetails(id: number): void {
+    this.globalLoaderService.showGlobalLoader();
+    this.projetService.getProjetById(id).subscribe({
+      next: (data) => {
+        this.projet = data;
+        this.getMembres();
+      },
+      error: (err) => {
+        console.error('Erreur lors de la récupération du projet', err);
+        this.toastr.error('Erreur lors de la récupération du projet');
+      },
+      complete: () => {
+        this.globalLoaderService.hideGlobalLoader();
+      }
+    });
+  }  
+
+  getAvailableChefs(): void {
+    this.accountService.getAllUsers().subscribe({
+      next: (users: User[]) => {
+        // Vous pouvez appliquer ici un filtre sur les rôles si nécessaire.
+        this.availableChefs = users.filter(user => {
+          const role = user.role.toLowerCase().trim();
+          // Par exemple, pour inclure les utilisateurs avec le rôle "chef de projet" ou "collaborateur"
+          return role === 'chef de projet' || role === 'collaborateur';
+        });
+        this.filteredChefs = [...this.availableChefs];
+      },
+      error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
+    });
   }
+  
 
   getMembres(): void {
     if (this.projet && this.projet.id) {
       this.projetService.getMembresProjet(this.projet.id).subscribe({
         next: (data: ProjetMember[]) => {
+          // Affecte la liste des membres récupérée
           this.membres = data;
+          // Si un chef de projet est défini et qu'il n'est pas déjà dans la liste, on l'ajoute
+          if (this.projet.chefProjet && !this.membres.some(m => m.userId === this.projet.chefProjet!.id)) {
+            const chefMember: ProjetMember = {
+              projetId: this.projet.id, // Ajout de la propriété manquante
+              userId: this.projet.chefProjet.id,
+              firstName: this.projet.chefProjet.firstName,
+              lastName: this.projet.chefProjet.lastName,
+              role: this.projet.chefProjet.role ? this.projet.chefProjet.role : 'Chef de projet',
+              selected: false
+            };
+            this.membres.unshift(chefMember);
+          }
         },
         error: (err) => { console.error('Erreur lors du chargement des membres', err); }
       });
     }
   }
+
 
   // --- Filtrage et pagination des membres (client-side) ---
   get displayedMembres(): ProjetMember[] {
@@ -143,7 +204,7 @@ export class DetailsProjetComponent implements OnInit {
   selectAll(event: any): void {
     const checked = event.target.checked;
     this.membres.forEach(m => m.selected = checked);
-  }  
+  }
 
   toggleSelection(membre: ProjetMember): void {
     console.log('Membre sélectionné/désélectionné :', membre);
@@ -190,7 +251,7 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => { console.error('Erreur lors de la récupération des sociétés', err); }
     });
   }
-  
+
   onSocieteSearch(): void {
     this.loadSocietes();
   }
@@ -201,13 +262,21 @@ export class DetailsProjetComponent implements OnInit {
       this.isPaysDropdownOpen = !this.isPaysDropdownOpen;
       if (this.isPaysDropdownOpen) {
         this.isSocieteDropdownOpen = false;
+        this.isChefDropdownOpen = false;
       }
     } else if (type === 'societe') {
       this.isSocieteDropdownOpen = !this.isSocieteDropdownOpen;
       if (this.isSocieteDropdownOpen) {
         this.isPaysDropdownOpen = false;
+        this.isChefDropdownOpen = false;
       }
-    }
+    } else if  (type === 'chef') {
+      this.isChefDropdownOpen = !this.isChefDropdownOpen;
+      if (this.isChefDropdownOpen) {
+        this.isPaysDropdownOpen = false;
+        this.isSocieteDropdownOpen = false;
+      }
+    } 
   }
 
 
@@ -224,12 +293,14 @@ export class DetailsProjetComponent implements OnInit {
     }
     return this.societes.find(s => s.id === idSociete || s.id === idSociete)?.nom || '';
   }
-  
-  
+
+
   // Méthode de sélection d'une société dans le dropdown
   selectSociete(societe: any): void {
-    // Affecte l'identifiant de la société au projet (adapter selon votre modèle)
+    // Affecte l'identifiant de la société
     this.projet.societeId = societe.id || societe.idSociete;
+    // Affecte automatiquement l'id du pays de la société au projet
+    this.projet.idPays = societe.paysId;
     // Ferme le dropdown
     this.isSocieteDropdownOpen = false;
     // Réinitialise le champ de recherche et recharge la liste complète
@@ -237,34 +308,43 @@ export class DetailsProjetComponent implements OnInit {
     this.loadSocietes();
   }
 
+
   // --- Sauvegarde, annulation et suppression du projet ---
   saveProjet(): void {
-    this.projetService.updateProjet(this.projet).subscribe({
-      next: () => {
-        alert('Projet mis à jour avec succès');
-        this.editMode = false;
-        this.getProjetDetails();
-      },
-      error: (err) => { console.error('Erreur lors de la mise à jour du projet', err); }
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Confirmez-vous la modification du projet ?";
+    modalInstance.confirmed.subscribe(() => {
+    this.projet.nom = this.accountService.removeSpecial(this.projet.nom)
+
+      this.loaderService.showLoader();
+      this.projetService.updateProjet(this.projet).subscribe({
+        next: () => {
+          this.toastr.success('Projet mis à jour avec succès');
+          this.editMode = false;
+          this.getProjetDetails(this.projet.id);
+          this.loaderService.hideLoader();
+        },
+        error: (err) => {
+          console.error('Erreur lors de la mise à jour du projet', err);
+          this.toastr.error('Erreur lors de la mise à jour du projet');
+          this.loaderService.hideLoader();
+        }
+      });
+      this.overlayModalService.close();
+    });
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
     });
   }
 
+
   cancelEdit(): void {
     this.editMode = false;
-    this.getProjetDetails();
+    // Recharger les détails du projet en passant l'ID du projet
+    this.getProjetDetails(this.projet.id);
   }
 
-  deleteProjet(id: number): void {
-    if (confirm('Voulez-vous vraiment supprimer ce projet ?')) {
-      this.projetService.deleteProjet(id).subscribe({
-        next: () => {
-          alert('Projet supprimé avec succès');
-          this.router.navigate(['/home/projets']);
-        },
-        error: (err) => { console.error('Erreur lors de la suppression du projet', err); }
-      });
-    }
-  }
+
 
   // --- Gestion des utilisateurs dans la modale ---
   openUserSelector(): void {
@@ -293,37 +373,57 @@ export class DetailsProjetComponent implements OnInit {
       error: (err) => console.error("Erreur lors de la récupération des utilisateurs", err)
     });
   }
-  
+
 
   addUserToProjet(user: User): void {
     if (this.projet && this.projet.id && user.id) {
       this.projetService.ajouterUtilisateurAuProjet(this.projet.id, user.id, user.role)
         .subscribe({
           next: () => {
-            alert('Utilisateur ajouté avec succès');
+            // Par exemple, afficher une notification de succès
+            this.toastr.success('Utilisateur ajouté avec succès');
             this.getMembres();
           },
-          error: (err) => { console.error('Erreur lors de l’ajout de l’utilisateur', err); }
+          error: (err) => {
+            if (err.status === 409) {
+              //this.toastr.error(err.message, 'Erreur');
+            } else {
+              console.error('Erreur lors de l’ajout de l’utilisateur', err);
+            }
+          }
         });
     } else {
-      alert("Veuillez sélectionner un utilisateur valide.");
+      this.toastr.warning("Veuillez sélectionner un utilisateur valide.");
     }
   }
 
+
   removeUser(userId: number): void {
     if (this.projet && this.projet.id) {
-      if (confirm('Confirmer la suppression de cet utilisateur du projet ?')) {
+      const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+      modalInstance.message = 'Confirmer la suppression de cet utilisateur du projet ?';
+      modalInstance.confirmed.subscribe(() => {
+        this.loaderService.showLoader();
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
             next: () => {
-              alert('Utilisateur retiré avec succès');
+              this.toastr.success('Utilisateur retiré avec succès');
               this.getMembres();
+              this.loaderService.hideLoader();
             },
-            error: (err) => { console.error('Erreur lors du retrait de l’utilisateur', err); }
+            error: (err) => {
+              console.error('Erreur lors du retrait de l’utilisateur', err);
+              this.loaderService.hideLoader();
+            }
           });
-      }
+        this.overlayModalService.close();
+      });
+      modalInstance.cancelled.subscribe(() => {
+        this.overlayModalService.close();
+      });
     }
   }
+
 
   // --- Utilitaire pour générer une plage de nombres pour la pagination ---
   range(start: number, end: number): number[] {
@@ -332,27 +432,61 @@ export class DetailsProjetComponent implements OnInit {
 
 
   deleteSelectedMembers(): void {
-    const selectedUserIds = this.membres
-      .filter(m => m.selected)
-      .map(m => m.userId);
-    
+    const selectedUserIds = this.membres.filter(m => m.selected).map(m => m.userId);
     if (selectedUserIds.length === 0) {
-      alert("Aucun membre sélectionné pour la suppression.");
+      this.toastr.warning("Aucun membre sélectionné pour la suppression.");
       return;
     }
-    
-    if (confirm("Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?")) {
-      // Loop through each user and call the single deletion endpoint.
+    const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
+    modalInstance.message = "Êtes-vous sûr de vouloir retirer les membres sélectionnés du projet ?";
+    modalInstance.confirmed.subscribe(() => {
+      this.loaderService.showLoader();
       selectedUserIds.forEach(userId => {
         this.projetService.supprimerUtilisateurDuProjet(this.projet.id, userId)
           .subscribe({
-            next: () => this.getMembres(), // Refresh the members list after each deletion.
+            next: () => this.getMembres(),
             error: err => console.error("Erreur lors du retrait de l’utilisateur", err)
           });
       });
+      this.loaderService.hideLoader();
+      this.overlayModalService.close();
+    });
+    modalInstance.cancelled.subscribe(() => {
+      this.overlayModalService.close();
+    });
+  }
+
+  onChefSearch(): void {
+    if (this.searchChef && this.searchChef.trim() !== '') {
+      const term = this.searchChef.toLowerCase();
+      this.filteredChefs = this.availableChefs.filter(chef =>
+        (chef.firstName + ' ' + chef.lastName).toLowerCase().includes(term)
+      );
+    } else {
+      this.filteredChefs = [...this.availableChefs];
     }
   }
-    
+
+  selectChef(chef: User): void {
+    // Met à jour l'identifiant du chef dans le projet
+    this.projet.chefProjetId = chef.id;
+    // Optionnel : Mettre à jour l'objet complet du chef
+    this.projet.chefProjet = chef;
+    // Fermer le dropdown
+    this.isChefDropdownOpen = false;
+    // Réinitialiser le champ de recherche si besoin
+    this.searchChef = '';
+    this.filteredChefs = [...this.availableChefs];
+  }
+
+  getChefName(chefId: number | undefined): string {
+    if (chefId === undefined) return '';
+    const chef = this.availableChefs.find(c => c.id === chefId);
+    return chef ? `${chef.firstName} ${chef.lastName}` : '';
+  }
+  
+  
+
   // Gestionnaire de clic global pour fermer les dropdowns
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -361,6 +495,7 @@ export class DetailsProjetComponent implements OnInit {
     if (!target.closest('.custom-select')) {
       this.isPaysDropdownOpen = false;
       this.isSocieteDropdownOpen = false;
+      this.isChefDropdownOpen = false;
     }
   }
 

@@ -9,8 +9,10 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   if (!req.url.includes('/account/login') && accountService.currentUser()) {
     req = req.clone({
       setHeaders: {
-        Authorization: `Bearer ${accountService.currentUser()?.token}`
-      }
+        Authorization: `Bearer ${accountService.currentUser()?.token}`,
+        'Content-Type': 'application/json; charset=utf-8'
+      },
+      withCredentials: true
     });
   } else {
     console.warn('Aucun token trouvé ou endpoint login, pas d\'Authorization.');

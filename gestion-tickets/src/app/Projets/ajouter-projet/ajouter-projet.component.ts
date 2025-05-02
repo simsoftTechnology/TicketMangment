@@ -6,21 +6,26 @@ import { SocieteService } from '../../_services/societe.service';
 import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Projet } from '../../_models/Projet';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, NgIf } from '@angular/common';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
 import { forkJoin } from 'rxjs';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { DropdownService } from './../../_services/dropdown.service';
+import { ToastrService } from 'ngx-toastr';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { LoaderService } from '../../_services/loader.service';
 
 @Component({
-    selector: 'app-ajouter-projet',
-    imports: [CommonModule, FormsModule, NgIf, RouterLink],
-    templateUrl: './ajouter-projet.component.html',
-    styleUrls: ['./ajouter-projet.component.css']
+  selector: 'app-ajouter-projet',
+  imports: [CommonModule, FormsModule, NgIf, RouterLink, ReactiveFormsModule, MatSidenavModule],
+  templateUrl: './ajouter-projet.component.html',
+  styleUrls: ['./ajouter-projet.component.css']
 })
 export class AjouterProjetComponent implements OnInit {
+  projetForm!: FormGroup;
+
   projet: Projet = {
     id: 0,
     nom: '',
@@ -34,14 +39,7 @@ export class AjouterProjetComponent implements OnInit {
   pays: Pays[] = [];
   utilisateurs: User[] = [];
   chefsProjet: User[] = [];
-  developpeurs: User[] = [];
-  selectedChefId: number | null = null;
-  selectedDevIds: number[] = [];
-  erreurMessage: string = '';
-
-  isDropdownOpen = false;
-  searchQuery = '';
-  filteredDevelopers: User[] = [];
+  clients: User[] = [];
 
   isPaysDropdownOpen = false;
   isSocieteDropdownOpen = false;
@@ -57,41 +55,64 @@ export class AjouterProjetComponent implements OnInit {
   filteredSocietes: Societe[] = [];
   filteredChefs: User[] = [];
   filteredClients: User[] = [];
-  clients: User[] = [];
 
-  // Par défaut, on initialise le type à Société
+  // Par défaut, le projet est de type Société
   isSocieteProjet: boolean = true;
+  isLoading: boolean = false;
 
   constructor(
+    private fb: FormBuilder,
     private projetService: ProjetService,
     private societeService: SocieteService,
     private paysService: PaysService,
     private userService: AccountService,
     private router: Router,
+    private accountService: AccountService,
     private dropdownService: DropdownService,
     public route: ActivatedRoute,
-    private overlayModalService: OverlayModalService
-  ) { }
+    private overlayModalService: OverlayModalService,
+    private toastr: ToastrService,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
+   }
 
   ngOnInit(): void {
+    this.initForm();
     this.loadSocietes();
     this.loadPays();
     this.loadUtilisateurs();
   }
 
-  
+  initForm(): void {
+    this.projetForm = this.fb.group({
+      nom: ['', Validators.required],
+      description: [''],
+      societeId: [null, this.isSocieteProjet ? Validators.required : []],
+      chefProjetId: [null, Validators.required],
+      idPays: [0]
+    });
+  }
 
   loadSocietes(): void {
     this.societeService.getSocietes().subscribe(
       data => { this.societes = data; },
-      error => { console.error('Erreur chargement sociétés', error); }
+      error => {
+        console.error('Erreur chargement sociétés', error);
+        this.toastr.error("Erreur lors du chargement des sociétés");
+      }
     );
   }
 
   loadPays(): void {
     this.paysService.getPays().subscribe(
       data => { this.pays = data; },
-      error => { console.error('Erreur chargement pays', error); }
+      error => {
+        console.error('Erreur chargement pays', error);
+        this.toastr.error("Erreur lors du chargement des pays");
+      }
     );
   }
 
@@ -100,63 +121,74 @@ export class AjouterProjetComponent implements OnInit {
       data => {
         this.utilisateurs = data;
         this.chefsProjet = data.filter(user => user.role.toLowerCase().trim() === 'chef de projet');
-        this.developpeurs = data.filter(user => user.role.toLowerCase().includes('collaborateur'));
         this.clients = data.filter(user => user.role.toLowerCase().trim() === 'client');
       },
-      error => { console.error('Erreur chargement utilisateurs', error); }
+      error => {
+        console.error('Erreur chargement utilisateurs', error);
+        this.toastr.error("Erreur lors du chargement des utilisateurs");
+      }
     );
   }
 
   ajouterProjet(): void {
-    // Vérifiez les champs obligatoires (nom, chef, et société)
-    if (!this.projet.nom || !this.selectedChefId) {
-      this.erreurMessage = "Veuillez remplir tous les champs obligatoires.";
+    if (this.projetForm.invalid) {
+      this.projetForm.updateValueAndValidity();
+      this.toastr.error("Veuillez remplir tous les champs obligatoires.");
       return;
     }
-    
-    if (this.isSocieteProjet && !this.projet.societeId) {
-      this.erreurMessage = "Veuillez sélectionner une société.";
-      return;
-    } else if (!this.isSocieteProjet && !this.projet.clientId) {
-      this.erreurMessage = "Veuillez sélectionner un client.";
-      return;
-    }
-    
-    if (this.isSocieteProjet) {
-      this.projet.clientId = null;
-    } else {
-      this.projet.societeId = null;
-    }
-    
-    // Conversion en nombre si nécessaire
-    this.projet.idPays = +this.projet.idPays;
-    
+  
+    const formValue = this.projetForm.value;
+    this.projet.nom = this.accountService.removeSpecial(formValue.nom);
+    this.projet.description = this.accountService.removeSpecial(formValue.description);
+    this.projet.societeId = formValue.societeId;
+    this.projet.idPays = +formValue.idPays;
+    this.projet.chefProjetId = formValue.chefProjetId;
+  
+    // Active le loader avant l'appel
+    this.loaderService.showLoader();
     this.projetService.addProjet(this.projet).subscribe({
       next: (projetCree) => {
-        this.ajouterUtilisateursAuProjet(projetCree.id);
+        this.toastr.success('Projet créé avec succès');
+        this.router.navigate(['/home/Projets']);
+        this.loaderService.hideLoader();
       },
       error: (error) => {
         console.error('Erreur ajout projet', error);
-        this.erreurMessage = "Erreur lors de l'ajout du projet.";
+        let errMsg = "Erreur lors de l'ajout du projet.";
+        // Gestion de l'erreur (formatage du message)
+        if (Array.isArray(error)) {
+          errMsg = error.join(' ');
+        } else if (typeof error === 'string') {
+          errMsg = error;
+        } else if (error.error) {
+          if (Array.isArray(error.error)) {
+            errMsg = error.error.join(' ');
+          } else if (typeof error.error === 'string') {
+            errMsg = error.error;
+          } else if (typeof error.error === 'object') {
+            errMsg = error.error.message || JSON.stringify(error.error);
+          }
+        } else if (error.message) {
+          errMsg = error.message;
+        }
+        this.toastr.error(errMsg);
+        this.loaderService.hideLoader();
       }
     });
   }
-  
 
   ajouterUtilisateursAuProjet(projetId: number): void {
     const requests = [];
 
-    if (this.selectedChefId) {
+    // Ajout du chef de projet
+    const chefId = this.projetForm.get('chefProjetId')?.value;
+    if (chefId) {
       requests.push(
-        this.projetService.ajouterUtilisateurAuProjet(projetId, this.selectedChefId, 'Chef de Projet')
+        this.projetService.ajouterUtilisateurAuProjet(projetId, chefId, 'Chef de Projet')
       );
     }
 
-    this.selectedDevIds.forEach(devId => {
-      requests.push(
-        this.projetService.ajouterUtilisateurAuProjet(projetId, devId, 'Collaborateur')
-      );
-    });
+    // Si d'autres utilisateurs (développeurs, par exemple) sont à ajouter, on peut les parcourir ici
 
     if (requests.length === 0) {
       this.router.navigate(['/home/Projets']);
@@ -165,36 +197,14 @@ export class AjouterProjetComponent implements OnInit {
 
     forkJoin(requests).subscribe({
       next: () => {
+        this.toastr.success('Utilisateurs ajoutés au projet avec succès');
         this.router.navigate(['/home/Projets']);
       },
       error: (err) => {
         console.error('Erreur lors de l\'ajout des utilisateurs', err.error || err);
+        this.toastr.error('Erreur lors de l\'ajout des utilisateurs');
       }
     });
-  }
-
-  filterDevelopers(): void {
-    this.filteredDevelopers = this.developpeurs.filter(dev =>
-      `${dev.firstName} ${dev.lastName}`.toLowerCase().includes(this.searchQuery.toLowerCase())
-    );
-  }
-
-  toggleSelection(devId: number): void {
-    const index = this.selectedDevIds.indexOf(devId);
-    if (index === -1) {
-      this.selectedDevIds.push(devId);
-    } else {
-      this.selectedDevIds.splice(index, 1);
-    }
-  }
-
-  isSelected(devId: number): boolean {
-    return this.selectedDevIds.includes(devId);
-  }
-
-  getDeveloperName(devId: number): string {
-    const dev = this.developpeurs.find(d => d.id === devId);
-    return dev ? `${dev.firstName} ${dev.lastName}` : '';
   }
 
   toggleDropdown(type?: string): void {
@@ -225,11 +235,6 @@ export class AjouterProjetComponent implements OnInit {
           }
           break;
       }
-    } else {
-      this.isDropdownOpen = !this.isDropdownOpen;
-      if (this.isDropdownOpen) {
-        this.filteredDevelopers = [...this.developpeurs];
-      }
     }
   }
 
@@ -256,25 +261,23 @@ export class AjouterProjetComponent implements OnInit {
   selectItem(item: any, type: string): void {
     switch (type) {
       case 'societe':
-        this.projet.societeId = item.id;
-        // Trouver la société sélectionnée et mettre à jour le pays
+        this.projetForm.get('societeId')?.setValue(item.id);
         const selectedSociete = this.societes.find(s => s.id === item.id);
         if (selectedSociete) {
-          this.projet.idPays = selectedSociete.paysId; // Assurez-vous que Societe possède idPays
+          this.projetForm.patchValue({ idPays: selectedSociete.paysId });
         }
-        this.isSocieteDropdownOpen = false;
+        this.projetForm.get('societeId')?.markAsTouched();
+        this.projetForm.get('societeId')?.updateValueAndValidity();
         break;
       case 'chef':
-        this.selectedChefId = item.id;
-        this.isChefDropdownOpen = false;
-        break;
-      case 'client':
-        this.projet.clientId = item.id;
-        this.isClientDropdownOpen = false;
+        this.projetForm.get('chefProjetId')?.setValue(item.id);
+        this.projetForm.get('chefProjetId')?.markAsTouched();
+        this.projetForm.get('chefProjetId')?.updateValueAndValidity();
         break;
     }
+    // Ferme les dropdowns après sélection
+    this.closeAllDropdowns();
   }
-  
 
   getPaysName(idPays: number): string {
     return this.pays.find(p => p.idPays === idPays)?.nom || '';
@@ -299,27 +302,23 @@ export class AjouterProjetComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    if (!event.target) return;
-
     const target = event.target as HTMLElement;
-    const dropdowns = [
-      { isOpen: this.isPaysDropdownOpen, selector: '.custom-select' },
-      { isOpen: this.isSocieteDropdownOpen, selector: '.custom-select' },
-      { isOpen: this.isChefDropdownOpen, selector: '.custom-select' },
-      { isOpen: this.isDropdownOpen, selector: '.custom-multiselect' }
-    ];
-
-    dropdowns.forEach(dropdown => {
-      if (dropdown.isOpen && !target.closest(dropdown.selector)) {
-        this.closeAllDropdowns();
-      }
-    });
+    // On ajoute '.search-box' à la liste pour ne pas fermer le dropdown lors d'un clic dans la zone de recherche
+    const isClickInside = [
+      '.custom-select',
+      '.dropdown-content',
+      '.option-item',
+      '.search-box'
+    ].some(selector => target.closest(selector));
+    if (!isClickInside) {
+      this.closeAllDropdowns();
+    }
   }
 
   closeAllDropdowns(): void {
-    this.isPaysDropdownOpen = false;
     this.isSocieteDropdownOpen = false;
     this.isChefDropdownOpen = false;
-    this.isDropdownOpen = false;
+    this.isPaysDropdownOpen = false;
+    this.isClientDropdownOpen = false;
   }
 }

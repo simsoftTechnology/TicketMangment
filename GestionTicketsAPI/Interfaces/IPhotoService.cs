@@ -17,7 +17,7 @@ namespace GestionTicketsAPI.Interfaces
         /// <param name="file">Fichier à uploader</param>
         /// <returns>UploadResult générique contenant l'URL et d'autres infos</returns>
         Task<UploadResult> UploadFileAsync(IFormFile file);
-
+        Task<UploadResult> UploadFileAsync(Stream fileStream, string fileName);
         /// <summary>
         /// Suppression d'un fichier sur Cloudinary.
         /// </summary>

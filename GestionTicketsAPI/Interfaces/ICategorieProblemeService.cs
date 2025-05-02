@@ -14,5 +14,6 @@ namespace GestionTicketsAPI.Interfaces
         Task<bool> UpdateCategorieAsync(CategorieProbleme categorie);
         Task<bool> DeleteCategorieAsync(int id);
         Task<bool> DeleteMultipleCategoriesAsync(List<int> ids);
+        Task<bool> CategorieExists(string nom);
     }
 }

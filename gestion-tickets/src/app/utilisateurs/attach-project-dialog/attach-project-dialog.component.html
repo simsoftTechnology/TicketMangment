@@ -10,7 +10,7 @@
       <div class="custom-select">
         <div class="select-box" #dropdownTrigger (click)="openDropdownOverlay(dropdownTrigger)">
           <div class="selected-item">
-            {{ selectedProject?.nom || 'Sélectionner un projet' }}
+            {{ selectedProject?.nom || 'Sélectionner un projet' }} - {{selectedProject?.nomSociete}}
           </div>
           <span class="arrow">▼</span>
         </div>
@@ -22,8 +22,15 @@
 
     <div class="button-group">
       <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
-      <button type="submit" class="btn-create" [disabled]="form.invalid">Attacher</button>
-    </div>
+      <button type="submit" class="btn-create" [disabled]="form.invalid || isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">
+          Attacher
+        </ng-container>
+        <ng-template #loadingTpl>
+          <span class="spinner"></span> Attacher
+        </ng-template>
+      </button>
+    </div>    
   </form>
 </div>
 
@@ -36,7 +43,7 @@
     <div class="option-list">
       <ng-container *ngIf="filteredProjects.length > 0; else noResults">
         <div *ngFor="let p of filteredProjects" class="option-item" (click)="selectProject(p)">
-          {{ p.nom }}
+          {{ p.nom }} - {{p.nomSociete}}
         </div>
       </ng-container>
     </div>

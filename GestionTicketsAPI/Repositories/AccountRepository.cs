@@ -26,6 +26,8 @@ namespace GestionTicketsAPI.Repositories
             return await _context.Users
                 .Include(u => u.PaysNavigation)
                 .Include(u => u.Role)
+                .Include(u => u.SocieteUsers)
+                    .ThenInclude(su => su.Societe)
                 .FirstOrDefaultAsync(x => x.Email.ToLower() == email.ToLower());
         }
 
@@ -57,5 +59,13 @@ namespace GestionTicketsAPI.Repositories
                 throw new Exception("Role not found");
             return role.Id;
         }
+
+        public async Task<User?> GetUserByResetTokenAsync(string token)
+        {
+            // Adaptez ce code à votre contexte d'accès aux données et au stockage du token.
+            return await _context.Users.FirstOrDefaultAsync(u => u.PasswordResetToken == token);
+        }
+
     }
 }
+

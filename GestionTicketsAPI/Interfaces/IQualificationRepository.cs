@@ -9,6 +9,7 @@ namespace GestionTicketsAPI.Interfaces
         Task AddAsync(Qualification qualification);
         void Update(Qualification qualification);
         void Delete(Qualification qualification);
+        Task<bool> QualificationExists(string nom);
         Task<bool> SaveAllAsync();
     }
 }

@@ -14,8 +14,6 @@ public class Commentaire
     [Required]
     public DateTime Date { get; set; } = DateTime.UtcNow;
 
-    public DateTime? DateModification { get; set; }
-
     [ForeignKey("Utilisateur")]
     public int UtilisateurId { get; set; }
 

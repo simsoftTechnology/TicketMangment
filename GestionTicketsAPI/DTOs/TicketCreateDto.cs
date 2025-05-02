@@ -1,35 +1,34 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
 
 namespace GestionTicketsAPI.DTOs
 {
     public class TicketCreateDto
     {
         [Required]
-        public string Title { get; set; } = string.Empty; // Anciennement Titre
+        public string Title { get; set; } = string.Empty;
 
         [Required]
         public string Description { get; set; } = string.Empty;
 
         [Required]
-        public int PriorityId { get; set; } // Anciennement Priorite
+        public int PriorityId { get; set; }
 
         [Required]
-        public int StatutId { get; set; }   // Anciennement Statuts
+        public int OwnerId { get; set; }
 
         [Required]
-        public int OwnerId { get; set; }    // Anciennement UtilisateurId
+        public int ProblemCategoryId { get; set; }
 
         [Required]
-        public int ProblemCategoryId { get; set; } // Anciennement CategorieProblemeId
-
-        [Required]
-        public int QualificationId { get; set; }   // Anciennement Qualification
+        public int QualificationId { get; set; }
 
         [Required]
         public int ProjetId { get; set; }
 
-        // Fichier attaché (Word, PDF ou image)
-        public IFormFile? Attachment { get; set; }
+        // Fichier attaché encodé en Base64
+        public string? AttachmentBase64 { get; set; }
+        
+        // Nom du fichier attaché (permet de conserver l'extension)
+        public string? AttachmentFileName { get; set; }
     }
 }

@@ -1,0 +1,119 @@
+<div class="filter-panel">
+  <form [formGroup]="filterForm" (ngSubmit)="onSubmit()">
+    <!-- Dropdown pour le Rôle -->
+    <div class="form-group">
+      <label for="role">Rôle</label>
+      <div id="role" class="custom-select">
+        <div class="select-box" (click)="toggleDropdown('role', $event)">
+          <div class="selected-item">
+            {{ selectedRole || 'Sélectionnez un rôle' }}
+          </div>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content" [class.show]="isRoleDropdownOpen">
+          <div class="search-box">
+            <input type="text"
+                   placeholder="Rechercher un rôle..."
+                   [(ngModel)]="roleSearchTerm"
+                   [ngModelOptions]="{standalone: true}"
+                   (ngModelChange)="filterRoles()"
+                   (click)="$event.stopPropagation()">
+          </div>
+          <div class="option-list">
+            <ng-container *ngIf="filteredRoles.length > 0; else noRoleResults">
+              <div *ngFor="let role of filteredRoles"
+                   class="option-item"
+                   (click)="selectItem('role', role); $event.stopPropagation()">
+                {{ role }}
+              </div>
+            </ng-container>
+            <ng-template #noRoleResults>
+              <div class="no-results">Aucun rôle trouvé</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dropdown pour l'état Actif -->
+    <div class="form-group">
+      <label for="actif">Actif</label>
+      <div id="actif" class="custom-select">
+        <div class="select-box" (click)="toggleDropdown('actif', $event)">
+          <div class="selected-item">
+            {{ selectedActif || 'Sélectionnez l\'état actif' }}
+          </div>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content" [class.show]="isActifDropdownOpen">
+          <div class="search-box">
+            <input type="text"
+                   placeholder="Rechercher..."
+                   [(ngModel)]="actifSearchTerm"
+                   [ngModelOptions]="{standalone: true}"
+                   (ngModelChange)="filterActifs()"
+                   (click)="$event.stopPropagation()">
+          </div>
+          <div class="option-list">
+            <ng-container *ngIf="filteredActifs.length > 0; else noActifResults">
+              <div *ngFor="let actif of filteredActifs"
+                   class="option-item"
+                   (click)="selectItem('actif', actif); $event.stopPropagation()">
+                {{ actif }}
+              </div>
+            </ng-container>
+            <ng-template #noActifResults>
+              <div class="no-results">Aucun état trouvé</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dropdown pour le Contrat -->
+    <div class="form-group">
+      <label for="contract">Contrat</label>
+      <div id="contract" class="custom-select">
+        <div class="select-box" (click)="toggleDropdown('contract', $event)">
+          <div class="selected-item">
+            {{ selectedContract || 'Sélectionnez un contrat' }}
+          </div>
+          <span class="arrow">▼</span>
+        </div>
+        <div class="dropdown-content" [class.show]="isContractDropdownOpen">
+          <div class="search-box">
+            <input type="text"
+                   placeholder="Rechercher..."
+                   [(ngModel)]="contractSearchTerm"
+                   [ngModelOptions]="{standalone: true}"
+                   (ngModelChange)="filterContracts()"
+                   (click)="$event.stopPropagation()">
+          </div>
+          <div class="option-list">
+            <ng-container *ngIf="filteredContracts.length > 0; else noContractResults">
+              <div *ngFor="let contract of filteredContracts"
+                   class="option-item"
+                   (click)="selectItem('contract', contract); $event.stopPropagation()">
+                {{ contract }}
+              </div>
+            </ng-container>
+            <ng-template #noContractResults>
+              <div class="no-results">Aucun contrat trouvé</div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="form-group action-buttons">
+      <button type="submit" class="btn btn-primary" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">Appliquer les filtres</ng-container>
+        <ng-template #loadingTpl>
+          <span class="spinner"></span> Appliquer les filtres
+        </ng-template>
+      </button>
+      <button type="button" class="btn btn-secondary" (click)="onReset()">Réinitialiser</button>
+    </div>
+  </form>
+</div>

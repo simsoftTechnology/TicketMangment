@@ -11,5 +11,6 @@ namespace GestionTicketsAPI.Services.Interfaces
         Task<Role> CreateRoleAsync(Role role);
         Task UpdateRoleAsync(Role role);
         Task DeleteRoleAsync(int id);
+        Task<bool> RoleExists(string nom);
     }
 }

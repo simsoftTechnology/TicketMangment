@@ -11,5 +11,6 @@ namespace GestionTicketsAPI.Repositories.Interfaces
         Task<Role> CreateAsync(Role role);
         Task UpdateAsync(Role role);
         Task DeleteAsync(int id);
+        Task<bool> RoleExists(string nom);
     }
 }

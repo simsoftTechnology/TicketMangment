@@ -20,7 +20,7 @@ namespace GestionTicketsAPI.Interfaces
         
         // Nouvelle méthode pour supprimer un ensemble de catégories
         void DeleteCategoriesRange(IEnumerable<CategorieProbleme> categories);
-        
+        Task<bool> CategorieExists(string nom);
         Task<bool> SaveAllAsync();
     }
 }

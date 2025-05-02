@@ -1,0 +1,113 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <h2>Terminer</h2>
+    <form #completionForm="ngForm" (ngSubmit)="onSubmit(completionForm)">
+      <!-- Choix Résolu / Non Résolu -->
+      <div class="form-group">
+        <div>
+          <label class="radio-container">
+            Résolu
+            <input
+              type="radio"
+              name="isResolved"
+              [value]="true"
+              [(ngModel)]="finishData.isResolved"
+              (ngModelChange)="onIsResolvedChange()"
+              required
+            />
+            <span class="radio-checkmark"></span>
+          </label>
+          <label class="radio-container">
+            Non Résolu
+            <input
+              type="radio"
+              name="isResolved"
+              [value]="false"
+              [(ngModel)]="finishData.isResolved"
+              (ngModelChange)="onIsResolvedChange()"
+              required
+            />
+            <span class="radio-checkmark"></span>
+          </label>          
+        </div>
+      </div>
+      
+
+      <!-- Champ Commentaire affiché uniquement si Non Résolu -->
+      <div class="form-group" *ngIf="finishData.isResolved === false">
+        <label>Commentaire</label>
+        <textarea
+          name="comment"
+          [(ngModel)]="finishData.comment"
+          #commentModel="ngModel"
+          required
+          class="form-control"
+          [class.is-invalid]="(commentModel.touched || formSubmitted) && commentModel.invalid"
+        ></textarea>
+        <div *ngIf="(commentModel.touched || formSubmitted) && commentModel.invalid" class="invalid-feedback">
+          Le commentaire est obligatoire.
+        </div>
+      </div>
+
+      <!-- Affichage de la date du début (lecture seule) -->
+      <div class="form-group">
+        <label>Date du début</label>
+        <div class="date-input-container">
+          <input
+            type="date"
+            [value]="ticket?.approvedAt ? (ticket.approvedAt | date:'yyyy-MM-dd') : ''"
+            disabled
+            class="form-control"
+          />
+          <span class="calendar-icon">
+            <!-- Votre SVG ici -->
+          </span>
+        </div>
+      </div>
+
+      <!-- Affichage de la date de fin (lecture seule) -->
+      <div class="form-group">
+        <label>Date de fin</label>
+        <div class="date-input-container">
+          <input
+            type="date"
+            [value]="finishData.completionDate | date:'yyyy-MM-dd'"
+            readonly
+            class="form-control"
+          />
+          <span class="calendar-icon">
+            <!-- Votre SVG ici -->
+          </span>
+        </div>
+      </div>
+
+      <!-- Nombre d'heures passées -->
+      <div class="form-group">
+        <label>Nombre d'heures passées</label>
+        <input
+          type="number"
+          name="hoursSpent"
+          [(ngModel)]="finishData.hoursSpent"
+          #hoursSpentModel="ngModel"
+          required
+          min="1"
+          class="form-control"
+          [class.is-invalid]="(hoursSpentModel.touched || formSubmitted) && hoursSpentModel.invalid"
+        />
+        <div *ngIf="(hoursSpentModel.touched || formSubmitted) && hoursSpentModel.invalid" class="invalid-feedback">
+          Le nombre d'heures passées est obligatoire.
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="submit" [disabled]="isLoading">
+          <ng-container *ngIf="!isLoading; else loadingTpl">Valider</ng-container>
+          <ng-template #loadingTpl>
+            <span class="spinner"></span> Valider
+          </ng-template>
+        </button>
+        <button type="button" (click)="onClose()" [disabled]="isLoading">Annuler</button>
+      </div>      
+    </form>
+  </div>
+</div>

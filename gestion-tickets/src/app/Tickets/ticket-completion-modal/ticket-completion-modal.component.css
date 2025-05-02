@@ -1,0 +1,275 @@
+/* Overlay du modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Container du modal */
+.modal-container {
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 550px;
+  max-width: 90%;
+  padding: 24px 30px 30px;
+  position: relative;
+}
+
+/* Bouton fermer (x) */
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #777;
+  background: none;
+  border: none;
+}
+
+/* Titre du modal */
+.modal-container h2 {
+  font-size: 22px;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 28px;
+  font-weight: 500;
+}
+
+/* Groupes de formulaire */
+.form-group {
+  margin-bottom: 24px;
+}
+
+/* Labels */
+.form-group > label {
+  display: block;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 10px;
+  font-weight: 400;
+}
+
+/* Astérisque pour champs obligatoires */
+.required:after {
+  content: "*";
+  color: #e74c3c;
+  margin-left: 4px;
+}
+
+/* Style des boutons radio personnalisés */
+/* Le conteneur du bouton radio personnalisé */
+.radio-container {
+  display: inline-block;
+  position: relative;
+  padding-left: 25px; /* Espace pour le cercle personnalisé */
+  margin-bottom: 13px;
+  cursor: pointer;
+  font-size: 16px;
+  user-select: none;
+}
+
+/* Masquer le bouton radio natif */
+.radio-container input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Création du cercle qui représentera le bouton radio */
+.radio-checkmark {
+  position: absolute;
+  top: 5px;
+  left: 2px;
+  height: 15px;
+  width: 15px;
+  background-color: #ffffff;
+  border: 2px solid #e96f1e; /* Couleur de bordure personnalisée */
+  border-radius: 50%;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* Au survol du label, modifier légèrement le fond */
+.radio-container:hover input ~ .radio-checkmark {
+  background-color: #ffffff;
+}
+
+/* Lorsque le bouton radio est sélectionné */
+.radio-container input:checked ~ .radio-checkmark {
+  background-color: #ffffff; /* Couleur de fond pour l'état sélectionné */
+  border-color: #d35400;
+  
+}
+
+/* Pseudo-élément pour le point central du bouton sélectionné */
+.radio-checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Afficher le point central lorsque l'input est coché */
+.radio-container input:checked ~ .radio-checkmark:after {
+  display: block;
+}
+
+/* Style du point central */
+.radio-container .radio-checkmark:after {
+  top: 2px;
+  left: 0.105rem;
+  right: 2px;
+  width: 8px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e96f1e;
+}
+
+/* Disposition des boutons radio */
+.form-group div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Inputs de date et nombre */
+.form-group input[type="date"],
+.form-group input[type="number"],
+.form-group input[type="text"] {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+
+.form-group input[type="number"]:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
+  border: 2px solid #fa9745;
+}
+
+/* Icône de calendrier sur les champs date */
+.date-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.date-input-container input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.calendar-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+  pointer-events: none;
+}
+
+/* Style du champ commentaire */
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  min-height: 100px;
+  resize: vertical;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+/* Message d'erreur pour validation */
+.invalid-feedback {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* État d'erreur pour les champs */
+.form-control.is-invalid {
+  border-color: #e74c3c;
+}
+
+
+
+
+.calendar-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+  pointer-events: none;
+}
+
+/* Actions du modal (boutons) */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+/* Style des boutons */
+.modal-actions button {
+  padding: 12px 25px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+/* Bouton Soumettre */
+.modal-actions button[type="submit"] {
+  background-color: #e67e22;
+  color: white;
+}
+
+.modal-actions button[type="submit"]:hover {
+  background-color: #d35400;
+}
+
+/* Bouton Annuler */
+.modal-actions button[type="button"] {
+  background-color: #f1f1f1;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.modal-actions button[type="button"]:hover {
+  background-color: #e5e5e5;
+}
+
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  margin-right: 5px;
+  margin-top: 5px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

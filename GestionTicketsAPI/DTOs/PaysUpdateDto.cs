@@ -9,4 +9,5 @@ public class PaysUpdateDto
   public string? Nom { get; set; } = string.Empty;
 
   public string? PhotoUrl { get; set; }
+  public string? CodeTel { get; set; }
 }

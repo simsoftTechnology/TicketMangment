@@ -1,0 +1,58 @@
+<div class="modal-backdrop" (click)="close()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>Valider le ticket</h2>
+    <p *ngIf="ticket"><strong>Ticket :</strong> {{ ticket.title }}</p>
+
+    <form [formGroup]="validationForm">
+      <!-- Boutons radio pour choisir accepter ou refuser -->
+      <div class="validation-options">
+        <label class="radio-container">Accepter
+          <input type="radio" formControlName="action" name="action" value="accept">
+          <span class="radio-checkmark"></span>
+        </label>
+        
+        <label class="radio-container">Réfuser
+          <input type="radio" formControlName="action" name="action" value="reject">
+          <span class="radio-checkmark"></span>
+        </label>
+      </div>          
+
+      <!-- Si accepté, choix d'un développeur -->
+      <div *ngIf="validationForm.get('action')?.value === 'accept'">
+        <label for="responsibleId">Assigner à :</label>
+        <select id="responsibleId" formControlName="responsibleId"
+                [ngClass]="{'is-invalid': validationForm.get('responsibleId')?.touched && validationForm.get('responsibleId')?.invalid}">
+          <option value="null">Sélectionnez un responsable</option>
+          <option *ngFor="let dev of developers" [value]="dev.id">
+            {{ dev.firstName }} {{ dev.lastName }} - {{ dev.role }}
+          </option>
+        </select>
+        <div *ngIf="validationForm.get('responsibleId')?.touched && validationForm.get('responsibleId')?.hasError('required')" class="invalid-feedback text-start">
+          Le responsable est obligatoire.
+        </div>
+      </div>
+
+      <!-- Si refusé, saisie de la raison -->
+      <div *ngIf="validationForm.get('action')?.value === 'reject'">
+        <label for="reason">Raison du refus :</label>
+        <textarea id="reason" formControlName="reason"
+                  [ngClass]="{'is-invalid': validationForm.get('reason')?.touched && validationForm.get('reason')?.invalid}">
+        </textarea>
+        <div *ngIf="validationForm.get('reason')?.touched && validationForm.get('reason')?.hasError('required')" class="invalid-feedback text-start">
+          La raison du refus est obligatoire.
+        </div>
+      </div>
+    </form>
+
+    <div class="modal-actions">
+      <button (click)="validateTicket()" [disabled]="isLoading">
+        <ng-container *ngIf="!isLoading; else loadingTpl">Valider</ng-container>
+        <ng-template #loadingTpl>
+          <!-- Vous pouvez définir ici votre animation ou spinner -->
+          <span class="spinner"></span> Valider
+        </ng-template>
+      </button>
+      <button (click)="close()" [disabled]="isLoading">Annuler</button>
+    </div>    
+  </div>
+</div>

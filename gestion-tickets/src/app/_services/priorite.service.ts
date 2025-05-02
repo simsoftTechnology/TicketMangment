@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Priorite } from '../_models/priorite.model';
+import { environment } from '../../environment/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PrioriteService {
-  private baseUrl = 'https://localhost:5001/api/priorites'; // à adapter
+  baseUrl = environment.URLAPI+'priorites/';
 
   constructor(private http: HttpClient) { }
 

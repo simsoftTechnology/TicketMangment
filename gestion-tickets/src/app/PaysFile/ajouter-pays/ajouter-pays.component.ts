@@ -3,46 +3,75 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { NgIf } from '@angular/common';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { LoaderService } from '../../_services/loader.service';
+import { ToastrService } from 'ngx-toastr';
+import { AccountService } from '../../_services/account.service';
 
 @Component({
-    selector: 'app-ajouter-pays',
-    imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf],
-    templateUrl: './ajouter-pays.component.html',
-    styleUrl: './ajouter-pays.component.css'
+  selector: 'app-ajouter-pays',
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, NgIf, MatSidenavModule],
+  templateUrl: './ajouter-pays.component.html',
+  styleUrls: ['./ajouter-pays.component.css']
 })
 export class AjouterPaysComponent {
   paysForm: FormGroup;
-  selectedFile: File | null = null; // Garde ce nom pour correspondre au HTML
+  selectedFile: File | null = null;
+  
+  isLoading: boolean = false;
 
   constructor(private fb: FormBuilder, private paysService: PaysService, private router: Router, 
-    public route: ActivatedRoute) {
+              public route: ActivatedRoute,
+              private loaderService: LoaderService,
+              private toastr: ToastrService,
+              private accountService:AccountService
+            ) 
+  {
+    this.loaderService.isLoading$.subscribe((loading) => {
+      this.isLoading = loading;
+    });
     this.paysForm = this.fb.group({
-      nom: ['', Validators.required],  
-      selectedFile: [null, Validators.required] // On garde "selectedFile" comme dans le HTML
+      nom: ['', Validators.required],
+      codeTel: ['', Validators.required],
+      selectedFile: [null, Validators.required]
     });
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     this.selectedFile = file || null;
-    this.paysForm.get('selectedFile')?.setValue(this.selectedFile); // Met à jour le champ "selectedFile"
+    this.paysForm.get('selectedFile')?.setValue(this.selectedFile);
   }
 
-  onSubmit(): void {
+  async onSubmit(): Promise<void> {
     if (this.paysForm.invalid) {
-      this.paysForm.markAllAsTouched(); // Affiche les erreurs sur les champs invalides
+      this.paysForm.markAllAsTouched();
       return;
     }
-
-    const nom = this.paysForm.value.nom;
-
-    this.paysService.addPays(nom, this.selectedFile!).subscribe({
-      next: () => {
-        this.router.navigate(['/home/Pays']);
-      },
-      error: (err) => {
-        console.error(err);
-      },
-    });
+  
+    const nom = this.accountService.removeSpecial(this.paysForm.value.nom);
+    const codeTel = this.paysForm.value.codeTel;
+    this.loaderService.showLoader();
+  
+    try {
+      const observable = await this.paysService.addPays(nom, codeTel, this.selectedFile!);
+      observable.subscribe({
+        next: () => {
+          this.toastr.success("Pays créé avec succès");
+          this.loaderService.hideLoader();
+          this.router.navigate(['/home/Pays']);
+        },
+        error: (err) => {
+          this.loaderService.hideLoader();
+          this.toastr.error(err, "Erreur lors de la création du pays");
+          console.error(err);
+        },
+      });
+    } catch (err) {
+      this.loaderService.hideLoader();
+      this.toastr.error("Erreur inattendue", err as string);
+      console.error(err);
+    }
   }
+  
 }

@@ -9,9 +9,6 @@ public class ContractRegistrationDto
     
     public DateTime? DateFin { get; set; }
     
-    [StringLength(100)]
-    public string Type { get; set; } = "Standard";
-    
     [Required]
     [StringLength(50)]
     public string TypeContrat { get; set; } = "Client-Societe";

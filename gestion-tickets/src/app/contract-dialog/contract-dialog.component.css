@@ -5,9 +5,9 @@ body {
   background-color: #f7fafc;
 }
 
+
 .contract-form-container {
-  width: 100%;
-  max-width: 800px;
+  width: 600px;
   margin: 2rem auto;
   padding: 2rem;
   background: white;
@@ -102,6 +102,11 @@ body {
 
 .btn-primary:hover {
   background-color: #e67716;
+}
+
+.form-container input.is-invalid,
+.form-container select.is-invalid {
+  border-color: rgb(232, 2, 2);;
 }
 
 /* Responsive Design */

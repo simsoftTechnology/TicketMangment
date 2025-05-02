@@ -4,9 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class PrioritesController : ControllerBase
+    public class PrioritesController : BaseApiController
     {
         private readonly IPrioriteService _prioriteService;
 

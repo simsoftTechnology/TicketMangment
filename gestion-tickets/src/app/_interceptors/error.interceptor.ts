@@ -1,13 +1,12 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AccountService } from '../_services/account.service';
+import { ToastrService } from 'ngx-toastr';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
-  // Injection du Router et du AccountService
-  const router = inject(Router);
   const accountService = inject(AccountService);
+  const toastr = inject(ToastrService);
 
   return next(req).pipe(
     catchError(error => {
@@ -21,23 +20,29 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                   modalStateErrors.push(error.error.errors[key]);
                 }
               }
-              throw modalStateErrors.flat();
+              const flatErrors = modalStateErrors.flat();
+              // Afficher chaque message d'erreur via toastr
+              flatErrors.forEach((err: string) => {
+                toastr.error(err, 'Erreur');
+              });
+              return throwError(() => flatErrors);
             } else {
               return throwError(() => error.error);
             }
           case 401:
-            // Nettoyer le local storage en appelant la méthode logout()
+           // toastr.error(error.error, 'Erreur 401');
+            // Optionnel : on peut déclencher le logout ici
             accountService.logout();
-            // Rediriger l'utilisateur vers la page de login
-            router.navigateByUrl('/login');
             return throwError(() => error);
           case 404:
-            console.error('Erreur 404 sur l’URL :', req.url);
-            router.navigateByUrl('/not-found');
-            break;
+            // toastr.error(`L'URL ${req.url} n'a pas été trouvée.`, 'Erreur 404');
+            // return throwError(() => error);
+          case 409:
+            toastr.error(error.error, 'Erreur 409');
+            return throwError(() => error);
           case 500:
-            router.navigateByUrl('/server-error', { state: { error: error.error } });
-            break;
+            toastr.error(error.error?.message || 'Erreur serveur', 'Erreur 500');
+            return throwError(() => error);
           default:
             return throwError(() => ({ message: 'Un problème inattendu est survenu.' }));
         }

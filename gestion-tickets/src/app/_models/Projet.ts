@@ -7,6 +7,8 @@ export interface Projet {
   // L’un ou l’autre doit être renseigné
   societeId?: number | null;
   clientId?: number | null;
+  chefProjetId?: number;
+  chefProjet?: User;
   idPays: number;
   nomSociete?: string;  
   nomPays?: string;    

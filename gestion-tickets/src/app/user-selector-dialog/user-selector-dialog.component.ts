@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { LoaderService } from '../_services/loader.service';
 
 @Component({
     selector: 'app-user-selector-dialog',
@@ -38,12 +39,19 @@ export class UserSelectorDialogComponent implements OnInit {
   // Référence à l'élément déclencheur
   @ViewChild('trigger') triggerElement!: any;
 
+  isLoading: boolean = false;
+
   constructor(
     public dialogRef: MatDialogRef<UserSelectorDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { availableUsers: User[] },
     private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef
-  ) {}
+    private viewContainerRef: ViewContainerRef,
+    private loaderService: LoaderService
+  ) {
+    this.loaderService.isLoading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit(): void {
     if (this.data?.availableUsers) {
@@ -120,7 +128,16 @@ export class UserSelectorDialogComponent implements OnInit {
   }
 
   confirmSelection(): void {
+  // Affiche le loader
+  this.loaderService.showLoader();
+  
+  // Simulation d'une opération asynchrone (remplacez ceci par votre appel réel)
+  setTimeout(() => {
+    // Cache le loader une fois l'opération terminée
+    this.loaderService.hideLoader();
     // Ferme le dialog en renvoyant l'utilisateur sélectionné
     this.dialogRef.close(this.selectedUser);
-  }
+  }, 2000);
+}
+
 }

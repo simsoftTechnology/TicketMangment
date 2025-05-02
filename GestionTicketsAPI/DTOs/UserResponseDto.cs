@@ -10,7 +10,8 @@ namespace GestionTicketsAPI.DTOs
         public required string NumTelephone { get; set; }
         public required string Pays { get; set; }
         public required bool Actif { get; set; }
-        public int? SocieteId { get; set; }
+        public ICollection<SocieteDto> Societes { get; set; } = new List<SocieteDto>();
+        
         public ContratDto? Contrat { get; set; }
     }
 }

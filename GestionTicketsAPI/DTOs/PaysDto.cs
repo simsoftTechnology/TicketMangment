@@ -11,4 +11,5 @@ public class PaysDto
   public string ?Nom { get; set; }
 
   public string? PhotoUrl { get; set; }
+  public string? CodeTel { get; set; }
 }

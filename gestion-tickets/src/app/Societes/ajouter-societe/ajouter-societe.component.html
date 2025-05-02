@@ -1,6 +1,5 @@
-<div class="form-container">
+<div class="update-form">
   <h2>Ajouter une Société</h2>
-
   <form [formGroup]="societeForm" (ngSubmit)="onSubmit()">
     <div class="form-row">
       <div class="form-group">
@@ -84,8 +83,17 @@
     </div>
 
     <div class="button-group">
-      <button type="submit" class="btn-create" [disabled]="societeForm.invalid">Créer</button>
-      <button type="button" class="btn-cancel" (click)="onCancel()">Annuler</button>
+      <div class="button-group">
+        <button type="submit" class="btn btn-primary" [disabled]="societeForm.invalid || isLoading">
+          <ng-container *ngIf="!isLoading; else loadingSocieteTpl">
+            Créer
+          </ng-container>
+          <ng-template #loadingSocieteTpl>
+            <span class="spinner"></span> Créer
+          </ng-template>
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="onCancel()">Annuler</button>
+      </div>      
     </div>
   </form>
 </div>

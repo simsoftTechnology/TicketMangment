@@ -19,12 +19,14 @@ namespace GestionTicketsAPI.Extensions
             services.AddControllers();
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
-            services.AddDbContext<DataContext>(opt =>
-            {
-                opt.UseMySql(config.GetConnectionString("DefaultConnection"),
-                    new MySqlServerVersion(new Version(8, 2, 0)));
-            });
+            services.AddDbContext<DataContext>(options =>
+                options.UseMySql(config.GetConnectionString("DefaultConnection"), 
+                    new MySqlServerVersion(new Version(8, 0, 21)))
+            );
+
             services.AddCors();
+            services.AddTransient<EmailService>();
+            services.AddScoped<ExcelExportServiceClosedXML>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<IUserRepository, UserRepository>();
@@ -56,8 +58,10 @@ namespace GestionTicketsAPI.Extensions
             services.AddScoped<IRoleService, RoleService>();
             services.AddScoped<IStatutDesTicketRepository, StatutDesTicketRepository>();
             services.AddScoped<IStatutDesTicketService, StatutDesTicketService>();
-            services.AddScoped<IValidationRepository, ValidationRepository>();
-            services.AddScoped<IValidationService, ValidationService>();
+
+            services.AddScoped<ICommentService, CommentService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+
 
 
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

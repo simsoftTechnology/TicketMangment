@@ -18,33 +18,145 @@ public class ProjetRepository : IProjetRepository
   public async Task<IEnumerable<Projet>> GetProjetsAsync()
   {
     return await _context.Projets
+        .Include(p => p.ChefProjet)
         .Include(p => p.Societe)
-        .Include(p => p.Pays)
+            .ThenInclude(s => s.Pays)
+        .Include(p => p.ProjetUsers)
         .ToListAsync();
   }
 
-  public async Task<PagedList<Projet>> GetProjetsPagedAsync(UserParams projetParams)
+  public async Task<PagedList<Projet>> GetProjetsPagedAsync(ProjectFilterParams filterParams)
   {
     var query = _context.Projets
+        .Include(p => p.ChefProjet)
         .Include(p => p.Societe)
-        .Include(p => p.Pays)
+            .ThenInclude(s => s.Pays)
+        .Include(p => p.ProjetUsers)
+        .OrderByDescending(p => p.CreatedAt)
         .AsQueryable();
 
-    if (!string.IsNullOrEmpty(projetParams.SearchTerm))
+    // Log avant filtrage
+    var countAvantFiltre = await query.CountAsync();
+    Console.WriteLine($"[Filtrage] Nombre de projets avant filtrage : {countAvantFiltre}");
+
+    // Vérifier que Role et UserId sont valides
+    // Normalisation du rôle en supprimant les espaces
+    var normalizedRole = (filterParams.Role ?? string.Empty).ToLower().Replace(" ", "");
+    if (normalizedRole != "superadmin")
     {
-      var lowerSearchTerm = projetParams.SearchTerm.ToLower();
+      if (normalizedRole == "chefdeprojet")
+      {
+        query = query.Where(p => p.ChefProjetId == filterParams.UserId ||
+                                 p.ProjetUsers.Any(pu => pu.UserId == filterParams.UserId));
+      }
+      else if (normalizedRole == "client" || normalizedRole == "collaborateur")
+      {
+        query = query.Where(p => p.ProjetUsers.Any(pu => pu.UserId == filterParams.UserId));
+      }
+    }
+
+
+    // Log après filtrage
+    var countApresFiltre = await query.CountAsync();
+    Console.WriteLine($"[Filtrage] Nombre de projets après filtrage : {countApresFiltre}");
+
+    // Autres filtres (SearchTerm, ChefProjet, Societe, Pays) si nécessaires
+    if (!string.IsNullOrEmpty(filterParams.SearchTerm))
+    {
+      var lowerSearchTerm = filterParams.SearchTerm.ToLower();
+      query = query.Where(p => p.Nom.ToLower().Contains(lowerSearchTerm) ||
+                               (p.Description != null && p.Description.ToLower().Contains(lowerSearchTerm)));
+    }
+    if (!string.IsNullOrEmpty(filterParams.ChefProjet))
+    {
+      var lowerChef = filterParams.ChefProjet.ToLower();
+      query = query.Where(p => (p.ChefProjet.FirstName + " " + p.ChefProjet.LastName).ToLower().Contains(lowerChef));
+    }
+    if (!string.IsNullOrEmpty(filterParams.Societe))
+    {
+      var lowerSociete = filterParams.Societe.ToLower();
+      query = query.Where(p => p.Societe.Nom.ToLower().Contains(lowerSociete));
+    }
+    if (!string.IsNullOrEmpty(filterParams.Pays))
+    {
+      var lowerPays = filterParams.Pays.ToLower();
+      query = query.Where(p => p.Societe.Pays.Nom.ToLower().Contains(lowerPays));
+    }
+
+    return await PagedList<Projet>.CreateAsync(query, filterParams.PageNumber, filterParams.PageSize);
+  }
+
+
+
+  public async Task<IEnumerable<Projet>> GetProjetsFilteredAsync(ProjectFilterParams filterParams)
+  {
+    var query = _context.Projets
+        .Include(p => p.ChefProjet)
+        .Include(p => p.Societe)
+            .ThenInclude(s => s.Pays)
+        .Include(p => p.ProjetUsers)
+        .OrderByDescending(p => p.CreatedAt)
+        .AsQueryable();
+
+    // Filtrage selon le rôle de l'utilisateur
+    // Normalisation du rôle en supprimant les espaces
+    var normalizedRole = filterParams.Role.ToLower().Replace(" ", "");
+    if (normalizedRole != "superadmin")
+    {
+      if (normalizedRole == "chefdeprojet")
+      {
+        query = query.Where(p => p.ChefProjetId == filterParams.UserId ||
+                                 p.ProjetUsers.Any(pu => pu.UserId == filterParams.UserId));
+      }
+      else if (normalizedRole == "client" || normalizedRole == "collaborateur")
+      {
+        query = query.Where(p => p.ProjetUsers.Any(pu => pu.UserId == filterParams.UserId));
+      }
+    }
+
+
+    // Filtrage par SearchTerm sur le nom du projet uniquement
+    if (!string.IsNullOrEmpty(filterParams.SearchTerm))
+    {
+      var lowerSearchTerm = filterParams.SearchTerm.ToLower();
       query = query.Where(p => p.Nom.ToLower().Contains(lowerSearchTerm));
     }
 
-    return await PagedList<Projet>.CreateAsync(query, projetParams.PageNumber, projetParams.PageSize);
+    // Filtre sur le chef de projet par nom complet
+    if (!string.IsNullOrEmpty(filterParams.ChefProjet))
+    {
+      var lowerChef = filterParams.ChefProjet.ToLower();
+      query = query.Where(p => (p.ChefProjet.FirstName + " " + p.ChefProjet.LastName).ToLower().Contains(lowerChef));
+    }
+
+    // Filtre sur la société par son nom
+    if (!string.IsNullOrEmpty(filterParams.Societe))
+    {
+      var lowerSociete = filterParams.Societe.ToLower();
+      query = query.Where(p => p.Societe.Nom.ToLower().Contains(lowerSociete));
+    }
+
+    // Filtre sur le pays par son nom (via la société)
+    if (!string.IsNullOrEmpty(filterParams.Pays))
+    {
+      var lowerPays = filterParams.Pays.ToLower();
+      query = query.Where(p => p.Societe.Pays.Nom.ToLower().Contains(lowerPays));
+    }
+
+    return await query.ToListAsync();
   }
+
+
+
 
   public async Task<Projet?> GetProjetByIdAsync(int id)
   {
     return await _context.Projets
+        .Include(p => p.ChefProjet)
         .Include(p => p.Societe)
-        .Include(p => p.Pays)
+            .ThenInclude(s => s.Pays)
         .Include(p => p.ProjetUsers)
+        .AsNoTracking()
         .FirstOrDefaultAsync(p => p.Id == id);
   }
 
@@ -92,13 +204,40 @@ public class ProjetRepository : IProjetRepository
   public async Task<IEnumerable<dynamic>> GetMembresProjetAsync(int projetId)
   {
     return await _context.ProjetUser
-        .Where(pu => pu.ProjetId == projetId)
-        .Select(pu => new
-        {
-          pu.UserId,
-          pu.User.FirstName,
-          pu.User.LastName
-        })
-        .ToListAsync();
+    .Where(pu => pu.ProjetId == projetId)
+    .Select(pu => new
+    {
+      pu.UserId,
+      pu.User.FirstName,
+      pu.User.LastName,
+      Role = pu.User.Role.Name  // Assurez-vous que "Role" existe dans User
+    })
+    .ToListAsync();
+
   }
+
+  public async Task<bool> ProjetExists(string nom)
+  {
+    return await _context.Projets.AnyAsync(p => p.Nom == nom);
+  }
+
+  public async Task<IEnumerable<Projet>> GetProjetsForUserAsync(int userId)
+  {
+    return await _context.Projets
+      .Where(p => p.ProjetUsers.Any(pu => pu.UserId == userId))
+      .ToListAsync();
+  }
+
+  public async Task<bool> ProjetHasTicketsAsync(int projetId)
+  {
+    return await _context.Tickets.AnyAsync(t => t.ProjetId == projetId);
+  }
+
+  public async Task<IEnumerable<Projet>> GetProjetsBySocieteIdAsync(int societeId)
+  {
+    return await _context.Projets
+                         .Where(p => p.SocieteId == societeId)
+                         .ToListAsync();
+  }
+
 }

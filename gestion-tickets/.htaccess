@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Vérifiez si la requête correspond à un fichier existant ou à un répertoire
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Sinon, redirigez vers index.html pour que Angular gère la route côté client
+  RewriteRule ^ index.html [L]
+</IfModule>
