@@ -75,90 +75,122 @@ namespace GestionTicketsAPI.Controllers
       return Ok(ticketDto);
     }
 
-    // POST api/tickets
     [HttpPost]
-    public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto ticketCreateDto)
-    {
-      if (await _ticketService.TicketExists(ticketCreateDto.Title))
-        return BadRequest("Un ticket avec ce titre existe déjà");
-
-      // 1) Création du ticket
-      var ticket = _mapper.Map<Ticket>(ticketCreateDto);
-      ticket.CreatedAt = DateTime.UtcNow;
-      var defaultStatus = await _ticketService.GetStatusByNameAsync("—");
-      if (defaultStatus == null)
-        return BadRequest("Statut par défaut introuvable");
-      ticket.StatutId = defaultStatus.Id;
-
-      await _ticketService.AddTicketAsync(ticket);
-      await _ticketService.SaveAllAsync();
-
-      // 2) Récupération enrichie
-      var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
-      if (ticketFromDb == null)
-        return NotFound();
-
-      // 3) Notifications
-
-      // 3.a) Chef de projet
-      if (ticketFromDb.Projet?.ChefProjet is { } chef)
-      {
-        // Email
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{chef.FirstName} {chef.LastName}",
-            chef.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {chef.FirstName} {chef.LastName}, un nouveau ticket #{ticket.Id} a été créé."
-        ));
-
-        // DTO commun
-        var notifDto = new NotificationDto
+        public async Task<ActionResult<TicketDto>> CreateTicket([FromBody] TicketCreateDto dto)
         {
-          Message = $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName} {ticket.Owner.LastName}.",
-          DateEnvoi = DateTime.UtcNow,
-          EntityType = "Tickets",
-          EntityId = ticket.Id
-        };
-        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(chef.Id, notifDto));
-        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(chef.Id, notifDto));
-      }
+            // 0) Validation d’existence
+            if (await _ticketService.TicketExists(dto.Title))
+                return BadRequest("Un ticket avec ce titre existe déjà");
 
-      // 3.b) Client (uniquement email)
-      if (ticketFromDb.Owner is { } client)
-      {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{client.FirstName} {client.LastName}",
-            client.Email,
-            "Confirmation de création de ticket",
-            $"Bonjour {client.FirstName} {client.LastName}, votre ticket #{ticket.Id} a bien été créé."
-        ));
-      }
+            // 1) Mapping initial
+            var ticket = _mapper.Map<Ticket>(dto);
+            ticket.CreatedAt = DateTime.UtcNow;
 
-      // 3.c) Super-admins
-      var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
-      foreach (var admin in superAdmins)
-      {
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{admin.FirstName} {admin.LastName}",
-            admin.Email,
-            "Nouveau ticket créé",
-            $"Bonjour {admin.FirstName} {admin.LastName}, un nouveau ticket #{ticket.Id} a été créé."
-        ));
+            // 2) Traitement de l’attachement Base64 (s’il existe)
+            if (!string.IsNullOrEmpty(dto.AttachmentBase64) &&
+                !string.IsNullOrEmpty(dto.AttachmentFileName))
+            {
+                byte[] fileBytes;
+                try
+                {
+                    fileBytes = Convert.FromBase64String(dto.AttachmentBase64);
+                }
+                catch (FormatException)
+                {
+                    return BadRequest("Le format Base64 de l’attachement est invalide.");
+                }
 
-        var notifDto = new NotificationDto
-        {
-          Message = $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName} {ticket.Owner.LastName}.",
-          DateEnvoi = DateTime.UtcNow,
-          EntityType = "Tickets",
-          EntityId = ticket.Id
-        };
-        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(admin.Id, notifDto));
-        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(admin.Id, notifDto));
-      }
+                // Prépare le dossier wwwroot/attachments
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "attachments");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
 
-      var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
-      return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
-    }
+                // Génère un nom de fichier unique
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(dto.AttachmentFileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
+
+                // Construit l'URL d'accès (ex: https://monapi.com/attachments/xxx.pdf)
+                var request = HttpContext.Request;
+                var baseUrl = $"{request.Scheme}://{request.Host}";
+                ticket.Attachments = $"{baseUrl}/attachments/{uniqueFileName}";
+            }
+
+            // 3) Statut par défaut
+            var defaultStatus = await _ticketService.GetStatusByNameAsync("—");
+            if (defaultStatus == null)
+                return BadRequest("Statut par défaut introuvable");
+            ticket.StatutId = defaultStatus.Id;
+
+            // 4) Persistance
+            await _ticketService.AddTicketAsync(ticket);
+            await _ticketService.SaveAllAsync();
+
+            // 5) Rechargement complet
+            var ticketFromDb = await _ticketService.GetTicketByIdAsync(ticket.Id);
+            if (ticketFromDb == null)
+                return NotFound();
+
+            // 6) Notifications et emails
+            // 6.a) Chef de projet
+            if (ticketFromDb.Projet?.ChefProjet is { } chef)
+            {
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                    $"{chef.FirstName} {chef.LastName}",
+                    chef.Email,
+                    "Nouveau ticket créé",
+                    $"Bonjour {chef.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
+                ));
+
+                var notifDto = new NotificationDto
+                {
+                    Message = $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName} {ticket.Owner.LastName}.",
+                    DateEnvoi = DateTime.UtcNow,
+                    EntityType = "Tickets",
+                    EntityId = ticket.Id
+                };
+                BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(chef.Id, notifDto));
+                BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(chef.Id, notifDto));
+            }
+
+            // 6.b) Client (email uniquement)
+            if (ticketFromDb.Owner is { } client)
+            {
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                    $"{client.FirstName} {client.LastName}",
+                    client.Email,
+                    "Confirmation de création de ticket",
+                    $"Bonjour {client.FirstName}, votre ticket #{ticket.Id} a bien été créé."
+                ));
+            }
+
+            // 6.c) Super-admins
+            var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+            foreach (var admin in superAdmins)
+            {
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                    $"{admin.FirstName} {admin.LastName}",
+                    admin.Email,
+                    "Nouveau ticket créé",
+                    $"Bonjour {admin.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
+                ));
+
+                var notifDto = new NotificationDto
+                {
+                    Message = $"Nouveau ticket #{ticket.Id} créé par {ticket.Owner.FirstName} {ticket.Owner.LastName}.",
+                    DateEnvoi = DateTime.UtcNow,
+                    EntityType = "Tickets",
+                    EntityId = ticket.Id
+                };
+                BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(admin.Id, notifDto));
+                BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(admin.Id, notifDto));
+            }
+
+            // 7) Retour
+            var resultDto = _mapper.Map<TicketDto>(ticketFromDb);
+            return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, resultDto);
+        }
 
     [HttpPost("validate/{id}")]
     public async Task<IActionResult> ValidateTicket(int id, [FromBody] TicketValidationDto validationDto)

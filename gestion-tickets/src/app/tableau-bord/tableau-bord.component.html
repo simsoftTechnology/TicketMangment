@@ -55,12 +55,21 @@
         <div class="stat-title">Pays</div>
         <div class="stat-value">{{ paysCount || 3 }}</div>
         <div class="stat-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20,6H12L10,4H4A2,2 0 0,0 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8A2,2 0 0,0 20,6M20,18H4V8H20V18Z"/>
+          <!-- Globe icon -->
+          <svg xmlns="http://www.w3.org/2000/svg"
+               viewBox="0 0 24 24"
+               fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                  d="M12 2a10 10 0 100 20 10 10 0 000-20zm6.93 11h-3.02c-.15 1.17-.46 2.29-.91 3.32
+                     1.86-.85 3.27-2.52 3.93-4.32zm-6.93 6a8.01 8.01 0 01-4.47-1.36c.53-1.02.92-2.12
+                     1.15-3.29h3.32v4.65zm0-6H7.75a14.16 14.16 0 01-.2-2c0-.67.05-1.33.15-1.98H12v3.98zm0-5H8.05
+                     c-.23-1.17-.62-2.27-1.15-3.29A8.01 8.01 0 0112 4v4zm1-4c1.54.17 2.97.75 4.17 1.66-.45
+                     1.03-.76 2.15-.91 3.32h-3.26V2zm4.17 5.34c-.48-1.01-1.12-1.94-1.9-2.75a8.03 8.03 0 013.4
+                     3.22h-1.5zm1.9 3.32a8.03 8.03 0 01-3.4 3.22c.78-.81 1.42-1.74 1.9-2.75h1.5z"/>
           </svg>
         </div>
       </a>
-    </div>
+    </div>    
 
     <!-- Sociétés : uniquement pour SuperAdmin -->
     <div class="stat-box" *ngIf="isSuperAdmin()">
