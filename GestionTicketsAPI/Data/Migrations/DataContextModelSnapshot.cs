@@ -112,6 +112,18 @@ namespace GestionTicketsAPI.Migrations
                     b.Property<DateTime>("DateEnvoi")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -123,7 +135,7 @@ namespace GestionTicketsAPI.Migrations
 
                     b.HasIndex("UtilisateurId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Pays", b =>
@@ -254,6 +266,33 @@ namespace GestionTicketsAPI.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("ProjetUser");
+                });
+
+            modelBuilder.Entity("GestionTicketsAPI.Entities.PushSubscriptionEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("P256DH")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PushSubscriptions");
                 });
 
             modelBuilder.Entity("GestionTicketsAPI.Entities.Qualification", b =>

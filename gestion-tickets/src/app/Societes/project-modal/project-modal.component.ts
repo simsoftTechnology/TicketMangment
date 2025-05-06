@@ -11,11 +11,11 @@ import { SocieteService } from '../../_services/societe.service';
 import { AccountService } from '../../_services/account.service';
 import { PaysService } from '../../_services/pays.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DropdownService } from '../../_services/dropdown.service';
 import { ToastrService } from 'ngx-toastr';
 import { forkJoin } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { LoaderService } from '../../_services/loader.service';
+import { DropdownService } from 'src/app/_services/dropdown.service';
 
 @Component({
   selector: 'app-project-modal',
@@ -71,6 +71,7 @@ export class ProjectModalComponent {
     private userService: AccountService,
     private router: Router,
     private accountService: AccountService,
+    private dropdownService: DropdownService,
     public route: ActivatedRoute,
     private overlayModalService: OverlayModalService,
     private toastr: ToastrService,

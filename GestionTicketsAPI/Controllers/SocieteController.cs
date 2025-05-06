@@ -9,24 +9,31 @@ using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using GestionTicketsAPI.Services;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestionTicketsAPI.Controllers
 {
   [ApiController]
+  [Authorize]
   public class SocieteController : BaseApiController
-
   {
     private readonly ISocieteService _societeService;
     private readonly ExcelExportServiceClosedXML _excelExportService;
     private readonly IMapper _mapper;
+    private readonly IUserService _userService;
+    private readonly NotificationService _notifService;
 
-    public SocieteController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ISocieteService societeService)
+    public SocieteController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, ISocieteService societeService,
+    NotificationService notifService,
+    IUserService userService)
     {
       _societeService = societeService;
       _mapper = mapper;
       _excelExportService = excelExportService;
+      _notifService = notifService;
+      _userService = userService;
     }
 
     // GET: api/Societe?searchTerm=...
@@ -71,29 +78,18 @@ namespace GestionTicketsAPI.Controllers
       return Ok(societeDetails);
     }
 
-
-
     [HttpPost]
-    public async Task<IActionResult> AddSociete([FromBody] SocieteDto societe)
+    public async Task<IActionResult> AddSociete(SocieteDto societeDto)
     {
-            try
-            { 
-                //SocieteDto societe = JsonSerializer.Deserialize<SocieteDto>(societeDto.test);
+      // Vérifier si la société existe déjà (par exemple, sur la base du nom)
+      if (await _societeService.SocieteExists(societeDto.Nom))
+        return BadRequest("La société existe déjà");
 
-                if (await _societeService.SocieteExists(societe.Nom))
-                    return BadRequest("La société existe déjà");
-
-                var newSociete = await _societeService.AddSocieteAsync(societe);
-                return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
-            }
-            catch (Exception ex) {
-                Console.WriteLine("Erreur : " + ex.Message);
-                return StatusCode(500, $"Une erreur est survenue : {ex.Message}");
-
-            }
+      var newSociete = await _societeService.AddSocieteAsync(societeDto);
+      return CreatedAtAction(nameof(GetSociete), new { id = newSociete.Id }, newSociete);
     }
 
-    [HttpPost("modif/{id}")]
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateSociete(int id, SocieteDto societeDto)
     {
       var updated = await _societeService.UpdateSocieteAsync(id, societeDto);
@@ -140,35 +136,68 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost("{societeId}/users/{userId}")]
     public async Task<IActionResult> AttachUser(int societeId, int userId)
     {
-      
       try
       {
-        bool attached = await _societeService.AttachUserToSocieteAsync(societeId, userId);
-        if (attached)
-        {
-          return Ok("Utilisateur attaché à la société avec succès.");
-        }
-        else
-        {
+        if (!await _societeService.AttachUserToSocieteAsync(societeId, userId))
           return Conflict("Cet utilisateur est déjà attaché à la société.");
 
+        // 1) Récupérer les détails de la société
+        var societe = await _societeService.GetSocieteByIdAsync(societeId);
+        if (societe == null)
+          return NotFound($"Société {societeId} introuvable.");
+
+        // 2) Récupérer l'utilisateur
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user != null)
+        {
+          // 3) Construire la notification avec le nom, pas l'ID
+          var notif = new NotificationDto
+          {
+            Message = $"Vous avez été ajouté à la société « {societe.Nom} ». ",
+            DateEnvoi = DateTime.UtcNow,
+            EntityType = "Societes",
+            EntityId = societeId
+          };
+          BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(user.Id, notif));
+          BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(user.Id, notif));
         }
+
+        return Ok("Utilisateur attaché à la société avec succès.");
       }
       catch (Exception ex)
       {
-        // Loggez l'exception en détail pour analyser le problème
         return StatusCode(500, new { message = ex.Message });
       }
     }
-    
 
-
-    [HttpGet("{societeId}/delete/users/{userId}")]
+    [HttpGet("{societeId}/users/{userId}")]
     public async Task<IActionResult> DetachUser(int societeId, int userId)
     {
-      if (await _societeService.DetachUserFromSocieteAsync(societeId, userId))
-        return Ok("Utilisateur détaché de la société avec succès.");
-      return BadRequest("Aucune association trouvée ou une erreur est survenue.");
+      if (!await _societeService.DetachUserFromSocieteAsync(societeId, userId))
+        return BadRequest("Aucune association trouvée ou une erreur est survenue.");
+
+      // 1) Récupérer les détails de la société
+      var societe = await _societeService.GetSocieteByIdAsync(societeId);
+      if (societe == null)
+        return NotFound($"Société {societeId} introuvable.");
+
+      // 2) Récupérer l'utilisateur
+      var user = await _userService.GetUserByIdAsync(userId);
+      if (user != null)
+      {
+        // 3) Construire la notification avec le nom
+        var notif = new NotificationDto
+        {
+          Message = $"Vous avez été retiré de la société « {societe.Nom} ». ",
+          DateEnvoi = DateTime.UtcNow,
+          EntityType = "Societes",
+          EntityId = societeId
+        };
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(user.Id, notif));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(user.Id, notif));
+      }
+
+      return Ok("Utilisateur détaché de la société avec succès.");
     }
 
     [HttpPost("export")]

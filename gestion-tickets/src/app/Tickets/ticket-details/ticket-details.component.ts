@@ -123,13 +123,14 @@ export class TicketDetailsComponent implements OnInit {
       }
     });
   }
+  
 
 
 
   onAddComment(): void {
     if (!this.newComment || this.newComment.trim() === '') return;
     this.loaderService.showLoader();
-    this.commentService.addComment({ contenu: this.accountService.removeSpecial(this.newComment), ticketId: this.ticketId }).subscribe({
+    this.commentService.addComment({ contenu: this.newComment, ticketId: this.ticketId }).subscribe({
       next: (comment) => {
         this.newComment = '';
         this.comments.push(comment);
@@ -215,8 +216,6 @@ export class TicketDetailsComponent implements OnInit {
   
 
   updateTicketCompletion(finishData: any): void {
-    console.log('detail');
-    
     this.ticketService.finishTicket(this.ticket!.id, finishData).subscribe({
       next: () => {
         this.toastr.success('Ticket clôturé avec succès');
@@ -225,7 +224,6 @@ export class TicketDetailsComponent implements OnInit {
         this.overlayModalService.close(); 
       },
       error: err => {
-        this.loaderService.hideLoader();
         console.error('Erreur lors de la clôture du ticket', err);
         const message = err.error || 'Erreur lors de la clôture du ticket';
         this.toastr.error(message, 'Erreur');

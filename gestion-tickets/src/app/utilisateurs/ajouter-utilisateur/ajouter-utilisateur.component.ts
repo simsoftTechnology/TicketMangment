@@ -26,7 +26,6 @@ import { OverlayModalService } from '../../_services/overlay-modal.service';
 export class AjouterUtilisateurComponent implements OnInit {
   registerForm: FormGroup;
   roles: Role[] = [];
- 
   paysList: Pays[] = [];
   societesList: Societe[] = [];
   selectedCountry: Pays | undefined;
@@ -54,12 +53,12 @@ export class AjouterUtilisateurComponent implements OnInit {
       pays: ['', Validators.required],
       role: ['', Validators.required],
       societe: [{ value: '', disabled: true }],
-       numTelephone: ['', [
+      numTelephone: ['', [
         Validators.required,
         Validators.pattern(/^[0-9\s]+$/),
         Validators.minLength(8),
         Validators.maxLength(10)
-      ]], 
+      ]],
       actif: [false],
       contrat: [false],
       contract: this.fb.group({
@@ -67,7 +66,7 @@ export class AjouterUtilisateurComponent implements OnInit {
         dateFin: ['', Validators.required],
         type: ['Standard', Validators.required]
       })
-    } );
+    });
   }
 
   ngOnInit(): void {
@@ -251,8 +250,4 @@ export class AjouterUtilisateurComponent implements OnInit {
       this.router.navigate(['/home/utilisateurs']);
     }
   }
-
- 
 }
-
- 

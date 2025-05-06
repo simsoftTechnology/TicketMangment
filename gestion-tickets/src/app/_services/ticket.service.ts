@@ -87,6 +87,9 @@ export class TicketService {
   }
 
 
+  deleteMultipleTickets(ticketIds: number[]): Observable<any> {
+    return this.http.request('delete', `${this.baseUrl}/bulk`, { body: ticketIds });
+  }
 
   // For updating with attachment.
   uploadAttachment(formData: FormData): Observable<{ secureUrl: string }> {
@@ -112,6 +115,5 @@ export class TicketService {
   exportTickets(filters: any): Observable<Blob> {
     return this.http.post(`${this.baseUrl}/export`, filters, { responseType: 'blob' });
   }
-
   
 }

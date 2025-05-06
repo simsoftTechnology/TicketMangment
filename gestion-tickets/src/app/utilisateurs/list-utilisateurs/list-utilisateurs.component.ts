@@ -60,6 +60,8 @@ export class ListUtilisateursComponent implements OnInit {
 
  
 
+
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       const newUser = params['newUser'];
@@ -88,7 +90,6 @@ export class ListUtilisateursComponent implements OnInit {
 
   getUsers(): void {
     this.globalLoaderService.showGlobalLoader();
-    // Combinez la recherche globale et les filtres avancés
     const searchTerm = this.usersSearchTerm || '';
     this.accountService.getUsers(this.pageNumber, this.pageSize, searchTerm, this.filterParams)
       .subscribe({

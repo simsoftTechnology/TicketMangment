@@ -88,7 +88,6 @@ export class ListTicketsComponent implements OnInit {
         this.baseRoute = '/home/Tickets';
       }
       this.getTickets();
-      
     });
     
     this.currentUser = this.accountService.currentUser();
@@ -137,10 +136,11 @@ export class ListTicketsComponent implements OnInit {
     const filters = {
       ...this.currentFilters,
       searchTerm: this.ticketsSearchTerm
-    };  
+    };
     
     // Afficher le loader global avant le début de la requête
-    this.globalLoaderService.showGlobalLoader();    
+    this.globalLoaderService.showGlobalLoader();
+    
     this.ticketService.getPaginatedTickets(this.pageNumber, this.pageSize, filters)
       .subscribe({
         next: (response) => {
@@ -248,18 +248,18 @@ export class ListTicketsComponent implements OnInit {
 
     modalInstance.confirmed.subscribe(() => {
       this.isDeleteMultipleLoading = true;
-      // this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
-      //   next: () => {
-      //     this.toastr.success("Tickets supprimés avec succès.");
-      //     this.getTickets();
-      //     this.isDeleteMultipleLoading = false;
-      //   },
-      //   error: error => {
-      //     console.error("Erreur lors de la suppression des tickets", error);
-      //     this.toastr.error("Une erreur est survenue lors de la suppression.");
-      //     this.isDeleteMultipleLoading = false;
-      //   }
-      // });
+      this.ticketService.deleteMultipleTickets(selectedIds).subscribe({
+        next: () => {
+          this.toastr.success("Tickets supprimés avec succès.");
+          this.getTickets();
+          this.isDeleteMultipleLoading = false;
+        },
+        error: error => {
+          console.error("Erreur lors de la suppression des tickets", error);
+          this.toastr.error("Une erreur est survenue lors de la suppression.");
+          this.isDeleteMultipleLoading = false;
+        }
+      });
       this.overlayModalService.close();
     });
 

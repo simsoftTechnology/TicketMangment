@@ -205,6 +205,8 @@ namespace GestionTicketsAPI.Repositories
               .ThenInclude(p => p.Pays)
           .Include(pm => pm.Projet)
               .ThenInclude(p => p.Societe)
+          .Include(pm => pm.Projet)    
+              .ThenInclude(p => p.ChefProjet)
           .Where(pm => pm.UserId == userId)
           .Select(pm => pm.Projet);
 
@@ -212,6 +214,7 @@ namespace GestionTicketsAPI.Repositories
       var chefProjects = _context.Projets
           .Include(p => p.Pays)
           .Include(p => p.Societe)
+          .Include(p => p.ChefProjet)
           .Where(p => p.ChefProjetId == userId);
 
       // Combinaison des deux requêtes

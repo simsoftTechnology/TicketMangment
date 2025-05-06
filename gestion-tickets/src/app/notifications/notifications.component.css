@@ -1,0 +1,225 @@
+:host {
+  --primary: #fa9745;
+  --primary-light: #fff0e6;
+  --primary-dark: #e88a3a;
+  --text-dark: #2c2c2c;
+  --text-light: #ffffff;
+  --text-muted: #8a8a8a;
+  --bg-light: #ffffff;
+  --bg-gray: #f9f9f9;
+  --border-radius: 16px;
+  --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.04);
+  --transition: all 0.2s ease;
+  
+  display: block;
+  font-family: 'Inter', 'Roboto', sans-serif;
+  max-width: 550px;
+  margin: 0 auto;
+  color: var(--text-dark);
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: var(--bg-light);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-soft);
+}
+
+.notif-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-dark);
+}
+
+.notif-header button {
+  background-color: transparent;
+  color: var(--primary);
+  border: none;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: var(--transition);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.notif-header button:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-light);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.notif-list li {
+  padding: 10px 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  transition: var(--transition);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notif-list li:last-child {
+  border-bottom: none;
+}
+
+.notif-list li:hover {
+  background-color: var(--bg-gray);
+}
+
+.notif-list li.unread {
+  background-color: var(--primary-light);
+  position: relative;
+}
+
+.notif-list li.unread:hover {
+  background-color: rgba(250, 151, 69, 0.08);
+}
+
+.notif-content {
+  flex: 1;
+  padding-right: 12px;
+}
+
+.notif-list li strong {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.notif-list li.unread strong {
+  color: var(--primary-dark);
+}
+
+.notif-list li p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 100;
+  line-height: 1.5;
+  color: var(--text-dark);
+}
+
+.notif-list li.unread p {
+  font-weight: 500;
+}
+
+ng-template p {
+  text-align: center;
+  padding: 36px 24px;
+  color: var(--text-muted);
+  background-color: var(--bg-light);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+  box-shadow: var(--shadow-soft);
+  font-size: 0.9rem;
+}
+
+/* Subtle indicator for unread notifications */
+.notif-list li.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--primary);
+}
+
+/* Style du bouton « × » de suppression */
+.delete-btn {
+  position: absolute;       /* conserve l’absolute déjà défini */
+  top: 0.5rem;              /* idem */
+  right: 0.5rem;            /* idem */
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border: none;
+  border-radius: 50%;
+  font-size: 1rem;          /* un peu plus petit pour tenir dans le cercle */
+  cursor: pointer;
+  transition: var(--transition);
+  z-index: 1;               /* au cas où le li aurait un z-index plus élevé */
+}
+
+.delete-btn:hover {
+  background-color: var(--primary);
+  color: var(--text-light);
+}
+
+.no-content {
+  text-align: center;
+  padding: 0.5rem 0.5rem;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.no-content .icon {
+  display: block;
+  font-size: 30px;
+  margin-bottom: 1rem;
+  color: #f97316;
+}
+
+
+.no-content p {
+  color: #696f7a;
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :host {
+    max-width: 100%;
+    padding: 0 12px;
+  }
+  
+  .notif-header, .notif-list li {
+    padding: 16px 20px;
+  }
+  
+  .voir-link {
+    min-width: 50px;
+    font-size: 0.8rem;
+    padding: 3px 10px;
+  }
+}
+
+/* Subtle animations */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notif-list li {
+  animation: slideIn 0.25s ease-out backwards;
+}
+
+.notif-list li:nth-child(1) { animation-delay: 0.05s; }
+.notif-list li:nth-child(2) { animation-delay: 0.1s; }
+.notif-list li:nth-child(3) { animation-delay: 0.15s; }
+.notif-list li:nth-child(4) { animation-delay: 0.2s; }
+.notif-list li:nth-child(5) { animation-delay: 0.25s; }

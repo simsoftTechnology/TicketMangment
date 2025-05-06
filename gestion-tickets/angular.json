@@ -23,10 +23,17 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
+              "src/manifest.webmanifest",
+              "src/sw-custom.js",
+              {
+                "glob": "custom-service-worker.js",
+                "input": "src/assets",
+                "output": "/assets"
+              },
               {
                 "glob": "**/*",
-                "input": "src/assets/fontawesome",
-                "output": "/assets/fontawesome/"
+                "input": "public/icons",
+                "output": "/icons"
               }
             ],
 
@@ -45,30 +52,33 @@
             "scripts": []
           },
           "configurations": {
-            "production": {            
-              "optimization": true,
-              "sourceMap": false,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "1mb",
-                  "maximumError": "2.1mb"
+                  "maximumWarning": "2MB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kB",
-                  "maximumError": "13kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "10kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": false
             },
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "serviceWorker": false
             }
            
           },

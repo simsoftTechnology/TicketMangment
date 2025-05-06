@@ -19,13 +19,19 @@ namespace GestionTicketsAPI.Controllers
     private readonly EmailService _emailService;
     private readonly ExcelExportServiceClosedXML _excelExportService;
     private readonly IMapper _mapper;
+    private readonly NotificationService _notifService;
+    private readonly IUserService _userService;
 
-    public ProjetsController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, IProjetService projetService, EmailService emailService)
+    public ProjetsController(ExcelExportServiceClosedXML excelExportService, IMapper mapper, IProjetService projetService, EmailService emailService,
+        NotificationService notifService,
+        IUserService userService)
     {
       _projetService = projetService;
       _emailService = emailService;
       _mapper = mapper;
       _excelExportService = excelExportService;
+      _notifService = notifService;
+      _userService = userService;
     }
 
     // Récupérer tous les projets
@@ -79,23 +85,23 @@ namespace GestionTicketsAPI.Controllers
     [HttpPost("ajouterProjet")]
     public async Task<ActionResult<ProjetDto>> PostProjet([FromBody] ProjetDto projetDto)
     {
-      // Vérifier l'existence d'un projet avec le même nom (ou autre critère d'unicité)
       if (await _projetService.ProjetExists(projetDto.Nom))
         return BadRequest("Le projet existe déjà");
 
-      // Création du projet
       var createdProjetDto = await _projetService.AddProjetAsync(projetDto);
 
-      // Envoi d'un e-mail au chef de projet si défini
       if (createdProjetDto.ChefProjet != null)
       {
-        // Le contenu de l'e-mail peut être personnalisé
-        BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-            $"{createdProjetDto.ChefProjet.FirstName} {createdProjetDto.ChefProjet.LastName}",
-            createdProjetDto.ChefProjet.Email,
-            "Désignation en tant que Chef de Projet",
-            $"Vous avez été désigné comme chef du projet {createdProjetDto.Nom}."
-        ));
+        var cp = createdProjetDto.ChefProjet;
+        var notifDto = new NotificationDto
+        {
+          Message = $"Vous êtes désormais chef du projet « {createdProjetDto.Nom} ».",
+          DateEnvoi = DateTime.UtcNow,
+          EntityType = "Projets",
+          EntityId = createdProjetDto.Id
+        };
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(cp.Id, notifDto));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(cp.Id, notifDto));
       }
 
       return CreatedAtAction(nameof(GetProjet), new { id = createdProjetDto.Id }, createdProjetDto);
@@ -103,15 +109,55 @@ namespace GestionTicketsAPI.Controllers
 
 
     // Mettre à jour un projet
-    [HttpPost("modifierProjet/{id}")]
+    [HttpPut("modifierProjet/{id}")]
     public async Task<IActionResult> PutProjet(int id, [FromBody] ProjetUpdateDto projetUpdateDto)
     {
       if (id != projetUpdateDto.Id)
         return BadRequest("L'ID du projet ne correspond pas.");
 
+      var ancienProjet = await _projetService.GetProjetByIdAsync(id);
+      if (ancienProjet == null) return NotFound();
+
+      var oldChefId = ancienProjet.ChefProjetId;
       var result = await _projetService.UpdateProjetAsync(id, projetUpdateDto);
-      if (!result)
-        return NotFound();
+      if (!result) return NotFound();
+
+      if (projetUpdateDto.ChefProjetId.HasValue && projetUpdateDto.ChefProjetId != oldChefId)
+      {
+        // Nouveau chef
+        var nouveauCp = await _userService.GetUserByIdAsync(projetUpdateDto.ChefProjetId.Value);
+        if (nouveauCp != null)
+        {
+          var dto = new NotificationDto
+          {
+            Message = $"Vous êtes désormais chef du projet « {projetUpdateDto.Nom} ».",
+            DateEnvoi = DateTime.UtcNow,
+            EntityType = "Projets",
+            EntityId = projetUpdateDto.Id
+          };
+          BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(nouveauCp.Id, dto));
+          BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(nouveauCp.Id, dto));
+        }
+
+        // Ancien chef
+        if (oldChefId.HasValue)
+        {
+          var ancienCp = await _userService.GetUserByIdAsync(oldChefId.Value);
+          if (ancienCp != null)
+          {
+            var dto = new NotificationDto
+            {
+              Message = $"Vous n’êtes plus chef du projet « {projetUpdateDto.Nom} ».",
+              DateEnvoi = DateTime.UtcNow,
+              EntityType = "Projets",
+              EntityId = projetUpdateDto.Id
+            };
+            BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(ancienCp.Id, dto));
+            BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(ancienCp.Id, dto));
+          }
+        }
+      }
+
       return NoContent();
     }
 
@@ -141,23 +187,28 @@ namespace GestionTicketsAPI.Controllers
 
     // Ajouter un utilisateur au projet
     [HttpPost("{projetId}/utilisateurs")]
-    public async Task<IActionResult> AjouterUtilisateurAuProjet(int projetId, [FromBody] ProjetUserDto projetUserDto)
+    public async Task<IActionResult> AjouterUtilisateurAuProjet(int projetId, [FromBody] ProjetUserDto dto)
     {
-      try
+      var success = await _projetService.AjouterUtilisateurAuProjetAsync(projetId, dto);
+      if (!success) return NotFound();
+
+      var projet = await _projetService.GetProjetByIdAsync(projetId);
+      var user = await _userService.GetUserByIdAsync(dto.UserId);
+      if (user != null)
       {
-        var result = await _projetService.AjouterUtilisateurAuProjetAsync(projetId, projetUserDto);
-        if (!result)
-          return NotFound("Projet ou utilisateur non trouvé.");
-        return Ok("Utilisateur ajouté au projet avec succès.");
+        var notifDto = new NotificationDto
+        {
+          Message = $"Vous avez été ajouté au projet « {projet.Nom} ».",
+          DateEnvoi = DateTime.UtcNow,
+          EntityType = "Projets",
+          EntityId = projetId
+        };
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(user.Id, notifDto));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(user.Id, notifDto));
       }
-      catch (InvalidOperationException ex)
-      {
-        // Renvoyer un statut 409 Conflict pour signaler le conflit
-        return Conflict(ex.Message);
-      }
+
+      return Ok();
     }
-
-
 
 
     // Récupérer les membres d'un projet
@@ -172,37 +223,56 @@ namespace GestionTicketsAPI.Controllers
     [HttpGet("delete/{projetId}/utilisateurs/{userId}")]
     public async Task<IActionResult> SupprimerUtilisateurDuProjet(int projetId, int userId)
     {
-      var result = await _projetService.SupprimerUtilisateurDuProjetAsync(projetId, userId);
+      var projet = await _projetService.GetProjetByIdAsync(projetId);
+      var success = await _projetService.SupprimerUtilisateurDuProjetAsync(projetId, userId);
+      if (!success) return BadRequest();
 
-      if (!result)
+      var user = await _userService.GetUserByIdAsync(userId);
+      if (user != null)
       {
-        // L'utilisateur est le chef de projet et ne peut être détaché.
-        // On retourne ainsi une réponse 400 avec un objet d'erreur structuré.
-        return BadRequest(new
+        var notifDto = new NotificationDto
         {
-          errors = new string[]
-            {
-                "Impossible de détacher cet utilisateur car il est défini comme chef de projet. Veuillez d'abord réattribuer ce rôle à un autre utilisateur avant de procéder à la suppression."
-            }
-        });
+          Message = $"Vous avez été retiré du projet « {projet.Nom} ».",
+          DateEnvoi = DateTime.UtcNow,
+          EntityType = "Projets",
+          EntityId = projetId
+        };
+        BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(user.Id, notifDto));
+        BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(user.Id, notifDto));
       }
-
       return NoContent();
     }
 
-
     // Supprimer plusieurs utilisateurs d'un projet
-    [HttpGet("supprimerUtilisateursDuProjet")]
+    [HttpDelete("supprimerUtilisateursDuProjet")]
     public async Task<IActionResult> SupprimerUtilisateursDuProjet([FromBody] ProjetUsersDeleteDto deleteDto)
     {
       if (deleteDto == null || deleteDto.UserIds == null || !deleteDto.UserIds.Any())
         return BadRequest("Aucun utilisateur spécifié.");
 
+      var projet = await _projetService.GetProjetByIdAsync(deleteDto.ProjetId);
+      if (projet == null)
+        return NotFound($"Projet {deleteDto.ProjetId} non trouvé.");
+
       foreach (var userId in deleteDto.UserIds)
       {
-        var result = await _projetService.SupprimerUtilisateurDuProjetAsync(deleteDto.ProjetId, userId);
-        if (!result)
+        var removed = await _projetService.SupprimerUtilisateurDuProjetAsync(deleteDto.ProjetId, userId);
+        if (!removed)
           return NotFound($"Utilisateur {userId} non trouvé dans le projet {deleteDto.ProjetId}.");
+
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user != null)
+        {
+          var dto = new NotificationDto
+          {
+            Message = $"Vous avez été retiré du projet « {projet.Nom} ».",
+            DateEnvoi = DateTime.UtcNow,
+            EntityType = "Projets",
+            EntityId = deleteDto.ProjetId
+          };
+          BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(user.Id, dto));
+          BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(user.Id, dto));
+        }
       }
 
       return NoContent();

@@ -213,11 +213,11 @@
             <td>{{ utilisateur.email }}</td>
             <td><span class="role">{{ utilisateur.role }}</span></td>
             <td>
-              <!-- <button class="delet-btn"
+              <button class="delet-btn"
                 *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'super admin' || accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'"
                 (click)="detachUser(utilisateur)">
                 <span class="material-icons">delete</span>
-              </button> -->
+              </button>
             </td>
           </tr>
         </ng-container>

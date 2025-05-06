@@ -73,7 +73,6 @@ export class CategoriesComponent implements OnInit {
           this.toastr.error("Erreur lors du chargement des catégories.");
         },
         complete: () => {
-          // Masque le loader global lorsque l'opération est terminée
           this.globalLoaderService.hideGlobalLoader();
         }
       });
@@ -104,23 +103,25 @@ export class CategoriesComponent implements OnInit {
   // Suppression d'une catégorie individuellement
   deleteCategorie(id: number): void {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
-    modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";  
+    modalInstance.message = "Êtes-vous sûr de vouloir supprimer cette catégorie ?";
+  
     modalInstance.confirmed.subscribe(() => {
-      this.loaderService.showLoader();
-      this.categorieService.deleteCategory(id).subscribe(
-        (res)=>{
+      this.isDeleteLoading = true;
+      this.categorieService.deleteCategory(id).subscribe({
+        next: () => {
           this.toastr.success("Catégorie supprimée avec succès");
-          // Mise à jour locale : suppression de la catégorie du tableau
+          // Mise à jour locale
           this.categories = this.categories.filter(categorie => categorie.id !== id);
-          this.loaderService.hideLoader();
+          this.isDeleteLoading = false;
         },
-        (error)=>{
-          console.error("Erreur lors de la suppression de la catégorie :", error);
-          this.loaderService.hideLoader();
-        }    
-       );
+        error: (err) => {
+          console.error("Erreur lors de la suppression de la catégorie :", err);
+          this.isDeleteLoading = false;
+        }
+      });
       this.overlayModalService.close();
-    });  
+    });
+  
     modalInstance.cancelled.subscribe(() => {
       this.overlayModalService.close();
     });

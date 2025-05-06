@@ -8,11 +8,16 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SearchResultDTO, SearchService } from '../_services/search.service';
 import { FormsModule } from '@angular/forms';
+import { NotificationsComponent } from '../notifications/notifications.component';
+import { NotificationService } from '../_services/notification.service';
+import { AppNotification } from '../_models/notification';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,
+    NotificationsComponent
+  ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -20,19 +25,23 @@ export class HeaderComponent implements OnInit {
   currentUser: User | null = null;
   userInitials = "";
   isMenuOpen: boolean = false;
-  
   query: string = '';
   results: SearchResultDTO[] = [];
   private searchSubject = new Subject<string>();
   isSearchActive: boolean = false;
   @ViewChild('searchBar') searchBar!: ElementRef;
-  
+
+  notifications: AppNotification[] = [];
+  isNotifOpen = false;
+  unreadCount = 0;
+
   constructor(
     private accountService: AccountService,
     private router: Router,
     private ngZone: NgZone,
     private sidenavService: SidenavService,
     private searchService: SearchService,
+    private notifSvc: NotificationService,
     private elementRef: ElementRef
   ) {
     // Débouncer la recherche pour éviter des appels API trop fréquents
@@ -49,9 +58,38 @@ export class HeaderComponent implements OnInit {
         this.currentUser.firstName.charAt(0).toUpperCase() +
         this.currentUser.lastName.charAt(0).toUpperCase();
     }
+
+    const user = this.accountService.currentUser();
+    if (user?.id) {
+      const uid = user.id.toString();
+      this.notifSvc.startConnection(user.id.toString());
+      // Charge l’historique, compte seulement les non-lues 
+      this.notifSvc.getNotifications(uid)
+        .subscribe(notifs => {
+          this.notifications = notifs;
+          this.unreadCount = notifs.filter(n => !n.isRead).length;
+        });
+
+      // En temps réel, on crée la notification avec isRead=false
+      this.notifSvc.notification$.subscribe((dto: AppNotification) => {
+        this.notifications.unshift(dto);
+        this.unreadCount++;
+      });
+    }
   }
 
-  
+  toggleNotifications(): void {
+    this.isNotifOpen = !this.isNotifOpen;
+    if (this.isNotifOpen && this.notifications.length) {
+      // Marque toutes comme lues côté serveur
+      const uid = this.accountService.currentUser()!.id.toString();
+      this.notifSvc.markAllAsRead(uid).subscribe(() => {
+        // Met à jour localement
+        this.notifications.forEach(n => n.isRead = true);
+        this.unreadCount = 0;
+      });
+    }
+  }
 
   toggleSidenav() {
     this.sidenavService.toggleSidenav();
@@ -77,7 +115,6 @@ export class HeaderComponent implements OnInit {
     this.searchSubject.next(this.query);
   }
 
-  
   executeSearch(query: string): void {
     if (!query) {
       this.results = [];
@@ -93,7 +130,6 @@ export class HeaderComponent implements OnInit {
   navigateToResult(result: SearchResultDTO): void {
     let route: string[];
     const queryParams = { t: new Date().getTime().toString() };
-  
     switch (result.type) {
       case 'User':
         route = ['/home/utilisateurs/details', result.id.toString()];
@@ -127,8 +163,8 @@ export class HeaderComponent implements OnInit {
       default:
         return;
     }
-  
-    this.router.navigate(route, { 
+
+    this.router.navigate(route, {
       queryParams: queryParams,
       queryParamsHandling: 'merge' // 🛠️ Permet d'ajouter un paramètre pour forcer le changement
     }).then(() => {
@@ -136,17 +172,14 @@ export class HeaderComponent implements OnInit {
       this.results = [];
     });
   }
-  
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    // Vérifiez si le clic est à l'intérieur du composant
     const clickedInside = this.elementRef.nativeElement.contains(event.target);
     if (!clickedInside) {
       this.isMenuOpen = false;
-      // Pour la recherche, vous pouvez conserver l'ancien comportement:
-      if (!clickedInside) {
-        this.isSearchActive = false;
-      }
+      this.isSearchActive = false;
+      this.isNotifOpen = false;
     }
   }
 

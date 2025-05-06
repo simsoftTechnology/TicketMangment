@@ -2,16 +2,6 @@
 
   <h1 class="page-title">Tableau de bord</h1>
 
-  <!-- User Greeting -->
-  <div class="user-greeting">
-    <div class="user-avatar">{{ userInitials }}</div>
-    <div class="greeting-text">
-      <h2>Bonjour {{ currentUser?.firstName }} {{ currentUser?.lastName }}</h2>
-      <div class="user-role">{{ currentUser?.role }}</div>
-      <a class="logout-link" (click)="logout()">Déconnexion</a>
-    </div>
-  </div>
-
   <!-- Statistiques -->
   <div class="stats-container">
     <!-- Tickets : visible pour tous -->
@@ -27,6 +17,24 @@
       </a>
     </div>
 
+    <!-- Mes tickets : uniquement pour Chef de Projet -->
+<div class="stat-box" *ngIf="isChefDeProjet()">
+  <a [routerLink]="['/home', 'Tickets']" class="stat-content">
+    <div class="stat-title">Mes tickets</div>
+    <div class="stat-value">{{ myTicketsCount || 0 }}</div>
+    <div class="stat-icon">
+      <!-- icône adaptée, par ex. user-account -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12
+                 A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14
+                 C16.42,14 20,15.79 20,18V20H4V18
+                 C4,15.79 7.58,14 12,14Z"/>
+      </svg>
+    </div>
+  </a>
+</div>
+
+
     <!-- Projets : visible pour SuperAdmin, Chef de Projet et Collaborateur -->
     <div class="stat-box" *ngIf="isSuperAdmin() || isChefDeProjet() || isCollaborateur()">
       <a [routerLink]="['/home', 'Projets']" class="stat-content">
@@ -40,18 +48,6 @@
       </a>
     </div>
 
-    <!-- Catégories des problèmes : uniquement pour SuperAdmin -->
-    <div class="stat-box with-bg" *ngIf="isSuperAdmin()">
-      <a [routerLink]="['/home', 'Categories']" class="stat-content">
-        <div class="stat-title">Catégories Des Problèmes</div>
-        <div class="stat-value">{{ categoriesCount || 18 }}</div>
-        <div class="stat-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/>
-          </svg>
-        </div>
-      </a>
-    </div>
 
     <!-- Pays : uniquement pour SuperAdmin -->
     <div class="stat-box" *ngIf="isSuperAdmin()">
@@ -79,26 +75,25 @@
       </a>
     </div>
 
-    <!-- Status des Tickets : uniquement pour SuperAdmin 
-         Ici, le lien référence l'id du conteneur du graphique -->
-         <div class="stat-box with-bg" *ngIf="isSuperAdmin()">
-          <a [routerLink]="['/home', 'dashboard']" [fragment]="'pie-chart-container'" class="stat-content">
-            <div class="stat-title">Status Des Tickets</div>
-            <div class="stat-value">{{ statutsCount || 5 }}</div>
-            <div class="stat-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3,4H21V8H3V4M3,10H21V14H3V10M3,16H21V20H3V16Z"/>
-              </svg>
-            </div>
-          </a>
-        </div>
         
 
     <!-- Utilisateurs : uniquement pour SuperAdmin -->
     <div class="stat-box" *ngIf="isSuperAdmin()">
       <a [routerLink]="['/home', 'utilisateurs']" class="stat-content">
-        <div class="stat-title">Utilisateurs</div>
-        <div class="stat-value">{{ usersCount || 10 }}</div>
+        <div class="stat-title">Clients</div>
+        <div class="stat-value">{{ clientsCount || 10 }}</div>
+        <div class="stat-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <div class="stat-box" *ngIf="isSuperAdmin()">
+      <a [routerLink]="['/home', 'utilisateurs']" class="stat-content">
+        <div class="stat-title">Personnel</div>
+        <div class="stat-value">{{ personnelCount || 10 }}</div>
         <div class="stat-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"/>
@@ -108,20 +103,102 @@
     </div>
   </div>
 
-  <!-- Graphique (ngx-charts Pie Chart) -->
-  <div id="pie-chart-container" class="pie-chart-container">
-    <ngx-charts-pie-chart 
-      [view]="view"
-      [scheme]="colorScheme"
-      [results]="ticketCounts"
-      [legend]="true"
-      [legendPosition]="LegendPosition.Right"
-      [legendTitle]="'Légende'"
-      [explodeSlices]="false"
-      [labels]="true">
-    </ngx-charts-pie-chart>
-  </div>
+  <!-- Filtres dynamiques -->
+  <form class="filters" (ngSubmit)="applyFilters()">
+    <ng-container *ngIf="isSuperAdmin()">
+      <label>
+        Client :
+        <select [(ngModel)]="filter.clientId" name="clientId">
+          <option [ngValue]="null">Tous</option>
+          <option *ngFor="let u of clientUsers" [ngValue]="u.id">
+            {{ u.firstName }} {{ u.lastName }}
+          </option>
+        </select>
+      </label>
+      
+      <label>
+        Personnel :
+        <select [(ngModel)]="filter.personnelId" name="personnelId">
+          <option [ngValue]="null">Tous</option>
+          <option *ngFor="let u of personnelUsers" [ngValue]="u.id">
+            {{ u.firstName }} {{ u.lastName }}
+          </option>
+        </select>
+      </label>
+    </ng-container>
 
+    <label>
+      Période :
+      <input type="date" [(ngModel)]="filter.start" name="start" />
+      à
+      <input type="date" [(ngModel)]="filter.end" name="end" />
+    </label>
+  
+    <label>
+      Par :
+      <select [(ngModel)]="filter.granularity" name="granularity">
+        <option value="daily">Jour</option>
+        <option value="weekly">Semaine</option>
+        <option value="monthly">Mois</option>
+        <option value="yearly">Année</option>
+      </select>
+    </label>
+  
+    <button type="submit">Appliquer</button>
+  </form>
+  
+  <!-- Graphiques dynamiques -->
+  <div class="charts-container">
+    <div class="charts-grid">
+      <!-- Ligne 1 -->
+      <div class="chart-box">
+        <ngx-charts-line-chart
+          [view]="[500,300]"
+          [scheme]="colorScheme"
+          [results]="userSeries"
+          [legend]="false"            
+          [xAxis]="true"              
+          [yAxis]="true"               
+          [showGridLines]="true"       
+          [autoScale]="true"          
+          [curve]="curve"              
+          [showXAxisLabel]="true"
+          [xAxisLabel]="'Période'"
+          [showYAxisLabel]="true"
+          [yAxisLabel]="'Nombre de tickets'"
+          [animations]="true"          
+        ></ngx-charts-line-chart>
+      </div>
+  
+      <div class="chart-box">
+        <ngx-charts-bar-vertical
+          [view]="[500,300]"
+          [scheme]="colorScheme"
+          [results]="statusSeries"
+          [legend]="false"
+          [xAxis]="true"
+          [yAxis]="true"
+          [showXAxisLabel]="true"
+          [xAxisLabel]="'Statut'"
+          [showYAxisLabel]="true"
+          [yAxisLabel]="'Nombre de tickets'">
+        </ngx-charts-bar-vertical>
+      </div>
+  
+      <!-- Ligne 2 -->
+      <div class="chart-box">
+        <ngx-charts-pie-chart 
+          [view]="[500,300]"
+          [scheme]=" isPieNoData() ? noDataScheme : colorScheme "
+          [results]="ticketCounts"
+          [legend]="true"
+          [legendPosition]="LegendPosition.Below"
+          [legendTitle]="'Légende'"
+          [explodeSlices]="false"
+          [labels]="true">
+        </ngx-charts-pie-chart>
+      </div>
+    </div>  
   <!-- Tableau récapitulatif -->
   <table class="table-stats">
     <thead>
@@ -135,7 +212,7 @@
       <tr *ngFor="let stat of ticketCounts">
         <td>{{ stat.id }}</td>
         <td>{{ stat.name }}</td>
-        <td>{{ stat.value }}</td>
+        <td>{{ stat.name === 'Aucune donnée' ? 0 : stat.value }}</td>
       </tr>
     </tbody>
   </table>

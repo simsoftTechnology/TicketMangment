@@ -184,9 +184,7 @@ export class UserProfileComponent implements OnInit {
   }
   
 
-
   onCancel(): void {
-    
     if (this.userDetails) {
       this.userForm.patchValue({
         lastName: this.userDetails.lastName,

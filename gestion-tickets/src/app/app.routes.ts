@@ -6,9 +6,10 @@ import { TestErrorsComponent } from './errors/test-errors/test-errors.component'
 import { NotFoundComponent } from './errors/not-found/not-found.component';
 import { ServerErrorComponent } from './errors/server-error/server-error.component';
 import { authGuard } from './_guards/auth.guard';
-import { TableauBordComponent } from './tableau-bord/tableau-bord.component'; 
+import { TableauBordComponent } from './tableau-bord/tableau-bord.component';
 import { ForgotPasswordComponent } from './connexion/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './connexion/reset-password/reset-password.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 
 export const routes: Routes = [
   // Page de login
@@ -16,6 +17,7 @@ export const routes: Routes = [
 
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
+  { path: 'notifications', component: NotificationsComponent},
   // Layout principal : header + sidenav
   {
     path: 'home',
@@ -75,7 +77,9 @@ export const routes: Routes = [
   { path: 'errors', component: TestErrorsComponent },
   { path: 'not-found', component: NotFoundComponent },
   { path: 'server-error', component: ServerErrorComponent },
-  // { path: '**', component: LoginComponent, pathMatch: 'full' }
+
+  // Wildcard : tout chemin inconnu redirige vers login ou vers 'not-found'
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
@@ -85,7 +89,6 @@ export const routes: Routes = [
       anchorScrolling: 'enabled',
       scrollOffset: [0, 1000],
       onSameUrlNavigation: 'reload'
-
     })
   ],
   exports: [RouterModule]

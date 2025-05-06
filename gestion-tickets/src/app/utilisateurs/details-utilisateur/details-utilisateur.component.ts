@@ -57,7 +57,6 @@ export class DetailsUtilisateurComponent implements OnInit {
   ticketPageSize: number = 5;
   totalTickets: number = 0;
 
- 
   paysList: Pays[] = [];
   societesList: Societe[] = [];
 
@@ -121,7 +120,7 @@ export class DetailsUtilisateurComponent implements OnInit {
     this.userForm.get('pays')?.valueChanges.subscribe(value => {
       this.selectedCountry = this.paysList.find(p => p.idPays === +value);
     });
-
+  
     // Souscription à la recherche sur les tickets avec débounce
     this.ticketSearchSubject.pipe(
       debounceTime(300),
@@ -131,7 +130,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       this.ticketPageNumber = 1;
       this.loadTickets();
     });
-
+  
     // Écouter les changements dans les paramètres de la route
     this.route.params.subscribe(params => {
       const userId = params['id'];
@@ -140,14 +139,14 @@ export class DetailsUtilisateurComponent implements OnInit {
         this.loadUserDetails(+userId);
       }
     });
-
+  
     // (Optionnel) Écouter également les queryParams
     this.route.queryParams.subscribe(queryParams => {
-      // console.log("QueryParams mis à jour :", queryParams);
+      console.log("QueryParams mis à jour :", queryParams);
       // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
     });
   }
-
+  
 
 
   openAttachProjectDialog(): void {
@@ -173,6 +172,7 @@ export class DetailsUtilisateurComponent implements OnInit {
       }
     });
   }
+  
 
 
   loadPays(): void {
@@ -238,8 +238,6 @@ export class DetailsUtilisateurComponent implements OnInit {
       pays: ['', Validators.required],
       role: ['', Validators.required],
       societeId: [''],
-      // Ces champs sont optionnels, à renseigner uniquement si l’utilisateur souhaite changer son mot de passe
-     
       numTelephone: ['', [
         Validators.required,
         Validators.pattern(/^[0-9\s]+$/),
@@ -515,4 +513,3 @@ export class DetailsUtilisateurComponent implements OnInit {
 
 }
 
- 

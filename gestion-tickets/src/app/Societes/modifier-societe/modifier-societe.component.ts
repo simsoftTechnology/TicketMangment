@@ -17,7 +17,6 @@ import { UserSelectorDialogComponent } from '../../user-selector-dialog/user-sel
 import { Pays } from '../../_models/pays';
 import { PaysService } from '../../_services/pays.service';
 import { OverlayModalService } from '../../_services/overlay-modal.service';
-import { AjouterProjetComponent } from '../../Projets/ajouter-projet/ajouter-projet.component';
 import { ProjectModalComponent } from '../project-modal/project-modal.component';
 import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.component';
 import { LoaderService } from '../../_services/loader.service';

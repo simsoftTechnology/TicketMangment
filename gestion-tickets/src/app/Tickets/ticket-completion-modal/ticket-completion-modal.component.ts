@@ -49,7 +49,6 @@ export class TicketCompletionModalComponent {
   }
 
   onClose(): void {
-    console.log('isLoading: ',this.isLoading);
     // Empêcher la fermeture si l'opération est en cours
     if (!this.isLoading) {
       this.closed.emit();

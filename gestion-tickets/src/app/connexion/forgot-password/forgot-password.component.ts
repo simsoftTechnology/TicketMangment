@@ -37,7 +37,7 @@ export class ForgotPasswordComponent {
       .subscribe({
         next: (res: any) => {
           this.message = res.message;
-          this.isErrorMessage = false;
+          this.isErrorMessage = false; 
           this.isLoading = false;
         },
         error: (err) => {

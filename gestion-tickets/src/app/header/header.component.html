@@ -44,6 +44,10 @@
 
     <!-- Actions à droite -->
     <div class="actions" style="position: relative;">
+      <button class="action-item notif-button" (click)="toggleNotifications()">
+        <i class="fas fa-bell"></i>
+        <span *ngIf="unreadCount" class="badge">{{ unreadCount }}</span>
+      </button>
       <!-- Bouton affichant les initiales de l'utilisateur -->
       <button class="action-item" (click)="toggleMenu()">
         {{ userInitials }}
@@ -51,6 +55,16 @@
 
       <!-- Menu déroulant qui apparaît quand isMenuOpen est true -->
       <div class="profile-menu" *ngIf="isMenuOpen">
+        <!-- Nouveau bloc de greeting -->
+        <div class="user-greeting dropdown-greeting">
+          <div class="user-avatar">{{ userInitials }}</div>
+          <div class="greeting-text">
+            <h2>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h2>
+            <div class="user-role">{{ currentUser?.role }}</div>
+          </div>
+          <hr />
+        </div>
+
         <ul>
           <li (click)="navigateToProfile()">
             <i class="fas fa-user"></i> Mon Profil
@@ -59,8 +73,17 @@
             <i class="fas fa-sign-out-alt"></i> Déconnexion
           </li>
         </ul>
-      </div>      
+      </div>
+
     </div>
 
   </div>
 </header>
+
+<div class="notif-sidenav" [class.open]="isNotifOpen">
+  <!-- On réutilise directement le composant notifications -->
+  <app-notifications (closeSidenav)="toggleNotifications()"></app-notifications>
+</div>
+
+<div class="overlay" [class.show]="isNotifOpen" (click)="toggleNotifications()">
+</div>
