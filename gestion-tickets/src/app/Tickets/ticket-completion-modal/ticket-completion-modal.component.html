@@ -83,21 +83,31 @@
 
       <!-- Nombre d'heures passées -->
       <div class="form-group">
-        <label>Nombre d'heures passées</label>
-        <input
-          type="number"
-          name="hoursSpent"
-          [(ngModel)]="finishData.hoursSpent"
-          #hoursSpentModel="ngModel"
-          required
-          min="1"
-          class="form-control"
-          [class.is-invalid]="(hoursSpentModel.touched || formSubmitted) && hoursSpentModel.invalid"
-        />
-        <div *ngIf="(hoursSpentModel.touched || formSubmitted) && hoursSpentModel.invalid" class="invalid-feedback">
-          Le nombre d'heures passées est obligatoire.
+        <label>Durée passée</label>
+        <div class="duration-input">
+          <input
+            type="number"
+            name="duration"
+            [(ngModel)]="finishData.duration"
+            #durationModel="ngModel"
+            required
+            min="1"
+            class="form-control"
+            [class.is-invalid]="(durationModel.touched || formSubmitted) && durationModel.invalid"
+          />
+          <select
+            name="durationUnit"
+            [(ngModel)]="finishData.durationUnit"
+            class="form-select ms-2"
+          >
+            <option value="hours">heures</option>
+            <option value="minutes">minutes</option>
+          </select>
         </div>
-      </div>
+        <div *ngIf="(durationModel.touched || formSubmitted) && durationModel.invalid" class="invalid-feedback">
+          La durée est obligatoire et doit être ≥ 1.
+        </div>
+      </div>      
 
       <div class="modal-actions">
         <button type="submit" [disabled]="isLoading">

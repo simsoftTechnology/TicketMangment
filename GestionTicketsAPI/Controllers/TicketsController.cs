@@ -202,10 +202,17 @@ namespace GestionTicketsAPI.Controllers
 
       // 2) Authentification & autorisation
       var currentUserId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-      var currentUserRole = HttpContext.User.FindFirst(ClaimTypes.Role)!.Value.ToLower();
+      var rawRole = HttpContext.User.FindFirst(ClaimTypes.Role)?.Value?.Trim();
+
+      // Normalisation : tout en minuscules, suppression des espaces et traits d’union
+      var normalizedRole = rawRole?
+          .ToLowerInvariant()
+          .Replace(" ", "")
+          .Replace("-", "");
       var isChef = ticket.Projet?.ChefProjet?.Id == currentUserId;
-      if (!isChef && currentUserRole != "super admin")
-        return Unauthorized("Vous n'êtes pas autorisé à valider ce ticket.");
+      var isSuperAdmin = string.Equals(normalizedRole, "superadmin", StringComparison.OrdinalIgnoreCase);
+      if (!isChef && !isSuperAdmin)
+          return Unauthorized("Vous n'êtes pas autorisé à valider ce ticket.");
 
       // 3) Acceptation ou refus
       if (validationDto.IsAccepted)
@@ -365,7 +372,8 @@ namespace GestionTicketsAPI.Controllers
 
       ticket.StatutId = newStatus.Id;
       ticket.CompletionComment = completionDto.Comment;
-      ticket.HoursSpent = completionDto.HoursSpent;
+      ticket.HoursSpent   = completionDto.DurationInMinutes / 60;
+      ticket.MinutesSpent = completionDto.DurationInMinutes % 60;
       ticket.SolvedAt = completionDto.CompletionDate;
       ticket.UpdatedAt = DateTime.UtcNow;
 
@@ -414,19 +422,18 @@ namespace GestionTicketsAPI.Controllers
       }
 
       // 4) Commentaire interne
-      var sb = new StringBuilder();
-      sb.AppendLine($"Votre ticket est {(completionDto.IsResolved ? "résolu" : "non résolu")}.");
-      // Date de début = date de création du ticket
-      sb.AppendLine($"Date de début : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}");
-      // Date de fin = date fournie dans le DTO
-      sb.AppendLine($"Date de fin : {completionDto.CompletionDate.ToLocalTime():dd/MM/yyyy HH:mm}");
-      // Nombre d'heures passées
-      sb.AppendLine($"Nombre d'heures : {completionDto.HoursSpent}");
-      // Si l’utilisateur a ajouté un commentaire, on l’ajoute aussi
-      if (!string.IsNullOrWhiteSpace(completionDto.Comment))
-      {
-        sb.AppendLine($"Commentaire client : {completionDto.Comment}");
-      }
+      var totalMinutes = completionDto.DurationInMinutes;
+      var hours   = totalMinutes / 60;
+      var minutes = totalMinutes % 60;
+
+      var sb = new StringBuilder()
+          .AppendLine($"Votre ticket est {(completionDto.IsResolved ? "résolu" : "non résolu")}.")
+          // Date de début = date de création du ticket
+          .AppendLine($"Date de début : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}")
+          // Date de fin = date fournie dans le DTO
+          .AppendLine($"Date de fin   : {completionDto.CompletionDate.ToLocalTime():dd/MM/yyyy HH:mm}")
+          // Temps passé en heures et minutes
+          .AppendLine($"Temps passé   : {hours} h {minutes} min");
 
       var commentText = sb.ToString();
 

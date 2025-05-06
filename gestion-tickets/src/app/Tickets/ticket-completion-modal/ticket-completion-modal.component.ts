@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FinishTicketDto } from '../../_models/finish-ticket-dto';
 import { LoaderService } from '../../_services/loader.service';
+import { FinishTicketForm } from 'src/app/_models/finish-ticket-form';
 
 @Component({
   selector: 'app-ticket-completion-modal',
@@ -16,10 +17,11 @@ export class TicketCompletionModalComponent {
   @Output() finished = new EventEmitter<FinishTicketDto>();
   @Output() closed = new EventEmitter<void>();
 
-  finishData: FinishTicketDto = {
-    isResolved: true,
-    comment: '',
-    hoursSpent: 0,
+  finishData: FinishTicketForm = {
+    isResolved:    true,
+    comment:       '',
+    duration:      0,
+    durationUnit: 'hours',
     completionDate: new Date()
   };
 
@@ -35,18 +37,31 @@ export class TicketCompletionModalComponent {
   
   onSubmit(form: NgForm): void {
     this.formSubmitted = true;
-    if (form.invalid) {
-      return;
-    }
-    // Mettez à jour la date de fin
+    if (form.invalid) return;
+  
+    // Mise à jour de la date de fin
     this.finishData.completionDate = new Date();
-
-    // On déclenche le loader
+  
+    // Conversion en minutes
+    const totalMinutes = this.finishData.durationUnit === 'hours'
+      ? this.finishData.duration * 60
+      : this.finishData.duration;
+  
+    // 💥 Le bon payload
+    const payload: FinishTicketDto = {
+      isResolved:        this.finishData.isResolved,
+      comment:           this.finishData.comment,
+      durationInMinutes: totalMinutes,
+      completionDate:    this.finishData.completionDate
+    };
+  
     this.loaderService.showLoader();
-
-    // Émettez l'événement pour déclencher la mise à jour du ticket
-    this.finished.emit(this.finishData);
+  
+    // Ici on émet bien le `payload`, pas finishData
+    this.finished.emit(payload);
   }
+  
+  
 
   onClose(): void {
     // Empêcher la fermeture si l'opération est en cours

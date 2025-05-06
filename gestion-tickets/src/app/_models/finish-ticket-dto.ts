@@ -1,6 +1,6 @@
 export interface FinishTicketDto {
-  isResolved: boolean;
-  comment: string;
-  hoursSpent: number;
-  completionDate: Date;
+  isResolved:         boolean;
+  comment:            string;
+  durationInMinutes:  number;
+  completionDate:     Date;
 }
