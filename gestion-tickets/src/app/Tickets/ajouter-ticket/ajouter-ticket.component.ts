@@ -289,14 +289,18 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
   // Submit the form to create the ticket
   onSubmit(): void {
     this.formSubmitted = true;
+
+    // 1) Validation du formulaire
     if (this.addTicketForm.invalid) {
-      Object.values(this.addTicketForm.controls).forEach(control => control.markAsTouched());
+      Object.values(this.addTicketForm.controls).forEach(ctrl => ctrl.markAsTouched());
       return;
     }
 
-    const rawDescription = this.addTicketForm.get('description')?.value;
-    const cleanedDescription = rawDescription.replace(/<\/?p>/g, '');
+    // 2) Nettoyage de la description (suppression des balises <p>)
+    const rawDesc = this.addTicketForm.get('description')?.value;
+    const cleanedDescription = rawDesc?.replace(/<\/?p>/g, '') ?? '';
 
+    // 3) Préparation du DTO
     const currentUser = this.accountService.currentUser();
     const ticket: TicketCreateDto = {
       title: this.accountService.removeAccents(this.addTicketForm.get('title')?.value),
@@ -306,85 +310,28 @@ export class AjouterTicketComponent implements OnInit, OnDestroy {
       problemCategoryId: +this.addTicketForm.get('problemCategoryId')?.value,
       projetId: +this.addTicketForm.get('projetId')?.value,
       ownerId: currentUser ? currentUser.id : 0,
+      // les deux champs suivants seront remplis par le service s’il y a un fichier
       attachmentBase64: '',
       attachmentFileName: ''
     };
 
+    // 4) Appel du service (convertit le fichier en Base64 si present)
     this.loaderService.showLoader();
-
-    this.ticketService.createTicket(ticket, this.selectedFile)
-      .pipe(
-        // finalize always runs even if there is an error
-        // Hides the loader once the ticket creation is done
-        // You can add additional operators if needed
-        tap((createdTicket: any) => {
-          if (!createdTicket || createdTicket.id == null) {
-            throw new Error("L'identifiant du ticket créé est introuvable.");
-          }
-        }),
-        finalize(() => this.loaderService.hideLoader())
-      )
-      .subscribe({
-        next: (createdTicket: any) => {
-          this.toastr.success("Ticket créé avec succès.");
-          // Ensure you reference the correct property name for the ticket ID
-          this.router.navigate(['/home/Tickets/details', createdTicket.id]);
-        },
-        error: (error) => {
-          console.error("Erreur lors de la création du ticket :", error);
-          // Ici, error sera une chaîne « Un ticket avec ce titre existe déjà »
-          this.toastr.error(error, 'Erreur');
-        }
-      });
-  }
-
-  // Create the ticket and reset the form for adding another ticket
-  createAndReset(): void {
-    if (this.addTicketForm.invalid) {
-      this.toastr.warning("Veuillez remplir correctement le formulaire.");
-      return;
-    }
-
-    const rawDescription = this.addTicketForm.get('description')?.value;
-    const cleanedDescription = rawDescription.replace(/<\/?p>/g, '');
-
-    const currentUser = this.accountService.currentUser();
-    const ticket: TicketCreateDto = {
-      title: this.addTicketForm.get('title')?.value,
-      description: cleanedDescription,
-      qualificationId: +this.addTicketForm.get('qualificationId')?.value,
-      priorityId: +this.addTicketForm.get('priorityId')?.value,
-      problemCategoryId: +this.addTicketForm.get('problemCategoryId')?.value,
-      projetId: +this.addTicketForm.get('projetId')?.value,
-      ownerId: currentUser ? currentUser.id : 0,
-      attachmentBase64: '',
-      attachmentFileName: ''
-    };
-
-    this.loaderService.showLoader();
-
     this.ticketService.createTicket(ticket, this.selectedFile)
       .pipe(finalize(() => this.loaderService.hideLoader()))
       .subscribe({
-        next: () => {
-          this.toastr.success("Ticket créé avec succès. Vous pouvez en ajouter un autre.");
-          this.resetForm();
+        next: (created: any) => {
+          this.toastr.success('Ticket créé avec succès.');
+          this.router.navigate(['/home/Tickets/details', created.id]);
         },
-        error: (error) => {
-          console.error('Erreur lors de la création du ticket', error);
-          let errMsg = "Erreur lors de la création du ticket.";
-          if (error.error) {
-            if (typeof error.error === 'string') {
-              errMsg = error.error;
-            } else if (error.error.message) {
-              errMsg = error.error.message;
-            }
-          }
-          this.toastr.error(errMsg);
+        error: (err: any) => {
+          console.error('Erreur lors de la création du ticket :', err);
+          const msg = typeof err === 'string' ? err
+                    : err.error?.message || 'Erreur lors de la création du ticket.';
+          this.toastr.error(msg);
         }
       });
   }
-
   // Reset the form and clear file and dropdown selections
   resetForm(): void {
     this.addTicketForm.reset();

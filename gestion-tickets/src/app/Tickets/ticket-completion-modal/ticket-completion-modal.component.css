@@ -135,7 +135,6 @@
 /* Disposition des boutons radio */
 .form-group div {
   display: flex;
-  flex-direction: column;
   gap: 5px;
 }
 
@@ -216,6 +215,66 @@
   pointer-events: none;
 }
 
+/* Style pour le conteneur de durée */
+/* 1) On s’assure du flex et de l’alignement vertical */
+.duration-input {
+  display: flex;
+  align-items: center;  /* centrer input et select sur la même ligne de base */
+  gap: 0;               /* pas d’espace parasite */
+}
+
+/* 2) On fixe explicitement la hauteur identique et on retire les marges parasites */
+.duration-input input[type="number"],
+.duration-input select {
+  height: 46px;          /* ou la même hauteur que vos autres inputs / date */
+  padding: 12px 15px;    /* même que vos autres champs pour homogénéité */
+  margin: 0;             /* pas de marge interne */
+  box-sizing: border-box;
+}
+
+/* 3) Bordures jointes : on retire les marges négatives et on unifie les bordures */
+.duration-input input[type="number"] {
+  border-radius: 4px 0 0 4px;  /* arrondi à gauche */
+}
+
+.duration-input select {
+  border-radius: 0 4px 4px 0;  /* arrondi à droite */
+}
+
+/* Si vous aviez une classe .ms-2 pour le select, vérifiez qu’elle ne rajoute pas de margin */
+.ms-2 {
+  margin-left: 0 !important;
+}
+
+
+/* Style pour le sélecteur d'unité de durée */
+.form-select {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 0;
+  font-size: 16px;
+  background-color: #fff;
+  cursor: pointer;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 120px;
+  margin-left: -1px; /* Pour chevaucher légèrement la bordure */
+}
+
+/* Focus state pour le sélecteur */
+.form-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(250, 151, 69, 0.2);
+  border: 2px solid #fa9745;
+}
+
+/* Hover state pour le sélecteur */
+.form-select:hover {
+  border-color: #ccc;
+}
+
+
+
 /* Actions du modal (boutons) */
 .modal-actions {
   display: flex;
@@ -273,3 +332,4 @@
     transform: rotate(360deg);
   }
 }
+
