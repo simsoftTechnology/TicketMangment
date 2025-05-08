@@ -98,35 +98,35 @@ namespace GestionTicketsAPI.Repositories
         }
       }
 
-      // Filtres avancés avec les nouveaux champs
-      if (filterParams.Client>=0)
-      {
+            // Filtres avancés avec les nouveaux champs
+            if (filterParams.Client >= 0)
+            {
 
-          query = query.Where(t => (t.Owner.Id).Equals(filterParams.Client));
-      }
+                query = query.Where(t => (t.Owner.Id).Equals(filterParams.Client));
+            }
 
-            if (filterParams.Categorie>=0)
-            { 
+            if (filterParams.Categorie >= 0)
+            {
                 query = query.Where(t => t.ProblemCategory.Id.Equals(filterParams.Categorie));
             }
-            if (filterParams.Priorite>=0)
-            { 
+            if (filterParams.Priorite >= 0)
+            {
                 query = query.Where(t => t.Priority.Id.Equals(filterParams.Priorite));
             }
-            if (filterParams.Statut>=0)
-            { 
+            if (filterParams.Statut >= 0)
+            {
                 // Supposons que le nom du statut se trouve dans t.Statut.Name
                 query = query.Where(t => t.Statut.Id.Equals(filterParams.Statut));
             }
-            if (filterParams.Qualification>=0)
-            { 
+            if (filterParams.Qualification >= 0)
+            {
                 query = query.Where(t => t.Qualification.Id.Equals(filterParams.Qualification));
             }
-            if (filterParams.Projet>=0)
-            { 
+            if (filterParams.Projet >= 0)
+            {
                 query = query.Where(t => t.Projet.Id.Equals(filterParams.Projet));
             }
-            if (filterParams.Societe>=0)
+            if (filterParams.Societe >= 0)
             {
                 query = query.Where(t => t.Projet.Societe.Id.Equals(filterParams.Societe));
             }
@@ -138,10 +138,10 @@ namespace GestionTicketsAPI.Repositories
             }
 
             return await PagedList<Ticket>.CreateAsync(query, filterParams.PageNumber, filterParams.PageSize);
-    }
+        }
 
 
-    public async Task AddTicketAsync(Ticket ticket)
+        public async Task AddTicketAsync(Ticket ticket)
     {
       await _context.Tickets.AddAsync(ticket);
     }

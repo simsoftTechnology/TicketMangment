@@ -67,7 +67,7 @@ namespace GestionTicketsAPI.Services
             catch (Exception)
 
             {
-
+                
                 return false; // Failure
 
             }

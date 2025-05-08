@@ -536,9 +536,7 @@ input, select, button {
 }
 
 /* styles.scss ou un fichier de styles global, pas dans un composant.scss isolé */
-::ng-deep .ticket-filter-menu {
-  overflow: visible !important; /* Permet au contenu de déborder */
-  max-height: none !important; /* Supprime la hauteur maximale */
+
 .cdk-overlay-container {
   overflow: visible !important;
 }

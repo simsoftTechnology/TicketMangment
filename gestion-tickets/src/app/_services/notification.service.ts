@@ -1,25 +1,26 @@
-import { Injectable } from '@angular/core';
+ 
 import * as signalR from '@microsoft/signalr';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { environment } from '../../environment/environment';
 import { Observable, Subject } from 'rxjs';
 import { AppNotification } from '../_models/notification';
+import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   private hubConnection!: signalR.HubConnection;
   public notification$ = new Subject<AppNotification>();
-  private baseUrl = `${environment.apiUrl}notifications/`;
+  private baseUrl = `${environment.URLAPI}notifications/`;
 
   constructor(private http: HttpClient) { }  // <-- utilisez bien Angular HttpClient
 
   public startConnection(userId: string) {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${environment.signalRHubUrl}?userId=${userId}`, { withCredentials: true })
+      .withUrl(`${environment.URLAPI}?userId=${userId}`, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
-    this.hubConnection.start().catch(err => console.error(err));
+    this.hubConnection.start().catch((err:Error) => console.error(err));
 
     // Si le hub renvoie déjà un objet AppNotification :
     this.hubConnection.on('ReceiveNotification', (dto: AppNotification) => {

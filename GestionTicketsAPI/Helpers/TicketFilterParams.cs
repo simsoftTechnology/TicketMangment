@@ -7,19 +7,18 @@ namespace GestionTicketsAPI.Helpers
         public string? SearchTerm { get; set; }
         public string? Id { get; set; }
         public string? Titre { get; set; }
-        public string? Client { get; set; }
-        public string? Categorie { get; set; }
-        public string? Priorite { get; set; }
-        public string? Statut { get; set; }
-        public string? Qualification { get; set; }
-        public string? Projet { get; set; }
-        public string? Societe { get; set; }
+        public int? Client { get; set; }
+        public int? Categorie { get; set; }
+        public int? Priorite { get; set; }
+        public int? Statut { get; set; }
+        public int? Qualification { get; set; }
+        public int? Projet { get; set; }
+        public int? Societe { get; set; }
         public int UserId { get; set; }
         public string? Role { get; set; }
 
         public string? FilterType { get; set; }
-        public int? SocieteId { get; set; }
-        public DateTime? StartDate { get; set; } // Date de début (par exemple pour CreatedAt)
-        public DateTime? EndDate { get; set; }
+
     }
 }
+

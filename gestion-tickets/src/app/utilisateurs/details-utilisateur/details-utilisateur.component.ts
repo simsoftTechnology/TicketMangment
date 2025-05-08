@@ -1,5 +1,4 @@
-import { ContratService } from './../../_services/contrat.service';
-import { Component, OnInit, Pipe } from '@angular/core';
+import { ContratService } from './../../_services/contrat.service'; 
 import { ActivatedRoute, Router } from '@angular/router';
 import { AccountService } from '../../_services/account.service';
 import { User } from '../../_models/user';
@@ -30,6 +29,7 @@ import { ConfirmModalComponent } from '../../confirm-modal/confirm-modal.compone
 import { OverlayModalService } from '../../_services/overlay-modal.service';
 import { LoaderService } from '../../_services/loader.service';
 import { GlobalLoaderService } from '../../_services/global-loader.service';
+import { Component, OnInit } from '@angular/core';
 
 @Component({
   selector: 'app-details-utilisateur',

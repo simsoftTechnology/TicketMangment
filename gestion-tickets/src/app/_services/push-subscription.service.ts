@@ -1,7 +1,7 @@
 // push-subscription.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient }   from '@angular/common/http';
-import { environment }  from 'src/environments/environment';
+import { HttpClient }   from '@angular/common/http'; 
+import { environment } from 'src/environment/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PushSubscriptionService {
@@ -28,7 +28,7 @@ export class PushSubscriptionService {
       p256dh:    btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh')!))),
       auth:      btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth')!)))
     };
-    await this.http.post(`${environment.apiUrl}notifications/subscribe`, payload).toPromise();
+    await this.http.post(`${environment.URLAPI}notifications/subscribe`, payload).toPromise();
   }
 
   private urlBase64ToUint8Array(base64String: string) {
