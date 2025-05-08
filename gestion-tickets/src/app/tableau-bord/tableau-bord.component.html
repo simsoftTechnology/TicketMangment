@@ -162,7 +162,7 @@
       <!-- Ligne 1 -->
       <div class="chart-box">
         <ngx-charts-line-chart
-          [view]="[500,300]"
+          [view]="view"
           [scheme]="colorScheme"
           [results]="userSeries"
           [legend]="false"            
@@ -181,7 +181,7 @@
   
       <div class="chart-box">
         <ngx-charts-bar-vertical
-          [view]="[500,300]"
+          [view]="view"
           [scheme]="colorScheme"
           [results]="statusSeries"
           [legend]="false"
@@ -197,7 +197,7 @@
       <!-- Ligne 2 -->
       <div class="chart-box">
         <ngx-charts-pie-chart 
-          [view]="[500,300]"
+          [view]="view"
           [scheme]=" isPieNoData() ? noDataScheme : colorScheme "
           [results]="ticketCounts"
           [legend]="true"
