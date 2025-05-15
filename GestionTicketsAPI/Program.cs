@@ -1,12 +1,10 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using GestionTicketsAPI.Extensions;
 using GestionTicketsAPI.hubs;
 using GestionTicketsAPI.Middleware;
 using GestionTicketsAPI.Services;
 using Hangfire;
 using Hangfire.MySql;
-using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +14,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowClient", policy =>
     {
         policy
-          .WithOrigins("http://localhost:4200")
+          .WithOrigins(
+             //"http://192.168.1.230:8095"
+             "http://localhost:4200"
+          )
           .AllowAnyHeader()
           .AllowAnyMethod()
           .AllowCredentials()
@@ -76,6 +77,7 @@ app.UseAuthorization();
 
 // 5. Vos endpoints
 app.MapHub<NotificationHub>("/hubs/notifications")
+
    .RequireCors("AllowClient");
 app.MapControllers();
 app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");

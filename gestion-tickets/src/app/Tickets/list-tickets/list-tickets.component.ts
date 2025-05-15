@@ -106,7 +106,7 @@ export class ListTicketsComponent implements OnInit {
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        setTimeout(() => { this.newTicketId = null; }, 2000);
+        setTimeout(() => { this.newTicketId = null; }, 5000);
       }
     });
   }
@@ -165,7 +165,7 @@ export class ListTicketsComponent implements OnInit {
           this.globalLoaderService.hideGlobalLoader();
         }
       });
-      setTimeout(() => { this.reload(); }, 20000);
+      // setTimeout(() => { this.reload(); }, 20000);
      
   }
   reload(){
@@ -196,7 +196,7 @@ export class ListTicketsComponent implements OnInit {
         },
         
       });
-      setTimeout(() => { this.reload(); }, 20000);
+      // setTimeout(() => { this.reload(); }, 20000);
     }
   }
 

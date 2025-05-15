@@ -21,7 +21,7 @@
     </div>
     <div class="form-group" *ngIf="societeDetails">
       <label for="paysId">Pays</label>
-      <div id="paysId" class="custom-select">
+      <div  class="custom-select">
         <div class="select-box" (click)="toggleDropdown('pays')">
           <div class="selected-item">
             {{ getPaysName(societeForm.get('paysId')?.value) || 'Sélectionner un pays' }}
@@ -31,6 +31,7 @@
         <div class="dropdown-content" [class.show]="isPaysDropdownOpen">
           <div class="search-box">
             <input
+            id="paysId"
               type="text"
               placeholder="Rechercher un pays..."
               [(ngModel)]="paysSearchTerm"
@@ -100,7 +101,7 @@
           <td colspan="3">
             <div class="project-actions">
               <button (click)="openProjectModal()" class="btn btn-primary">
-                <span class="material-icons"></span> Créer projet
+                <span class="material-icons">add</span> Créer
               </button>
             </div>                        
           </td>
@@ -121,9 +122,9 @@
             <td>{{ projet.nomPays || "Aucun pays" }}</td>
             <td>{{ projet.description || "Aucune description" }}</td>
             <td class="actions">
-              <!-- <button class="view-btn" (click)="viewProjet(projet.id)">
+              <button class="view-btn" (click)="viewProjet(projet.id)">
                 <span class="material-icons">visibility</span>
-              </button> -->
+              </button>
             </td>
           </tr>
         </ng-container>

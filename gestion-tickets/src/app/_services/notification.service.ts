@@ -14,9 +14,10 @@ export class NotificationService {
 
   constructor(private http: HttpClient) { }  // <-- utilisez bien Angular HttpClient
 
+
   public startConnection(userId: string) {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${environment.URLAPI}?userId=${userId}`, { withCredentials: true })
+      .withUrl(`${environment.hubs}hubs/notifications?userId=${userId}`, { withCredentials: true })
       .withAutomaticReconnect()
       .build();
 
@@ -27,6 +28,7 @@ export class NotificationService {
       this.notification$.next(dto);
     });
   }
+
 
   /** Récupère l'historique des notifications pour un utilisateur */
   getNotifications(userId: string): Observable<AppNotification[]> {

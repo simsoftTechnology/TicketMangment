@@ -16,33 +16,8 @@
   padding-bottom: 0.5rem;
 }
 
-/* User Greeting */
-.user-greeting {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  background-color: #ffffff;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.user-avatar {
-  width: 3.5rem;
-  height: 3.5rem;
-  background-color: #fa9745;
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  font-size: 1.25rem;
-}
-
-.greeting-text h2 {
-  font-size: 1.25rem;
+.section-title {
+  font-size: 1.4rem;
   font-weight: 500;
   color: #111827;
   margin: 1rem 0 1rem;
@@ -317,23 +292,76 @@
 
 .table-stats tbody tr:hover {
   background-color: #f9fafb;
+  border-radius: 0.75rem;
 }
 
-:host ::ng-deep .pie-chart-container
-{
-  display: flex;
-    flex-direction: row-reverse;
-    flex-wrap: nowrap;
-    align-items: center;
+.table-stats .total-row {
+  font-weight: 600;
+  background-color: #f3f4f6;
+  
 }
 
-:host ::ng-deep .ngx-charts-outer{
+.table-stats .total-row td {
+  border-top: 2px solid #d1d5db;
+}
+
+.filters button {
+  background-color: #fa9745;
+  color: white;
+  font-weight: 500;
+  border: none;
+  padding: 0.5rem 0.5rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 4px rgba(250, 151, 69, 0.3);
+}
+
+.filters button:hover {
+  background-color: #e87d1e;
+  transform: translateY(-2px);
+}
+
+.filters button:active {
+  transform: translateY(0);
+}
+
+/* Improve the overall filter form styling to match the dashboard aesthetic */
+.filters {
+  margin-bottom: 2rem;
+
+  /* passe en inline-flex pour ne prendre que la place nécessaire */
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+
+  /* largeur s’adapte au contenu visible */
+  width: auto;
+  max-width: max-content;
+
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.filters label {
   display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-content: center;
-    justify-content: center;
-    width: auto;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.filters select,
+.filters input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .filters select:focus,
@@ -344,7 +372,7 @@
 }
 /* Responsive Styles */
 /* 1. Sur petits écrans, une seule colonne pour les stat-box et les charts */
-@media (max-width: 768px) {
+@media (max-width: 1500px) {
   .stats-container {
     grid-template-columns: 1fr !important;
   }

@@ -314,8 +314,6 @@ export class DetailsProjetComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(ConfirmModalComponent);
     modalInstance.message = "Confirmez-vous la modification du projet ?";
     modalInstance.confirmed.subscribe(() => {
-    this.projet.nom = this.accountService.removeSpecial(this.projet.nom)
-
       this.loaderService.showLoader();
       this.projetService.updateProjet(this.projet).subscribe({
         next: () => {
