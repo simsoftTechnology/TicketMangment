@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using GestionTicketsAPI.DTOs;
+using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using GestionTicketsAPI.Services;
 using Hangfire; // N'oubliez pas d'ajouter la référence à Hangfire
@@ -39,8 +40,7 @@ public class AccountController : BaseApiController
       var userDto = await _accountService.RegisterAsync(registerDto);
 
       // Préparation du corps de l'e-mail en HTML, avec un formatage plus professionnel
-      var body = $@"
-                    <html>
+      var body = $@"<html>
                       <body style='font-family: Arial, sans-serif; color: #333;'>
                         <p>Bonjour {userDto.FirstName} {userDto.LastName},</p>
     
@@ -75,8 +75,30 @@ public class AccountController : BaseApiController
           "Bienvenue dans notre application",
           body // Utilisation du corps en HTML
       ));
-
-      return Ok(userDto);
+            var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+            foreach (var admin in superAdmins)
+            {
+               
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                 $"{admin.FirstName} {admin.LastName}",
+                 admin.Email,
+                 "Nouveau utilisateur a été crée",
+                $@"<html>
+                      <body style='font-family: Arial, sans-serif; color: #333;'>
+                        <p>Bonjour {admin.FirstName} {admin.LastName},</p>    
+                        <p>un nouveau utilisateur a été crée sous le nom: {userDto.FirstName} {userDto.LastName}.</p>
+                        <p><strong>ses identifiants de connexion :</strong></p>
+                        <ul>
+                          <li><strong>Email :</strong> {userDto.Email}</li>
+                          <li><strong>Mot de passe :</strong> {userDto.InitialPassword}</li>
+                          <li><strong>Rôle :</strong> {userDto.Role}</li>
+                        </ul>                         
+                        <p>Cordialement,<br>L'équipe Simsoft</p>
+                      </body>
+                    </html>"
+     )); 
+                 }
+            return Ok(userDto);
     }
     catch (Exception ex)
     {

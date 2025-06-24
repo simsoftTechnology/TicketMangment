@@ -1,8 +1,10 @@
+using System.Globalization;
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace GestionTicketsAPI.Repositories
 {
@@ -61,6 +63,7 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
           .Include(t => t.Statut)
+         
           .OrderByDescending(t => t.CreatedAt)
           .AsQueryable();
 
@@ -130,6 +133,15 @@ namespace GestionTicketsAPI.Repositories
             {
                 query = query.Where(t => t.Projet.Societe.Id.Equals(filterParams.Societe));
             }
+            if (filterParams.startDate != null)
+            { 
+                query = query.Where(t => t.CreatedAt >= filterParams.startDate );
+            }
+
+            //if (filterParams.endDate != null)
+            //{
+            //    query = query.Where(t => t.SolvedAt.HasValue && t.SolvedAt.Value < filterParams.endDate  );
+            //}
             if (!string.IsNullOrEmpty(filterParams.SearchTerm))
             {
                 var lowerSearchTerm = filterParams.SearchTerm.ToLower();

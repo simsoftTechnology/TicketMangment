@@ -15,8 +15,9 @@ builder.Services.AddCors(options =>
     {
         policy
           .WithOrigins(
-             //"http://192.168.1.230:8095"
-             "http://localhost:4200"
+           //"http://192.168.1.230:8095"
+           "https://simsoft-gt.tn"
+          //"http://localhost:4200"
           )
           .AllowAnyHeader()
           .AllowAnyMethod()
@@ -57,8 +58,7 @@ builder.Services.AddScoped<NotificationService>();
 
 var app = builder.Build();
 
-// 3. Appliquez la policy CORS tout de suite, avant les middlewares
-app.UseCors("AllowClient");
+
 
 // 4. Pipeline d’exceptions, HTTPS, auth, etc.
 app.UseMiddleware<ExceptionMiddleware>();
@@ -72,13 +72,17 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+app.UseRouting();
+// 3. Appliquez la policy CORS tout de suite, avant les middlewares
+app.UseCors("AllowClient");
+
 app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthorization();  
 
 // 5. Vos endpoints
 app.MapHub<NotificationHub>("/hubs/notifications")
-
    .RequireCors("AllowClient");
+
 app.MapControllers();
 app.MapGet("/", () => "Bienvenue dans l'API GestionTicketsAPI !");
 

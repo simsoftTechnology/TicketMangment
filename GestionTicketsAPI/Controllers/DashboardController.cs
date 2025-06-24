@@ -1,8 +1,10 @@
 using System.Security.Claims;
+using DocumentFormat.OpenXml.Drawing;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Ocsp;
 
 namespace GestionTicketsAPI.Controllers
 {
@@ -33,6 +35,25 @@ namespace GestionTicketsAPI.Controllers
       var result = _dashboardService.GetDashboardCounts(userId, role);
       return Ok(result);
     }
+        [HttpPost("hours")]
+        public ActionResult<DashboardCountsDto> GetDashboardCountHours([FromBody] TicketFilterRequest req)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var role = User.FindFirst(ClaimTypes.Role)!.Value;
+
+
+            var result = _dashboardService.GetDashboardCountHours(userId,
+          role,
+          req.Start,
+          req.End,
+          req.Granularity,
+          req.ClientId,
+          req.PersonnelId
+          );
+            return Ok(result);
+          
+        }
+        
 
     [HttpGet("my-tickets-count")]
     public ActionResult<int> GetMyTicketsCount()

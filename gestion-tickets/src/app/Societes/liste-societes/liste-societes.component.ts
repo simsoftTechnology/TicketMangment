@@ -34,7 +34,7 @@ export class ListeSocietesComponent implements OnInit {
   societes: Societe[] = [];
   // Variables pour la pagination
   pageNumber: number = 1;
-  pageSize: number = 5;
+  pageSize: number = 10;
   paginatedResult: PaginatedResult<Societe[]> | null = null;
   jumpPage!: number;
   // Terme de recherche (sera transmis au service)

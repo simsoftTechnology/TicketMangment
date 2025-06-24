@@ -36,7 +36,7 @@ export class DetailsProjetComponent implements OnInit {
 
   // Pagination (client-side) pour les membres du projet
   pageNumber: number = 1;
-  pageSize: number = 9;
+  pageSize: number = 10;
   jumpPage: number = 1;
   totalPages: number = 1;
 
@@ -207,7 +207,7 @@ export class DetailsProjetComponent implements OnInit {
   }
 
   toggleSelection(membre: ProjetMember): void {
-    console.log('Membre sélectionné/désélectionné :', membre);
+    // console.log('Membre sélectionné/désélectionné :', membre);
   }
 
   // --- Recherche et pagination côté serveur pour les utilisateurs (pour la modale, si nécessaire) ---

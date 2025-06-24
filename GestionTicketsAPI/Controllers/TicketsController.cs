@@ -5,6 +5,7 @@ using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
 using GestionTicketsAPI.Services;
 using Hangfire;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
@@ -136,11 +137,43 @@ namespace GestionTicketsAPI.Controllers
             if (ticketFromDb.Projet?.ChefProjet is { } chef)
             {
                 BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                    $"{chef.FirstName} {chef.LastName}",
-                    chef.Email,
-                    "Nouveau ticket créé",
-                    $"Bonjour {chef.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
-                ));
+                   $"{chef.FirstName} {chef.LastName}",
+                   chef.Email,
+                   "Nouveau ticket créé",
+                     $@"<html>
+                       <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                       <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+
+                       <p>Bonjour {chef.FirstName} {chef.LastName},</p>
+
+                       <p>
+                           Ceci est une notification d'ouverture de ticket de support au département Support Technique.
+                       </p>
+
+                       <p>
+                           Une nouvelle Ticket a été créée par Mr/Mme {ticket.Owner.FirstName} {ticket.Owner.LastName}.
+                       </p>
+
+                       <p>
+                        Vous pouvez consulter ce ticket à tout moment ici : <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+
+                       <ul>
+                           <li><strong>Sujet :</strong> {ticket.Title}</li>
+                           <li><strong>Projet :</strong> {ticketFromDb.Projet.Nom}</li>
+                           <li><strong>Statut :</strong> Ouvert</li>
+                       </ul> 
+
+                       <p> Cordialement, </p>
+
+                       <p><strong>  Support Technique</strong> </p>
+
+                       <p> SIMSOFT TECHNOLOGIES </p>
+    
+                       </body>
+                       </html>"
+                           ));
 
                 var notifDto = new NotificationDto
                 {
@@ -156,24 +189,97 @@ namespace GestionTicketsAPI.Controllers
             // 6.b) Client (email uniquement)
             if (ticketFromDb.Owner is { } client)
             {
+               
                 BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                    $"{client.FirstName} {client.LastName}",
-                    client.Email,
-                    "Confirmation de création de ticket",
-                    $"Bonjour {client.FirstName}, votre ticket #{ticket.Id} a bien été créé."
-                ));
+           $"{client.FirstName} {client.LastName}",
+           client.Email,
+           "Nouveau ticket créé",
+           $@"<html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+
+                <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                <p>
+                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.
+                </p>
+
+                <p>
+                    Une nouvelle Ticket a été créée par Mr/Mme {ticket.Owner.FirstName} {ticket.Owner.LastName}.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici : <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticketFromDb.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Ouvert</li>
+                </ul>
+
+
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+    
+                </body>
+                </html>
+             "
+       ));
+
             }
 
             // 6.c) Super-admins
             var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
             foreach (var admin in superAdmins)
             {
+               
                 BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                    $"{admin.FirstName} {admin.LastName}",
-                    admin.Email,
-                    "Nouveau ticket créé",
-                    $"Bonjour {admin.FirstName}, un nouveau ticket #{ticket.Id} a été créé."
-                ));
+                 $"{admin.FirstName} {admin.LastName}",
+                 admin.Email,
+                 "Nouveau ticket créé",
+                 $@"<html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+
+                <p>Bonjour {admin.FirstName} {admin.LastName},</p>
+
+                <p>
+                    Ceci est une notification d'ouverture de ticket de support au département Support Technique.
+                </p>
+
+                <p>
+                    Une nouvelle Ticket a été créée par Mr/Mme {ticket.Owner.FirstName} {ticket.Owner.LastName}.
+                </p>
+
+                <p>
+                 Vous pouvez consulter ce ticket à tout moment ici : <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticketFromDb.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> Ouvert</li>
+                </ul>
+
+
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+    
+                </body>
+                </html>
+             "
+     ));
 
                 var notifDto = new NotificationDto
                 {
@@ -207,11 +313,12 @@ namespace GestionTicketsAPI.Controllers
             var normalizedRole = rawRole?
                 .ToLowerInvariant()
                 .Replace(" ", "")
-                .Replace("-", "");
-            var isChef = ticket.Projet?.ChefProjet?.Id == currentUserId;
-            var isSuperAdmin = string.Equals(normalizedRole, "superadmin", StringComparison.OrdinalIgnoreCase);
-            if (!isChef && !isSuperAdmin)
-                return Unauthorized("Vous n'êtes pas autorisé à valider ce ticket.");
+                .Replace("-", ""); 
+           
+            //var isSuperAdmin = string.Equals(normalizedRole, "superadmin", StringComparison.OrdinalIgnoreCase);
+            //var ischef = string.Equals(normalizedRole, "chefdeprojet", StringComparison.OrdinalIgnoreCase);
+            if (rawRole.ToLower() != "super admin" && rawRole.ToLower() != "chef de projet")
+                return Unauthorized(rawRole.ToLower());
 
             // 3) Acceptation ou refus
             if (validationDto.IsAccepted)
@@ -233,12 +340,43 @@ namespace GestionTicketsAPI.Controllers
                         EntityType = "Tickets",
                         EntityId = ticket.Id
                     };
+                  
+
                     BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                        $"{client.FirstName} {client.LastName}",
-                        client.Email,
-                        "Ticket accepté",
-                        $"Bonjour {client.FirstName}, votre ticket #{ticket.Id} a été accepté."
-                    ));
+             $"{client.FirstName} {client.LastName}",
+             client.Email,
+             "Ticket accepté",
+              $@"<html>
+                <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                <h3>Support Technique </h3>  
+
+                <p>Bonjour {client.FirstName} {client.LastName},</p> 
+
+                <p>                    Ceci est une notification de validation de ticket de support .                </p>
+
+                <p>                    Votre ticket a été accepté avec succée.                </p>
+
+                <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                <ul>
+                    <li><strong>Sujet :</strong> {ticket.Title}</li>
+                    <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                    <li><strong>Statut :</strong> En cours</li>
+                </ul>
+
+                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                <p> Cordialement, </p>
+
+                <p><strong>  Support Technique</strong> </p>
+
+                <p> SIMSOFT TECHNOLOGIES </p>
+
+                </body>
+                </html>
+                "
+
+         ));
                     BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(client.Id, notifDto));
                     BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(client.Id, notifDto));
                 }
@@ -264,15 +402,43 @@ namespace GestionTicketsAPI.Controllers
                                 EntityType = "Tickets",
                                 EntityId = ticket.Id
                             };
+                          
                             BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
                                 $"{resp.FirstName} {resp.LastName}",
                                 resp.Email,
                                 "Nouveau ticket assigné",
-                                $"Bonjour {resp.FirstName} {resp.LastName}, vous êtes responsable du ticket #{ticket.Id}."
+                                 $@"<html>
+                                     <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                                    <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+                                    <p>Bonjour  {resp.FirstName} {resp.LastName},</p>
+
+                                     <p>               Ceci est une notification d'assignement de ticket de support .            </p>
+
+                                    <p>                  Vous avez été désigné comme responsable du Ticket.               </p>
+
+                                     <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                                    <ul>
+                                     <li><strong>Sujet :</strong> {ticket.Title}</li>
+                                     <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                                     <li><strong>Statut :</strong> En cours</li>
+                                    </ul>
+
+                                    <p> Cordialement, </p>
+
+                                    <p><strong>  Support Technique</strong> </p>
+
+                                    <p> SIMSOFT TECHNOLOGIES </p>
+
+                                    </body>
+                                    </html>
+                                    "
                             ));
                             BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(resp.Id, notifDto));
                             BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(resp.Id, notifDto));
                         }
+                        
                     }
                 }
             }
@@ -295,13 +461,100 @@ namespace GestionTicketsAPI.Controllers
                         EntityId = ticket.Id
                     };
                     BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                        $"{client.FirstName} {client.LastName}",
-                        client.Email,
-                        "Ticket refusé",
-                        $"Bonjour {client.FirstName} {client.LastName}, votre ticket #{ticket.Id} a été refusé. Raison : {validationDto.Reason}"
-                    ));
+                      $"{client.FirstName} {client.LastName}",
+                      client.Email,
+                      "Ticket refusé",
+                       $@"<html>
+                        <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                        <h3>Support Technique </h3>  
+
+                        <p>Bonjour {client.FirstName} {client.LastName},</p>
+
+                        <p>
+                            Ceci est une notification de validation de ticket de support .
+                        </p>
+
+                        <p>
+                            Votre ticket a été  refusé.
+                        </p>
+
+                        <p>
+                         Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                        <ul>
+                            <li><strong>Sujet :</strong> {ticket.Title}</li>
+                            <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                            <li><strong>Statut :</strong> Refusé </li>
+                            <li><strong>Raison :</strong>  {ticket.ValidationReason} </li>
+                        </ul>
+
+                        <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                        <p> Cordialement, </p>
+                        <p><strong>  Support Technique</strong> </p>
+                        <p> SIMSOFT TECHNOLOGIES </p>
+
+                        </body>
+                        </html>
+                        "
+
+
+
+                  ));
                     BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(client.Id, notifDto));
                     BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(client.Id, notifDto));
+                }
+                var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+                foreach (var admin in superAdmins)
+                {
+                    BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                     $"{admin.FirstName} {admin.LastName}",
+                     admin.Email,
+                     "Ticket refusé",
+                      $@"<html>
+                        <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                        <h3>Support Technique </h3>  
+
+                        <p>Bonjour {admin.FirstName} {admin.LastName},</p>
+
+                        <p>
+                            Ceci est une notification de validation de ticket de support .
+                        </p>
+
+                        <p>
+                            la  ticket N° {ticket.Id} a été  refusé.
+                        </p>
+
+                        <p>
+                         Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                        <ul>
+                            <li><strong>Sujet :</strong> {ticket.Title}</li>
+                            <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                            <li><strong>Statut :</strong> Refusé </li>
+                            <li><strong>Raison :</strong>  {validationDto.Reason} </li>
+                        </ul>
+
+                        <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+
+                        <p> Cordialement, </p>
+                        <p><strong>  Support Technique</strong> </p>
+                        <p> SIMSOFT TECHNOLOGIES </p>
+
+                        </body>
+                        </html>
+                        "
+                 ));
+            
+                    var notifDto = new NotificationDto
+                    {
+                        Message = $"la ticket N° #{ticket.Id} a été refusé. Raison : {validationDto.Reason}.",
+                        DateEnvoi = DateTime.UtcNow,
+                        EntityType = "Tickets",
+                        EntityId = ticket.Id
+                    };
+                    BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(admin.Id, notifDto));
+                    BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(admin.Id, notifDto));
                 }
             }
 
@@ -388,6 +641,37 @@ namespace GestionTicketsAPI.Controllers
                     EntityType = "Tickets",
                     EntityId = ticket.Id
                 };
+                BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
+                     $"{ticket.Owner.FirstName} {ticket.Owner.LastName}",
+                     ticket.Owner.Email,
+                     "Ticket terminé",
+                      $@"<html>
+                           <body style='font-family: Arial, sans-serif; color: #051678; font-size: 14px;'>
+                          <h3>Support divalto </h3>
+                            <p>Bonjour {ticket.Owner.FirstName} {ticket.Owner.LastName},</p>
+
+                            <p>              Ceci est une notification  de ticket de support .               </p>
+
+                            <p>                    Votre ticket  #{ticket.Id}  est {(completionDto.IsResolved ? "résolu" : "non résolu")}.              </p>
+                            <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+                            <ul>
+                                <li><strong>Sujet :</strong> {ticket.Title}</li>
+                                <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                               <li><strong>Statut :</strong> Terminer </li>
+                                <li><strong>Date de début :</strong> {ticket.CreatedAt:dd/MM/yyyy HH:mm} </li>
+                                <li><strong>Date de fin :</strong> {completionDto.CompletionDate:dd/MM/yyyy HH:mm} </li>
+                                <li><strong>Nombre des minutes (min) :</strong> {completionDto.HoursSpent} </li>
+                            </ul>
+
+                            <p> Cordialement, </p>
+                            <p><strong>  Support Technique</strong> </p>
+                            <p> SIMSOFT TECHNOLOGIES </p>
+
+                        </body>
+                        </html>
+                        "
+                 ));
+
                 BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(owner.Id, notifDto));
                 BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(owner.Id, notifDto));
             }
@@ -402,6 +686,7 @@ namespace GestionTicketsAPI.Controllers
                     EntityType = "Tickets",
                     EntityId = ticket.Id
                 };
+               
                 BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(chefProj.Id, notifDto));
                 BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(chefProj.Id, notifDto));
             }
@@ -474,17 +759,44 @@ namespace GestionTicketsAPI.Controllers
                     DateEnvoi = DateTime.UtcNow,
                     EntityType = "Tickets",
                     EntityId = ticket.Id
-                };
+                };             
                 BackgroundJob.Enqueue(() => _emailService.SendEmailAsync(
-                    $"{newResp.FirstName} {newResp.LastName}",
-                    newResp.Email,
-                    "Nouveau responsable de ticket",
-                    $"Bonjour {newResp.FirstName} {newResp.LastName}, vous êtes désormais responsable du ticket #{ticket.Id}."
-                ));
+                   $"{newResp.FirstName} {newResp.LastName}",
+                   newResp.Email,
+
+                    "Nouveau ticket assigné",
+                     $@"<html>
+                     <body style='font-family: Arial, sans-serif; color: #333; font-size: 14px;'>
+                    <h3 style='color: #2c3e50;'> Nouveau ticket de support</h3>
+
+                    <p>Bonjour  {newResp.FirstName} {newResp.LastName},</p>
+
+                     <p>               Ceci est une notification d'assignement de ticket de support .            </p>
+
+                    <p>                  Vous avez été désigné comme responsable du Ticket.               </p>
+
+                     <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
+
+                    <ul>
+                     <li><strong>Sujet :</strong> {ticket.Title}</li>
+                     <li><strong>Projet :</strong> {ticket.Projet.Nom}</li>
+                     <li><strong>Statut :</strong> En cours</li>
+                    </ul>
+ 
+
+                    <p> Cordialement, </p>
+
+                    <p><strong>  Support Technique</strong> </p>
+
+                    <p> SIMSOFT TECHNOLOGIES </p>
+
+                    </body>
+                    </html>
+                    " 
+            )); 
                 BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(newResp.Id, notifDto));
                 BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(newResp.Id, notifDto));
             }
-
             return NoContent();
         }
 
@@ -506,7 +818,7 @@ namespace GestionTicketsAPI.Controllers
         }
 
         [HttpPost("export")]
-        public async Task<IActionResult> ExportTickets([FromBody] TicketFilterParams filterParams)
+        public async Task<IEnumerable<TicketExportDto>> ExportTickets([FromBody] TicketFilterParams filterParams)
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
             var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
@@ -519,10 +831,7 @@ namespace GestionTicketsAPI.Controllers
             var tickets = await _ticketService.GetTicketsFilteredAsync(filterParams);
             var ticketExportDtos = _mapper.Map<IEnumerable<TicketExportDto>>(tickets);
             var content = _excelExportService.ExportToExcel(ticketExportDtos, "Tickets");
-
-            return File(content,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"TicketsExport_{DateTime.Now:yyyyMMddHHmmss}.xlsx");
+            return ticketExportDtos; 
         }
 
     }

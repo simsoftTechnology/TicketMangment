@@ -164,8 +164,9 @@
       <div class="form-group">
         <label for="description">Description <span class="required">*</span></label>
         <div class="editor-container">
-          <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
-          <ngx-editor [editor]="editor" formControlName="description" id="description"></ngx-editor>
+          <!-- <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"></ngx-editor-menu>
+          <ngx-editor [editor]="editor" formControlName="description" id="description"></ngx-editor> -->
+          <textarea id="description" type="text" formControlName="description" class="form-control ng-pristine ng-invalid ng-touched"></textarea>
         </div>
         <div
           *ngIf="(addTicketForm.get('description')?.touched || formSubmitted) && addTicketForm.get('description')?.hasError('required')"

@@ -26,6 +26,8 @@ namespace GestionTicketsAPI.DTOs
         public UserDto? Responsible { get; set; }        // Anciennement Developpeur
         public DateTime? ApprovedAt { get; set; }
         public DateTime? SolvedAt { get; set; }
+        public string? HoursSpent { get; set; } = string.Empty;
+        public string? MinutesSpent { get; set; } = string.Empty;
 
     }
 }

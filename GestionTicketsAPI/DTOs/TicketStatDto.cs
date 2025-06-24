@@ -6,4 +6,11 @@ public class TicketStatDto
 {
     public string Key { get; set; }    // ex. "2025-04" ou "Résolu"
     public int Count { get; set; }
+    public int minute { get; set; }
+    public string projetID { get; set; }
+
+    
 }
+
+ 
+

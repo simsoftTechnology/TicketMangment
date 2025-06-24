@@ -74,22 +74,24 @@ export class HeaderComponent implements OnInit {
       this.notifSvc.notification$.subscribe((dto: AppNotification) => {
         this.notifications.unshift(dto);
         this.unreadCount++;
+        // console.log('notif: ',dto);
+        
       });
     }
   }
 
-  toggleNotifications(): void {
+toggleNotifications(): void {
     this.isNotifOpen = !this.isNotifOpen;
-    if (this.isNotifOpen && this.notifications.length) {
-      // Marque toutes comme lues côté serveur
+    if (!this.isNotifOpen && this.notifications.length) {
+      // on marque en lu seulement à la fermeture
       const uid = this.accountService.currentUser()!.id.toString();
       this.notifSvc.markAllAsRead(uid).subscribe(() => {
-        // Met à jour localement
         this.notifications.forEach(n => n.isRead = true);
         this.unreadCount = 0;
       });
     }
   }
+
 
   toggleSidenav() {
     this.sidenavService.toggleSidenav();

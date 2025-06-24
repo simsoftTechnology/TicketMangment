@@ -19,7 +19,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { LoaderService } from '../../_services/loader.service';
 import { GlobalLoaderService } from '../../_services/global-loader.service';
-
+import * as XLSX from 'xlsx';
+ class filter{
+  "categorie" :  number ;
+  "client" :  number ;
+  "endDate" :  Date ;
+  "pageNumber" :  number ;
+  "pageSize" :  number ;
+  "priorite" :  number ;
+  "projet" : number ;
+  "qualification" :  number ;
+  "searchTerm" :  string ;
+  "societe" :  number ;
+  "startDate" :  Date ;
+  "statut" : number }
 @Component({
   selector: 'app-list-tickets',
   standalone: true,
@@ -38,7 +51,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
 export class ListTicketsComponent implements OnInit {
   currentUser: User | null = null;
   pageNumber: number = 1;
-  pageSize: number = 9;
+  pageSize: number = 10;
   paginatedResult: PaginatedResult<Ticket[]> | null = null;
   jumpPage: number = 1;
   ticketsSearchTerm: string = '';
@@ -299,34 +312,64 @@ export class ListTicketsComponent implements OnInit {
   }
 
   onApplyFilter(filterValues: any): void {
+    filterValues.endDate=new Date(filterValues.endDate)
+    filterValues.startDate=new Date(filterValues.startDate)
+    // console.log(new Date(filterValues.endDate));
+    
     this.currentFilters = filterValues;
+
     this.pageNumber = 1;
     this.getTickets();
   }
   
   // Export des tickets avec variable de chargement dédiée
-  exportTickets(): void {
+  exportTickets(data: any): void {     
+     if(data != null ){       
+        let table: any=[]
+        data.forEach((element:any) => {
+          let tt={
+              "id": element.id,
+              "Titre": element.title,
+              "Description": element.description, 
+              "Priority":element.priority?.name ,
+              "Statut": element.statut?.name,
+              "client": element.owner?.firstName + ' ' + element.owner?.lastName,
+              "Categorie": element.problemCategory?.nom,
+              "Qualification": element.qualification?.name,
+              "Projet": element.projet?.nom,
+              "Societe": element.projet?.nomSociete,
+              "Responsable Ticket": element.responsible?.firstName + ' '+ element.responsible?.lastName,
+              "Date de Création": element.createdAt,
+              "Date Fin": element.solvedAt ,
+              "Nombre des Heures": element.hoursSpent+'H'+ element.minutesSpent +'min'
+          }
+          table.push(tt);    
+        });
+         
     // Active le loader spécifique pour l'export
-    this.isExportLoading = true;
-    this.ticketService.exportTickets(this.currentFilters).subscribe({
-      next: (fileBlob: Blob) => {
-        const objectUrl = URL.createObjectURL(fileBlob);
+        this.isExportLoading = true;
+        const worksheet = XLSX.utils.json_to_sheet(table);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');        
+        // Create Blob and download
+        const excelBuffer = XLSX.write(workbook, {
+          bookType: 'xlsx',
+          type: 'array'
+        });
+        const blob = new Blob([excelBuffer], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });         
+        const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
         a.download = `TicketsExport_${new Date().getTime()}.xlsx`;
         a.click();
         URL.revokeObjectURL(objectUrl);
         // Désactive le loader spécifique après l'export
-        this.isExportLoading = false;
-      },
-      error: (err) => {
-        console.error("Erreur lors de l'export des tickets", err);
-        this.toastr.error("Erreur lors de l'export des tickets");
-        // Désactive le loader même en cas d'erreur
-        this.isExportLoading = false;
+        this.isExportLoading = false;  
       }
-    });
   }
+
 
   range(start: number, end: number): number[] {
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);

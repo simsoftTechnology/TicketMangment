@@ -65,7 +65,7 @@ export class SocieteService {
     .set('Content-Type', 'application/json; charset=utf-8')
     .set('Accept', 'application/json; charset=utf-8');
 
-    console.log("json encode ",  societe);
+    // console.log("json encode ",  societe);
     
     return this.http.post<Societe>(this.apiUrl,   societe, { headers });
   }

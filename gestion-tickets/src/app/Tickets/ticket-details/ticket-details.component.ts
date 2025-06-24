@@ -83,6 +83,10 @@ export class TicketDetailsComponent implements OnInit {
     this.ticketService.getTicket(this.ticketId).subscribe({
       next: (ticket) => {
         this.ticket = ticket;
+        if(ticket && ticket.attachments && ticket.attachments.includes('http://192.168.1.230:8055')){
+          this.ticket.attachments=   this.ticket.attachments!.replace('http://192.168.1.230:8055', 'https://support.simsoft.tn:8055');
+        }
+     
         // Initialiser le responsable sélectionné avec la valeur actuelle du ticket
         this.selectedResponsibleId = ticket.responsibleId || null;
       },
@@ -204,6 +208,7 @@ export class TicketDetailsComponent implements OnInit {
     const modalInstance = this.overlayModalService.open(TicketCompletionModalComponent);
     modalInstance.ticket = this.ticket;
     modalInstance.finished.subscribe((finishData: FinishTicketDto) => {
+      
       // Appel à la méthode qui gère la validation et les mises à jour
       this.updateTicketCompletion(finishData);
       this.isLoading = !this.isLoading;
@@ -223,6 +228,7 @@ export class TicketDetailsComponent implements OnInit {
         this.loadTicket();
         this.loadComments();
         this.overlayModalService.close(); 
+         this.loaderService.hideLoader();
       },
       error: err => {
         console.error('Erreur lors de la clôture du ticket', err);

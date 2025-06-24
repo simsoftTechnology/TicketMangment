@@ -112,7 +112,9 @@ export class TicketService {
     return this.http.get<any[]>(`${this.baseUrl}/status-count`);
   }
 
-  exportTickets(filters: any): Observable<Blob> {
+  
+
+  exportTickets(filters: any): Observable<any> {
     return this.http.post(`${this.baseUrl}/export`, filters, { responseType: 'blob' });
   }
   

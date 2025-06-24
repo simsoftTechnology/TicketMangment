@@ -16,6 +16,8 @@ namespace GestionTicketsAPI.Helpers
         public int? Societe { get; set; }
         public int UserId { get; set; }
         public string? Role { get; set; }
+        public DateTime? endDate { get; set; }
+        public DateTime? startDate { get; set; }
 
         public string? FilterType { get; set; }
 

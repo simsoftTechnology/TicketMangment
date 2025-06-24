@@ -142,7 +142,7 @@ export class DetailsUtilisateurComponent implements OnInit {
   
     // (Optionnel) Écouter également les queryParams
     this.route.queryParams.subscribe(queryParams => {
-      console.log("QueryParams mis à jour :", queryParams);
+      // console.log("QueryParams mis à jour :", queryParams);
       // Vous pouvez ajouter ici toute logique supplémentaire si nécessaire
     });
   }

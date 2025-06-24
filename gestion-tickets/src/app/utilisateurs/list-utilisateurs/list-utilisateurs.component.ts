@@ -30,7 +30,7 @@ export class ListUtilisateursComponent implements OnInit {
 
   // Variables de pagination et recherche
   pageNumber: number = 1;
-  pageSize: number = 9;
+  pageSize: number = 10;
   paginatedResult: PaginatedResult<User[]> | null = null;
   jumpPage: number = 1;
   usersSearchTerm: string = '';

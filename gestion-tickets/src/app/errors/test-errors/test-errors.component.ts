@@ -45,7 +45,7 @@ export class TestErrorsComponent {
     this.http.post(this.baseUrl + 'account/register', {}).subscribe({
       next: response => console.log(response),
       error: error => {
-        console.log(error);
+        // console.log(error);
         this.validationErrors = error;
       }
     })

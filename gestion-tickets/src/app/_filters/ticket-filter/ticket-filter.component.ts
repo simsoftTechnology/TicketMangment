@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { LoaderService } from '../../_services/loader.service';
 import { MAT_DATE_LOCALE, MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { User } from 'src/app/_models/user';
 
  
 
@@ -104,9 +105,10 @@ export class TicketFilterComponent implements OnInit {
       this.isLoading = loading;
     });
    }
-
+user: any
   ngOnInit(): void {
     const user = this.accountService.currentUser();
+    this.user=user
     // Par exemple, si le rôle client est "client", on vérifie ainsi :
     if (user && user.role === 'Client') {
       this.isClient = true;
@@ -119,10 +121,12 @@ export class TicketFilterComponent implements OnInit {
       qualification: -1,
       projet: -1,
       societe: -1,
-      startDate: [new Date()],
-      endDate: [new Date()]
+      startDate:new Date().toISOString(),
+      // endDate: new Date().toISOString()
     });
 
+    console.log(this.filterForm);
+    
     // Chargement des données depuis la base via les services
     this.loadClients();
     this.loadCategories();

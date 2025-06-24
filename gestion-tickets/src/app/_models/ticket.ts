@@ -35,6 +35,8 @@ export interface Ticket {
   solvedAt?: Date;
 
   completionComment?: string;
+  // hoursSpent?: number;
   hoursSpent?: number;
+  minutesSpent:number;
   finishedAt?: Date;
 }

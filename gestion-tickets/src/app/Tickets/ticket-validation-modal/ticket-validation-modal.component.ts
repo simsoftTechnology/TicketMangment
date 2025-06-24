@@ -35,7 +35,7 @@ export class TicketValidationModalComponent implements OnInit {
     private loaderService: LoaderService
   ) {
     this.loaderService.isLoading$.subscribe((loading) => {
-      this.isLoading = loading;
+      this.isLoading = loading;      
     });
   }
 

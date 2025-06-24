@@ -77,7 +77,7 @@ export class ResetPasswordComponent implements OnInit {
       confirmPassword: this.resetPasswordForm.get('confirmPassword')?.value
     };
 
-    console.log(body); // Pour vérifier le payload
+    // console.log(body); // Pour vérifier le payload
 
     this.isLoading = true;
     this.accountService.resetPassword(body)

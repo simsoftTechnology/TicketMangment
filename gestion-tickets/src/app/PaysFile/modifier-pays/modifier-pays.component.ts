@@ -92,7 +92,7 @@ export class ModifierPaysComponent implements OnInit {
       },
     
     (error)=>{
-      console.log(error);
+      // console.log(error);
       
       this.toastr.error("Erreur se produit", error);
     });

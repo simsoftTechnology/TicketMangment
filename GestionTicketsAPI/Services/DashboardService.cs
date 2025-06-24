@@ -1,16 +1,29 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Wordprocessing;
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
+using Humanizer;
+using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestionTicketsAPI.Services
 {
   public interface IDashboardService
   {
-    DashboardCountsDto GetDashboardCounts(int userId, string role);
-    int GetMyTicketsCount(int userId);
+        DashboardCountsDto GetDashboardCounts(int userId, string role);
+        IEnumerable<TicketStatDto> GetDashboardCountHours(
+            int userId,
+           string role,
+           DateTime? start,
+           DateTime? end,
+           string granularity,
+           int? ClientId,
+            int? PersonnelId); 
+        int GetMyTicketsCount(int userId);
     IEnumerable<TicketStatDto> GetTicketCountsByUserAndPeriod(
            int userId,
            string role,
@@ -48,8 +61,156 @@ namespace GestionTicketsAPI.Services
     {
       _context = context;
     }
+        public IEnumerable<TicketStatDto> GetDashboardCountHours(
+                int userId,
+                string role,
+                DateTime? start,
+                DateTime? end,
+                string granularity,
+                int? clientId, 
+                int? personnelId)
+        {
+            // 1️⃣ Filtre par rôle
+            var query = ApplyRoleFilter(_context.Tickets.AsQueryable(), userId, role, null);
+            
 
-    public DashboardCountsDto GetDashboardCounts(int userId, string role)
+            // 2️⃣ Filtre client/personnel
+            if (clientId.HasValue)
+                query = query.Where(t => t.OwnerId == clientId.Value);
+            if (personnelId.HasValue)
+                query = query.Where(t => t.ResponsibleId == personnelId.Value);
+
+            // 3️⃣ Filtre dates
+            if (start.HasValue)
+                query = query.Where(t => t.CreatedAt >= start.Value.Date);
+            if (end.HasValue)
+                query = query.Where(t => t.CreatedAt < end.Value.Date.AddDays(1));
+
+            // 4️⃣ Aggregation “none” ou par granularité existante
+            //if (granularity.Equals("none", StringComparison.OrdinalIgnoreCase))
+            //{
+            //    var raw = query.GroupBy(t => t.StatutId)
+            //                   .Select(g => new { StatusId = g.Key, Count = g.Count() })
+            //                   .ToList();
+            //    var names = _context.StatutsDesTickets
+            //                        .Where(s => raw.Select(r => r.StatusId).Contains(s.Id))
+            //                        .ToDictionary(s => s.Id, s => s.Name);
+            //    return raw
+            //        .Select(r => new TicketStatDto { Key = names[r.StatusId], Count = r.Count })
+            //        .OrderBy(dto => dto.Key)
+            //        .ToList();
+            //}
+            return granularity.ToLower() switch
+            {
+                "daily" => GenerateStats(
+                    query.GroupBy(t => new { t.ProjetId, Date = t.CreatedAt.Date })
+                       .Select(g => new { ProjetId = g.Key.ProjetId, Date = g.Key.Date, Hours = g.Sum(t => t.HoursSpent ?? 0), Minutes = g.Sum(t => t.MinutesSpent ?? 0) })
+                       .ToList(),
+                    g => {
+                       int totalHours = g.Hours + (g.Minutes / 60);
+                       int totalMinutes = g.Minutes % 60;
+                       var project = _context.Projets.FirstOrDefault(t => t.Id == g.ProjetId);
+  
+                       return new TicketStatDto
+                       {
+                           Key = $"{g.Date:yyyy-MM-dd}",
+                           projetID= project.Nom,
+                           Count = totalHours,
+                           minute= totalMinutes 
+                       };
+                   }
+               ),
+                "weekly" => GenerateStats(
+                    query
+                        .AsEnumerable() // passage en mémoire pour utiliser Calendar
+                        .GroupBy(t => new
+                        {
+                            t.ProjetId,
+                            Week = CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(t.CreatedAt.Date, CalendarWeekRule.FirstDay, DayOfWeek.Monday),
+                            Year = t.CreatedAt.Year
+                        })
+                        .Select(g => new
+                        {
+                            ProjetId = g.Key.ProjetId,
+                            Week = g.Key.Week,
+                            Year = g.Key.Year,
+                            Hours = g.Sum(t => t.HoursSpent ?? 0),
+                            Minutes = g.Sum(t => t.MinutesSpent ?? 0)
+                        })
+                        .ToList(),
+                    g =>
+                    {
+                        int totalHours = g.Hours + (g.Minutes / 60);
+                        int totalMinutes = g.Minutes % 60;
+                        var project = _context.Projets.FirstOrDefault(t => t.Id == g.ProjetId);
+                        return new TicketStatDto
+                        {
+                            Key = $"S{g.Week} {g.Year}",
+                            projetID = project.Nom,
+                            Count = totalHours,
+                            minute = totalMinutes
+                        };
+                    }
+                ),
+                "monthly" => GenerateStats(
+                     query
+                         .GroupBy(t => new { t.ProjetId, t.CreatedAt.Year, t.CreatedAt.Month })
+                         .Select(g => new
+                         {
+                             ProjetId = g.Key.ProjetId,
+                             Year = g.Key.Year,
+                             Month = g.Key.Month,
+                             Hours = g.Sum(t => t.HoursSpent ?? 0),
+                             Minutes = g.Sum(t => t.MinutesSpent ?? 0)
+                         })
+                         .ToList(),
+                     g =>
+                     {
+                         int totalHours = g.Hours + (g.Minutes / 60);
+                         int totalMinutes = g.Minutes % 60;
+                         var project = _context.Projets.FirstOrDefault(t => t.Id == g.ProjetId);
+                         return new TicketStatDto
+                         {
+                    
+                             Key = $"{g.Year}-{g.Month:D2} ",
+                             projetID = project.Nom,
+                             Count = totalHours,
+                             minute = totalMinutes
+                         };
+                     }
+                 ),
+                "yearly" => GenerateStats(
+                    query
+                        .GroupBy(t => new { t.ProjetId, t.CreatedAt.Year })
+                        .Select(g => new
+                        {
+                            ProjetId = g.Key.ProjetId,
+                            Year = g.Key.Year,
+                            Hours = g.Sum(t => t.HoursSpent ?? 0),
+                            Minutes = g.Sum(t => t.MinutesSpent ?? 0)
+                        })
+                        .ToList(),
+                    g =>
+                    {
+                        int totalHours = g.Hours + (g.Minutes / 60);
+                        int totalMinutes = g.Minutes % 60;
+                        var project = _context.Projets.FirstOrDefault(t => t.Id == g.ProjetId);
+                        return new TicketStatDto
+                        { 
+                            Key = $"{g.Year} ",
+                            projetID = project.Nom,
+                            Count = totalHours,
+                            minute = totalMinutes
+                        };
+                    }
+                ),
+
+
+                _ => throw new ArgumentException("Granularity must be 'none', 'monthly' or 'yearly'.")
+            };
+        }
+
+        public DashboardCountsDto GetDashboardCounts(int userId, string role)
     {
       var dto = new DashboardCountsDto();
 

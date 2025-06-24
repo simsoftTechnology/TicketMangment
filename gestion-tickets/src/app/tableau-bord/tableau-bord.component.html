@@ -195,7 +195,7 @@
       </div>
   
       <!-- Ligne 2 -->
-      <div class="chart-box">
+      <div class="chart-box" style="    height: max-content;">
         <ngx-charts-pie-chart 
           [view]="view"
           [scheme]=" isPieNoData() ? noDataScheme : colorScheme "
@@ -207,19 +207,43 @@
           [labels]="true">
         </ngx-charts-pie-chart>
       </div>
+  <table class="table-stats">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Projet</th>
+        <th>Nombre d'heure</th>
+         
+         <th> 
+             
+             <button   class="export-btn" (click)="exportTickets(HoursCounts)" [disabled]="isExportLoading">   Export Excel       </button>   
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let stat of HoursCounts">
+        <td>{{stat.key}}</td>
+        <td>{{ stat.projetID }}</td>
+        <td>{{ stat.count }}H:{{ stat.minute }}min</td>
+        <td></td>
+       
+      </tr>
+    </tbody>
+  </table>
+
     </div>  
   <!-- Tableau récapitulatif -->
   <table class="table-stats">
     <thead>
       <tr>
-        <th>#</th>
+        <th></th>
         <th>Statut</th>
         <th>Nombre de tickets</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let stat of ticketCounts">
-        <td>{{ stat.id }}</td>
+        <td></td>
         <td>{{ stat.name }}</td>
         <td>{{ stat.name === 'Aucune donnée' ? 0 : stat.value }}</td>
       </tr>

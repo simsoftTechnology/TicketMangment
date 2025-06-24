@@ -3,7 +3,7 @@
 
     <!-- Filtres par Date -->
     <div class="form-group">
-      <label for="startDate">Date de début</label>
+      <label for="startDate">Date de Création</label>
       <input 
         type="date" 
         id="startDate" 
@@ -15,7 +15,7 @@
       />
     </div>
     
-    <div class="form-group">
+    <!-- <div class="form-group">
       <label for="endDate">Date de fin</label>
       <input 
         type="date" 
@@ -26,7 +26,7 @@
         (focus)="onDateInputFocus()"
         (blur)="onDateInputBlur()"
       />
-    </div>    
+    </div>     -->
 
     <!-- Client -->
     <!-- <div class="form-group" *ngIf="!isClient">
@@ -62,7 +62,7 @@
 
 
 
-    <div class="form-group">
+    <div class="form-group" *ngIf="user.role !== 'Client'">
       <label for="client">Client</label>
       <div id="client" class="custom-select">
         <div class="select-box" (click)="toggleDropdown('client'); $event.stopPropagation()">

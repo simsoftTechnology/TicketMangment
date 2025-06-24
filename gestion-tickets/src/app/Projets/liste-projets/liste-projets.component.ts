@@ -38,7 +38,7 @@ import { GlobalLoaderService } from '../../_services/global-loader.service';
 export class ListeProjetsComponent implements OnInit {
   paginatedResult: PaginatedResult<Projet[]> | null = null;
   pageNumber: number = 1;
-  pageSize: number = 5;
+  pageSize: number = 10;
   jumpPage!: number;
   projetsSearchTerm: string = '';
 

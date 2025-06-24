@@ -97,7 +97,7 @@ namespace GestionTicketsAPI.Services
           Keys = new Dictionary<string, string>
       {
         { PushEncryptionKeyName.P256DH.ToString().ToLower(), sub.P256DH },
-        { PushEncryptionKeyName.Auth.ToString().ToLower(),    sub.Auth   }
+        { PushEncryptionKeyName.Auth.ToString().ToLower(),    sub.Auth  }
       }
         };
 

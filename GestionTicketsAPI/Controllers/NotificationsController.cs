@@ -69,6 +69,7 @@ namespace GestionTicketsAPI.Controllers
       // On garantit une date d'envoi à jour
       notificationDto.DateEnvoi = DateTime.UtcNow;
 
+
       // Enfile les jobs SignalR et Push
       BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(userId, notificationDto));
       BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(userId, notificationDto));

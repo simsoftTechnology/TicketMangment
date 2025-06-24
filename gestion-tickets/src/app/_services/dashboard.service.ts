@@ -17,6 +17,10 @@ export class DashboardService {
   getDashboardCounts(): Observable<DashboardCountsDto> {
     return this.http.get<DashboardCountsDto>(`${this.baseUrl}/counts`);
   }
+
+    getDashboardCountHours( reqUser: TicketFilterRequest): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/hours`, reqUser);
+  }
   getTicketsByUser(req: TicketFilterRequest): Observable<TicketStatDto[]> {
     return this.http.post<TicketStatDto[]>(`${this.baseUrl}/tickets-by-user`, req);
   }

@@ -439,3 +439,26 @@
     margin-top: 0.5rem;
   }
 }
+
+/* Style spécifique pour le bouton d'exportation Excel */
+.export-btn {
+  background-color: #f9e2cc;
+  color: #f57c00;
+  border: 1px solid #fbc997;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.5rem;
+}
+
+.export-btn:hover {
+  background-color: #fde1c8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn:active {
+  transform: translateY(1px);
+}
+
+.export-btn .material-icons {
+  font-size: 18px;
+  margin-right: 6px;
+}

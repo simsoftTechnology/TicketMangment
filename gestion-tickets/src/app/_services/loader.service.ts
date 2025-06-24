@@ -7,11 +7,12 @@ export class LoaderService {
   // On expose un Observable sur lequel les composants peuvent se baser
   public isLoading$: Observable<boolean> = this.isLoadingSubject.asObservable();
 
-  showLoader() {
+  showLoader() { 
+    
     this.isLoadingSubject.next(true);
   }
 
-  hideLoader() {
+  hideLoader() {   
     this.isLoadingSubject.next(false);
   }
 }

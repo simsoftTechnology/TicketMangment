@@ -14,6 +14,8 @@ public class DashboardCountsDto
 
     // Visible pour tout le monde (mais filtré si pas super admin)
     public int ProjectsCount { get; set; }
+
+    public string TicketsDuration { get; set; }
     public int TicketsCount { get; set; }
 
     // Vous pouvez aussi renvoyer un tableau pour le détail des tickets par statut

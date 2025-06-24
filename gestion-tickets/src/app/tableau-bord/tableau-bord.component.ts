@@ -1,4 +1,4 @@
-import { NgClass, NgFor, NgIf } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { AfterViewInit, Component, HostListener, OnInit } from '@angular/core';
 import { User } from '../_models/user';
 import { AccountService } from '../_services/account.service';
@@ -7,12 +7,10 @@ import { Color, NgxChartsModule, ScaleType, LegendPosition } from '@swimlane/ngx
 import { TicketService } from '../_services/ticket.service';
 import { DashboardService } from '../_services/dashboard.service';
 import { GlobalLoaderService } from '../_services/global-loader.service';
-import { TicketStatDto } from '../_models/ticket-stat.dto';
 import { FormsModule } from '@angular/forms';
 import { TicketFilterRequest } from '../_models/TicketFilterRequest';
 import { curveBasis } from 'd3';
-import { forkJoin } from 'rxjs';
-
+import * as XLSX from 'xlsx';
 @Component({
   selector: 'app-tableau-bord',
   standalone: true,
@@ -39,6 +37,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   userInitials = "";
 
   ticketCounts: any[] = [];
+  HoursCounts: any[] = [];
   view: [number, number] = [1400, 500]; // Taille par défaut (sera mise à jour dynamiquement)
 
   clients: User[] = [];
@@ -82,6 +81,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
   personnelUsers: User[] = [];
 
   myTicketsCount: number = 0;
+ isExportLoading: boolean = false;
 
   constructor(
     private ticketService: TicketService,
@@ -99,6 +99,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
       this.loadTicketCounts();
       this.loadDashboardCounts();
+      this.loadDashboardCountHours();
       this.dashboardService.getMyTicketsCount()
         .subscribe(count => this.myTicketsCount = count);
       this.loadAllUsers();
@@ -115,7 +116,43 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       }
     });
   }
-
+  // Export des tickets avec variable de chargement dédiée
+  exportTickets(data: any): void {
+    if(data != null ){
+      let table: any=[]
+         data.forEach((element:any) => {
+           let tt={
+               "Date": element.key,              
+               "Projet": element.projetID,             
+               "Nombre des Heures": element.count+'H'+ element.minute +'min'
+           }
+           table.push(tt);    
+         });
+ // Convert JSON to worksheet
+ const worksheet = XLSX.utils.json_to_sheet(table);
+ const workbook = XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+ 
+ // Create Blob and download
+ const excelBuffer = XLSX.write(workbook, {
+   bookType: 'xlsx',
+   type: 'array'
+ });
+ const blob = new Blob([excelBuffer], {
+   type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+ });
+     this.isExportLoading = true;
+ 
+     const objectUrl = URL.createObjectURL(blob);
+         const a = document.createElement('a');
+         a.href = objectUrl;
+         a.download = `StatistiqueParHeur${new Date().getTime()}.xlsx`;
+         a.click();
+         URL.revokeObjectURL(objectUrl);
+         // Désactive le loader spécifique après l'export
+         this.isExportLoading = false;
+    }
+  }
   private scrollToPieChart() {
     const element = document.getElementById('pie-chart-container');
     if (element) {
@@ -150,6 +187,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
       }
     });
   }
+   
 
   // Chargement des autres counts du dashboard
   loadDashboardCounts() {
@@ -164,6 +202,41 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
         this.usersCount      = data.usersCount;
         this.clientsCount    = data.clientsCount;
         this.personnelCount  = data.personnelCount;
+      },
+      error: (err) => {
+        console.error('Erreur lors de la récupération des dashboard counts', err);
+      },
+      complete: () => {
+        // Masque le loader pour cet appel
+        this.globalLoaderService.hideGlobalLoader();
+      }
+    });
+  }
+
+
+    // Chargement des autres counts du dashboard
+  loadDashboardCountHours() {
+      const currentUser = this.accountService.currentUser();
+    if (!currentUser) return;
+  
+    // Préparer les filtres date et granularité
+    const start = this.filter.start ?? undefined;
+    const end   = this.filter.end   ?? undefined;
+    const gran  = this.filter.granularity; 
+    const clientId    = this.filter.clientId ?? undefined;
+    const personnelId = this.filter.personnelId ?? undefined;
+  
+     const reqUser: TicketFilterRequest = {
+        userId:      currentUser.id,
+        clientId:    clientId,
+        personnelId: personnelId,
+        start:       start,
+        end:         end,
+        granularity: gran
+      };
+    this.dashboardService.getDashboardCountHours(reqUser).subscribe({
+      next: (data: any) => {         
+         this.HoursCounts=data;  
       },
       error: (err) => {
         console.error('Erreur lors de la récupération des dashboard counts', err);
@@ -252,7 +325,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
             this.userSeries = [{ name: 'Erreur', series: [{ name: '', value: 0 }] }];
           }
         });
-  
+  this.loadDashboardCountHours();
       // ─── BAR + PIE “Mes tickets” ───
       const reqStatusCP: TicketFilterRequest = {
         userId:      undefined,
@@ -281,6 +354,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
         });
   
     } else {
+    
       // ─── COURBE “Tous les tickets” ───
       const reqFilt: TicketFilterRequest = {
         userId:      undefined,
@@ -302,7 +376,7 @@ export class TableauBordComponent implements OnInit, AfterViewInit {
             this.userSeries = [{ name: 'Erreur', series: [{ name: '', value: 0 }] }];
           }
         });
-  
+      this.loadDashboardCountHours();
       // ─── BAR + PIE “Tous les tickets” ───
       const reqStatus: TicketFilterRequest = {
         userId:      undefined,
