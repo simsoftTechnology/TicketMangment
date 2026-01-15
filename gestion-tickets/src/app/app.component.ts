@@ -46,9 +46,9 @@ ngOnInit(): void {
     this.setCurrentUser();
 
     if ('serviceWorker' in navigator) {
-      console.log('SW controller:', navigator.serviceWorker.controller);
+      // console.log('SW controller:', navigator.serviceWorker.controller);
       navigator.serviceWorker.ready
-        .then(reg => console.log('SW ready, scope=', reg.scope));
+        .then(reg => console.log('SW ready, scope=', 'reg.scope'));
     }
     // 1) Récupérer l’ID utilisateur (ex. via localStorage ou token)
     const user = JSON.parse(localStorage.getItem('user') || 'null');

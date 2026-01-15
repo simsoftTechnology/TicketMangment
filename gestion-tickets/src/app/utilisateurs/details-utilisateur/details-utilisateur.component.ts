@@ -355,7 +355,6 @@ export class DetailsUtilisateurComponent implements OnInit {
         actif: this.user.actif
         // Les champs de mot de passe restent vides
       });
-      // console.log('2', this.userForm);
       
     }
   }

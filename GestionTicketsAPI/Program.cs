@@ -16,8 +16,8 @@ builder.Services.AddCors(options =>
         policy
           .WithOrigins(
            //"http://192.168.1.230:8095"
-           "https://simsoft-gt.tn"
-          //"http://localhost:4200"
+          // "https://simsoft-gt.tn"
+          "http://localhost:4200"
           )
           .AllowAnyHeader()
           .AllowAnyMethod()

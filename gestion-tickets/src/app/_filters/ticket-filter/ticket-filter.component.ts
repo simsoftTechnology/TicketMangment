@@ -107,6 +107,7 @@ export class TicketFilterComponent implements OnInit {
    }
 user: any
   ngOnInit(): void {
+        
     const user = this.accountService.currentUser();
     this.user=user
     // Par exemple, si le rôle client est "client", on vérifie ainsi :
@@ -121,11 +122,10 @@ user: any
       qualification: -1,
       projet: -1,
       societe: -1,
-      startDate:new Date().toISOString(),
+      startDate:new Date("1870-01-01").toISOString()
       // endDate: new Date().toISOString()
     });
 
-    console.log(this.filterForm);
     
     // Chargement des données depuis la base via les services
     this.loadClients();
@@ -165,6 +165,8 @@ user: any
 
   loadStatuts(): void {
     this.statutService.getStatuses().subscribe(statuts => {
+    
+      
       this.statutOptions = statuts;
       this.filteredStatuts = [...statuts];
     });

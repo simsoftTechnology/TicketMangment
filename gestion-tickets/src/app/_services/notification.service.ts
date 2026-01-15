@@ -29,9 +29,9 @@ export class NotificationService {
       .build();
 
       this.hubConnection.on('ReceiveNotification', (dto: AppNotification) => {
-        console.log('[SignalR] reçu:', dto);
+        console.log('[SignalR] reçu:', 'dto');
         dto.isRead = false;
-        console.log('[SignalR] forcé isRead →', dto.isRead);
+        console.log('[SignalR] forcé isRead →',' dto.isRead');
         // 1) si on a déjà cet id, on ignore
         if (this.notifications.some(n => n.id === dto.id)) {
           return;

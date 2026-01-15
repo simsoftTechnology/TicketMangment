@@ -19,7 +19,7 @@
         </td>
         <td colspan="6" class="filter-actions">
           <!-- Bouton d'export avec variable de chargement spécifique -->
-          <button class="export-btn" (click)="exportTickets(paginatedResult?.items)" [disabled]="isExportLoading">
+          <button class="export-btn" (click)="exportTickets()" [disabled]="isExportLoading">
             <ng-container *ngIf="!isExportLoading; else loadingExportTpl">
               <span class="material-icons">download</span> Export Excel
             </ng-container>

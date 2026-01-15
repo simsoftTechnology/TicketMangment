@@ -15,7 +15,7 @@ export class PushSubscriptionService {
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') { return; }
     }
-    console.log(Notification.permission); // doit retourner "granted"
+ 
     // 3) (Ré)souscrire via pushManager
     const sub = await registration.pushManager.subscribe({
       userVisibleOnly: true,

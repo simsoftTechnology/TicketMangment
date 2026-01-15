@@ -22,7 +22,7 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw-custom.js', { scope: '/' })
-        .then(reg => console.log('Custom SW enregistré :', reg))
+        .then(reg => console.log('Custom SW enregistré :'))
         .catch(err => console.error('Erreur SW custom :', err));
     }
   </script>

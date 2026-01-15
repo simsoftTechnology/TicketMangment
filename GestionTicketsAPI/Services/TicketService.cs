@@ -36,7 +36,14 @@ namespace GestionTicketsAPI.Services
       return _mapper.Map<IEnumerable<TicketDto>>(tickets);
     }
 
-    public async Task<PagedList<TicketDto>> GetTicketsPagedAsync(TicketFilterParams filterParams)
+     
+   public async Task<IEnumerable<TicketDto>> GetExportedTickets(TicketFilterParams filterParams)
+        {
+            var pagedTickets = await _ticketRepository.GetexportedTickets(filterParams);
+            var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
+            return ticketDtos;
+        }
+        public async Task<PagedList<TicketDto>> GetTicketsPagedAsync(TicketFilterParams filterParams)
     {
       var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(filterParams);
       var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());

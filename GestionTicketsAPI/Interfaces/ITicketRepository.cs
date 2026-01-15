@@ -8,6 +8,7 @@ namespace GestionTicketsAPI.Interfaces
     {
         Task<Ticket?> GetTicketByIdAsync(int id);
         Task<IEnumerable<Ticket>> GetTicketsAsync();
+        Task<IEnumerable<Ticket>> GetexportedTickets(TicketFilterParams filterParams);
         Task<PagedList<Ticket>> GetTicketsPagedAsync(TicketFilterParams filterParams);
         Task AddTicketAsync(Ticket ticket);
         void UpdateTicket(Ticket ticket);

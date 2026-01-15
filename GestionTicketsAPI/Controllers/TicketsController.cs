@@ -66,6 +66,22 @@ namespace GestionTicketsAPI.Controllers
             return Ok(pagedTickets);
         }
 
+
+        [HttpPost("exported")]
+        public async Task<ActionResult<IEnumerable<TicketDto>>> GetExportedTickets([FromBody] TicketFilterParams filterParams)
+        {
+            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            var roleClaim = HttpContext.User.FindFirst(ClaimTypes.Role);
+            if (userIdClaim != null && roleClaim != null)
+            {
+                filterParams.UserId = int.Parse(userIdClaim.Value);
+                filterParams.Role = roleClaim.Value;
+            }
+
+            var pagedTickets = await _ticketService.GetExportedTickets(filterParams);        
+            
+            return Ok(pagedTickets);
+        }
         // GET api/tickets/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<TicketDto>> GetTicket(int id)

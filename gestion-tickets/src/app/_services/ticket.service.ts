@@ -45,6 +45,19 @@ export class TicketService {
       );
   }
 
+   getExportedTickets(     filters: any  ): Observable<Ticket[]> {
+    const params = {     
+      ...filters
+    };
+  
+    return this.http.post<any>(`${this.baseUrl}/exported`, params)
+      .pipe(
+        map(response => {
+         return response;
+        })
+      );
+  }
+
   getTicket(id: number): Observable<Ticket> {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }

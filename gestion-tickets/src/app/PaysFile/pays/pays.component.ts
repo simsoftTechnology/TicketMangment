@@ -73,7 +73,7 @@ export class PaysComponent {
     // Logique pour rediriger ou ouvrir un formulaire de modification
     // console.log('Modifier le pays avec ID :', idPays);
     // Exemple : Navigation vers une page de modification
-    this.router.navigate(['/home/Pays/ModifierPays', idPays]);
+    this.router.navigate(['/home/Pays/ModifierPays', 'idPays']);
   }
 
   deletePays(idPays: number): void {

@@ -13,9 +13,9 @@ self.addEventListener('push', event => {
 });
 
 self.addEventListener('notificationclick', event => {
-  console.log('[sw-custom.js] Push reçu :', event);
+  console.log('[sw-custom.js] Push reçu :');
   if (event.data) {
-    console.log('[sw-custom.js] Payload :', event.data.text());
+    console.log('[sw-custom.js] Payload :');
   }
   event.notification.close();
   const url = event.notification.data;
