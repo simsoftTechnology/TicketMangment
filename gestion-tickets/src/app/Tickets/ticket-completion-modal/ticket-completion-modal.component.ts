@@ -59,6 +59,8 @@ export class TicketCompletionModalComponent {
   
     // Ici on émet bien le `payload`, pas finishData
     this.finished.emit(payload);
+    
+   
   }
   
   

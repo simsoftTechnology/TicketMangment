@@ -24,9 +24,9 @@ namespace GestionTicketsAPI.Repositories
           .Include(t => t.Owner)
           .Include(t => t.ProblemCategory)
           .Include(t => t.Projet)
-            .ThenInclude(p => p.ChefProjet)
+          .ThenInclude(p => p.ChefProjet)
           .Include(t => t.Projet)
-            .ThenInclude(p => p.Societe)
+          .ThenInclude(p => p.Societe)
           .Include(t => t.Responsible)
           .Include(t => t.Priority)
           .Include(t => t.Qualification)
@@ -34,7 +34,12 @@ namespace GestionTicketsAPI.Repositories
           .FirstOrDefaultAsync(t => t.Id == id);
     }
 
-    public async Task<IEnumerable<Ticket>> GetTicketsAsync()
+        public async Task<Ticket?> GetSimpleTicketByIdAsync(int id)
+        {
+            return await _context.Tickets.FirstOrDefaultAsync(t => t.Id == id);
+        }
+
+        public async Task<IEnumerable<Ticket>> GetTicketsAsync()
     {
       return await _context.Tickets
           .Include(t => t.Owner)
@@ -160,55 +165,55 @@ namespace GestionTicketsAPI.Repositories
         }
          
         public async Task<PagedList<Ticket>> GetTicketsPagedAsync(TicketFilterParams filterParams)
-    {
-      var query = _context.Tickets
-          .Include(t => t.Owner)
-          .Include(t => t.ProblemCategory)
-          .Include(t => t.Projet)
-              .ThenInclude(p => p.ChefProjet)
-          .Include(t => t.Projet)
-              .ThenInclude(p => p.Societe)
-          .Include(t => t.Responsible)
-          .Include(t => t.Priority)
-          .Include(t => t.Qualification)
-          .Include(t => t.Statut)
+        {
+          var query = _context.Tickets
+              .Include(t => t.Owner)
+              .Include(t => t.ProblemCategory)
+              .Include(t => t.Projet)
+                  .ThenInclude(p => p.ChefProjet)
+              .Include(t => t.Projet)
+                  .ThenInclude(p => p.Societe)
+              .Include(t => t.Responsible)
+              .Include(t => t.Priority)
+              .Include(t => t.Qualification)
+              .Include(t => t.Statut)
          
-          .OrderByDescending(t => t.CreatedAt)
-          .AsQueryable();
+              .OrderByDescending(t => t.CreatedAt)
+              .AsQueryable();
 
-      // Filtrage par rôle et utilisateur (la logique existante reste inchangée)
-      if (!(filterParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? false))
-      {
-        if (string.Equals(filterParams.Role, "client", StringComparison.OrdinalIgnoreCase))
-        {
-          query = query.Where(t => t.OwnerId == filterParams.UserId);
-        }
-        else if (string.Equals(filterParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase) ||
-                 string.Equals(filterParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
-        {
-          if (!string.IsNullOrEmpty(filterParams.FilterType))
+          // Filtrage par rôle et utilisateur (la logique existante reste inchangée)
+          if (!(filterParams.Role?.Replace(" ", "").Equals("superadmin", StringComparison.OrdinalIgnoreCase) ?? false))
           {
-            if (filterParams.FilterType.Equals("associated", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(filterParams.Role, "client", StringComparison.OrdinalIgnoreCase))
             {
-              query = query.Where(t => t.OwnerId == filterParams.UserId ||
-                                       t.ResponsibleId == filterParams.UserId ||
-                                       (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId));
+              query = query.Where(t => t.OwnerId == filterParams.UserId);
             }
-            else if (filterParams.FilterType.Equals("projetUser", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(filterParams.Role, "chef de projet", StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(filterParams.Role, "collaborateur", StringComparison.OrdinalIgnoreCase))
             {
-              query = query.Where(t => _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
+              if (!string.IsNullOrEmpty(filterParams.FilterType))
+              {
+                if (filterParams.FilterType.Equals("associated", StringComparison.OrdinalIgnoreCase))
+                {
+                  query = query.Where(t => t.OwnerId == filterParams.UserId ||
+                                           t.ResponsibleId == filterParams.UserId ||
+                                           (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId));
+                }
+                else if (filterParams.FilterType.Equals("projetUser", StringComparison.OrdinalIgnoreCase))
+                {
+                  query = query.Where(t => _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
+                }
+              }
+              else
+              {
+                query = query.Where(t =>
+                    t.OwnerId == filterParams.UserId ||
+                    t.ResponsibleId == filterParams.UserId ||
+                    (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId) ||
+                    _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
+              }
             }
           }
-          else
-          {
-            query = query.Where(t =>
-                t.OwnerId == filterParams.UserId ||
-                t.ResponsibleId == filterParams.UserId ||
-                (t.Projet != null && t.Projet.ChefProjetId == filterParams.UserId) ||
-                _context.ProjetUser.Any(pu => pu.ProjetId == t.Projet.Id && pu.UserId == filterParams.UserId));
-          }
-        }
-      }
 
             // Filtres avancés avec les nouveaux champs
             if (filterParams.Client >= 0)

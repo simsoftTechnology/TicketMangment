@@ -28,6 +28,8 @@ namespace GestionTicketsAPI.Data
 
     public DbSet<SocieteUser> SocieteUsers { get; set; }
     public DbSet<PushSubscriptionEntity> PushSubscriptions { get; set; }
+    public DbSet<TicketHistory> TicketHistories { get; set; }
+
     public IEnumerable<object> PushSubscriptionEntity { get; internal set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -174,8 +176,9 @@ namespace GestionTicketsAPI.Data
           .WithMany(p => p.Tickets)
           .HasForeignKey(t => t.ProjetId)
           .OnDelete(DeleteBehavior.Cascade);
+  
 
-      modelBuilder.Entity<SocieteUser>()
+            modelBuilder.Entity<SocieteUser>()
           .ToTable("societe_user")
           .HasKey(su => su.Id);
 
@@ -190,4 +193,5 @@ namespace GestionTicketsAPI.Data
           .HasForeignKey(su => su.UserId);
     }
   }
+
 }

@@ -11,4 +11,6 @@ public class CommentDto
     public int UtilisateurId { get; set; }
     public int TicketId { get; set; }
     public UserDto? Utilisateur { get; set; }
+
+    public string? Attachement { get; set; }
 }

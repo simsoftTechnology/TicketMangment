@@ -1,12 +1,16 @@
+using DocumentFormat.OpenXml.Office2010.Excel;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
+using GestionTicketsAPI.Services;
 
 namespace GestionTicketsAPI.Interfaces
 {
     public interface ITicketService
     {
         Task<TicketDto?> GetTicketByIdAsync(int id);
+        Task<Ticket?> GetSimpleTicketByIdAsync(int id); 
+
         Task<Ticket?> GetTicketEntityByIdAsync(int id);
         Task<IEnumerable<TicketDto>> GetTicketsAsync();
         Task<PagedList<TicketDto>> GetTicketsPagedAsync(TicketFilterParams filterParams);

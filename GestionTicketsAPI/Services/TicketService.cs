@@ -29,7 +29,11 @@ namespace GestionTicketsAPI.Services
     {
       return await _ticketRepository.GetTicketByIdAsync(id);
     }
-
+        public async Task<Ticket?> GetSimpleTicketByIdAsync(int id)
+        {
+            return await _ticketRepository.GetSimpleTicketByIdAsync(id);
+        }
+        
     public async Task<IEnumerable<TicketDto>> GetTicketsAsync()
     {
       var tickets = await _ticketRepository.GetTicketsAsync();
@@ -44,16 +48,16 @@ namespace GestionTicketsAPI.Services
             return ticketDtos;
         }
         public async Task<PagedList<TicketDto>> GetTicketsPagedAsync(TicketFilterParams filterParams)
-    {
-      var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(filterParams);
-      var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
-      return new PagedList<TicketDto>(
-          ticketDtos,
-          pagedTickets.TotalCount,
-          pagedTickets.CurrentPage,
-          pagedTickets.PageSize
-      );
-    }
+            {
+              var pagedTickets = await _ticketRepository.GetTicketsPagedAsync(filterParams);
+              var ticketDtos = _mapper.Map<List<TicketDto>>(pagedTickets.ToList());
+              return new PagedList<TicketDto>(
+                  ticketDtos,
+                  pagedTickets.TotalCount,
+                  pagedTickets.CurrentPage,
+                  pagedTickets.PageSize
+              );
+            }
 
     public async Task AddTicketAsync(Ticket ticket)
     {

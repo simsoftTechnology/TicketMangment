@@ -7,4 +7,14 @@ export interface Comment {
   utilisateurId: number;
   utilisateur?: User;
   ticketId: number;
+  attachement?: string;
+}
+
+export interface Commentexport {
+  
+  contenu: string;
+  
+  ticketId: number;
+  attachmentBase64? :string;
+  attachmentFileName? : string;
 }

@@ -22,6 +22,7 @@ public class Commentaire
     [ForeignKey("Ticket")]
     public int TicketId { get; set; }
 
+    public string? Attachement { get; set; }
     public Ticket? Ticket { get; set; }
    
 

@@ -46,6 +46,12 @@ namespace GestionTicketsAPI.Extensions
             services.AddScoped<ICategorieProblemeRepository, CategorieProblemeRepository>();
             services.AddScoped<ICategorieProblemeService, CategorieProblemeService>();
 
+            /////////////////
+            services.AddScoped<ITicketHistoryRepository, TicketHistoryRepository>();
+            // Services
+            services.AddScoped<TicketHistryService>();
+            ///////////////////////////////
+
             // Enregistrement pour l'entité Priorite
             services.AddScoped<IPrioriteRepository, PrioriteRepository>();
             services.AddScoped<IPrioriteService, PrioriteService>();

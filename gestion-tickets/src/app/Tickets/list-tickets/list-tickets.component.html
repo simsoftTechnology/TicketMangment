@@ -1,7 +1,11 @@
 <div class="container"> 
   <div class="header">
     <h2>Liste des tickets</h2>
-    <button class="add-ticket-btn" *ngIf="accountService.currentUser()?.role?.toLowerCase() === 'client'" routerLink="/home/Tickets/ajouterTicket">
+    <button class="add-ticket-btn" 
+    *ngIf=" 
+      accountService.currentUser()?.role?.toLowerCase() === 'client' ||
+      accountService.currentUser()?.role?.toLowerCase() === 'chef de projet'" 
+    routerLink="/home/Tickets/ajouterTicket">
       <span class="material-icons">add</span> Ajouter
     </button>
   </div>

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace GestionTicketsAPI.Entities;
@@ -35,8 +36,11 @@ public class Ticket
     public string? CompletionComment { get; set; }
     public int? HoursSpent { get; set; }
     public int? MinutesSpent { get; set; }
-}
+    //public object Histories { get; internal set; }
 
+    
+}
+ 
 public class PagedTicket
 {
     public int Id { get; set; }
@@ -68,4 +72,33 @@ public class PagedTicket
 
     public Priorite Priority { get; set; }
     public virtual Qualification Qualification { get; set; }
+}
+
+public class simpleTicket
+{
+    public int Id { get; set; }
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public int PriorityId { get; set; }
+   
+    public int ProjetId { get; set; } 
+    public int OwnerId { get; set; } 
+    public int QualificationId { get; set; } 
+    public int ProblemCategoryId { get; set; } 
+    public int StatutId { get; set; } 
+
+    public string? ValidationReason { get; set; }
+    public int? ResponsibleId { get; set; } 
+    public string? Attachments { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public DateTime? ApprovedAt { get; set; }
+    public DateTime? SolvedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
+
+    public string? CompletionComment { get; set; }
+    public int? HoursSpent { get; set; }
+    public int? MinutesSpent { get; set; }
+ 
+
 }

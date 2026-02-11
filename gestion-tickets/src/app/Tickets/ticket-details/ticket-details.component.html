@@ -2,7 +2,7 @@
 
   <!-- En-tête du ticket : titre à gauche, bouton à droite -->
   <div class="ticket-header">
-    <h1>{{ ticket?.title }}</h1>
+    <h1>{{ ticket?.title }} _ {{ticket?.id}}</h1>
     <!-- Groupe de boutons -->
     <div>
       <button *ngIf="canValidateTicket()" (click)="openValidationModal()">
@@ -18,7 +18,15 @@
         <ng-template #loadingResponsibleTpl>
           <span class="spinner"></span> Enregistrer
         </ng-template>
-      </button>      
+      </button>     
+       <button *ngIf="canReopenTicket()" (click)="ReOpenTicket()"  >
+        <ng-container >
+          Ouvrir
+        </ng-container>
+        <!-- <ng-template #loadingResponsibleTpl>
+          <span class="spinner"></span> Enregistrer
+        </ng-template> -->
+      </button>    
     </div>
   </div>
 
@@ -91,10 +99,24 @@
     <div class="right-section">
       <div class="sidebar-card">
 
-        <div class="sidebar-item">
+        <div *ngIf="currentUser?.role?.toLowerCase() === 'client'; else selectStatus" class="sidebar-item">
           <label>Statut</label>
           <p>{{ ticket.statut?.name }}</p>
         </div>
+        
+        <ng-template #selectStatus>
+          <label>Statut</label>
+          <select [(ngModel)]="selectedStatus" [disabled]="ticket.statut?.name === '—' || 
+                                                          ticket.statut?.name === 'Accepté' ||
+                                                          ticket.statut?.name === 'En cours'
+                                                           " >
+            <option [ngValue]="null" disabled>Changer Statut</option>
+            <option *ngFor="let dev of statutList" [ngValue]="dev.id"
+            [disabled]="dev.name=='Non Résolu' || dev.name=='Résolu' ||  dev.name == '—' || dev.name == 'Accepté' ">
+              {{ dev.name }}  
+            </option>
+          </select>
+        </ng-template>
 
         <div *ngIf="currentUser?.role?.toLowerCase() === 'client'; else selectableResponsible">
           <label>Responsable</label>
@@ -105,7 +127,7 @@
         </div>
         <ng-template #selectableResponsible>
           <label>Responsable</label>
-          <select [(ngModel)]="selectedResponsibleId" [disabled]="ticket.statut?.name === '-' ||
+          <select [(ngModel)]="selectedResponsibleId" [disabled]="ticket.statut?.name === '—'  ||
                               ticket.statut?.name === 'Résolu' ||
                               ticket.statut?.name === 'Non Résolu' ||
                               ticket.statut?.name === 'Refusé'">
@@ -117,6 +139,7 @@
         </ng-template>
 
         <div class="sidebar-item">
+           <p><strong>Créé par :</strong> {{ ticket.owner?.firstName  }}  {{ticket.owner?.lastName}}</p>
           <p><strong>Créé le :</strong> {{ ticket.createdAt ? (ticket.createdAt| date:'short') : 'N/A' }}</p>
           <p><strong>Mise à jour :</strong> {{ ticket.updatedAt ? (ticket.updatedAt | date:'short') : '-' }}</p>
         </div>
@@ -147,6 +170,10 @@
             </div>
           </div>
           <!-- Partie droite : date -->
+             <div *ngIf="comment?.attachement; " class="full-width">
+          <label>Pièce Joint <a [href]="comment.attachement" target="_blank">Voir le fichier</a></label>
+           
+        </div>
           <small class="comment-date">{{ comment.date | date:'short' }}</small>
         </div>
         <!-- Contenu du commentaire en dessous -->
@@ -164,7 +191,19 @@
     
     <!-- Champ de saisie pour nouveau commentaire -->
     <div class="comment-input-container">
-      <textarea [(ngModel)]="newComment" placeholder="Écrire un commentaire..." class="comment-input" rows="1"></textarea>
+      <textarea [(ngModel)]="newComment" 
+      placeholder="Écrire un commentaire..." 
+      class="comment-input" 
+      rows="1">
+    </textarea>
+ 
+
+    <!-- File Attachement -->
+      <div class="form-group">
+         
+        <input id="attachment" type="file" (change)="onFileSelected($event)" class="form-control-file" style="border:none"   >
+      </div>
+
       <button class="send-button" (click)="onAddComment()" [disabled]="isLoading">
         <ng-container *ngIf="!isLoading; else loadingCommentTpl">
           <i class="fas fa-paper-plane"></i>
@@ -174,6 +213,7 @@
         </ng-template>
       </button>      
     </div>
+    
   </div>
 
 </body>

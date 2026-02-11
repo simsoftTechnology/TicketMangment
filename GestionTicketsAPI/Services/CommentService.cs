@@ -1,10 +1,12 @@
 using System;
 using AutoMapper;
+using DocumentFormat.OpenXml.InkML;
 using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using Hangfire;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -32,7 +34,7 @@ public class CommentService : ICommentService
     _notifService = notifService;            // ← ajouté
   }
 
-  public async Task<CommentDto> CreateCommentAsync(CommentCreateDto commentCreateDto, int userId)
+  public async Task<Commentaire> CreateCommentAsync(CommentCreateDto commentCreateDto, int userId)
   {
     // 1) Création en base
     var commentaire = new Commentaire
@@ -40,11 +42,13 @@ public class CommentService : ICommentService
       Contenu = commentCreateDto.Contenu,
       Date = DateTime.UtcNow,
       TicketId = commentCreateDto.TicketId,
-      UtilisateurId = userId
-    };
+      UtilisateurId = userId,
+      Attachement=commentCreateDto.AttachmentFileName
+    };       
+            _context.Commentaires.Add(commentaire);
+            
 
-    _context.Commentaires.Add(commentaire);
-    if (await _context.SaveChangesAsync() <= 0)
+        if (await _context.SaveChangesAsync() <= 0)
       return null;
 
     // 2) Chargement du ticket et ses relations utiles
@@ -154,13 +158,14 @@ public class CommentService : ICommentService
     }
 
     // 7) Retour du DTO
-    return new CommentDto
+    return new Commentaire
     {
       Id = commentaire.Id,
       Contenu = commentaire.Contenu,
       Date = commentaire.Date,
       UtilisateurId = commentaire.UtilisateurId,
-      TicketId = commentaire.TicketId
+      TicketId = commentaire.TicketId,
+      Attachement= commentCreateDto.AttachmentFileName
     };
   }
 

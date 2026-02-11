@@ -1,8 +1,10 @@
 using AutoMapper;
+using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Helpers;
 using GestionTicketsAPI.Interfaces;
+using GestionTicketsAPI.Repositories;
 using GestionTicketsAPI.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -10,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text;
-
+using System.Text.Json;
 
 namespace GestionTicketsAPI.Controllers
 {
@@ -18,6 +20,7 @@ namespace GestionTicketsAPI.Controllers
     public class TicketsController : BaseApiController
     {
         private readonly ITicketService _ticketService;
+        private readonly ITicketRepository _ticketRepository;
         private readonly IMapper _mapper;
         private readonly IPhotoService _photoService;
         private readonly EmailService _emailService;
@@ -26,10 +29,16 @@ namespace GestionTicketsAPI.Controllers
         private readonly ExcelExportServiceClosedXML _excelExportService;
         private readonly NotificationService _notifService;
         private readonly IWebHostEnvironment _env;
+      
+        private readonly TicketHistryService _ticketHistoryService;
 
-        public TicketsController(IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService,
+
+
+        public TicketsController(TicketHistryService ticketHistoryService, ITicketRepository ticketRepository, IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService,
         NotificationService notifService)
         {
+            _ticketHistoryService = ticketHistoryService;
+            _ticketRepository = ticketRepository;
             _ticketService = ticketService;
             _mapper = mapper;
             _photoService = photoService;
@@ -40,7 +49,13 @@ namespace GestionTicketsAPI.Controllers
             _env = env;
             _notifService = notifService;
         }
+        [HttpGet("reopen/{id}")]
+        public async Task<IActionResult> ReOpenTickets(int id)
+        {
+            var result = await _ticketHistoryService.ReOpenTicketAsync(id);
 
+            return Ok(result);
+        }
         // GET api/tickets?...
         [HttpPost("paged")]
         public async Task<ActionResult<IEnumerable<TicketDto>>> GetTickets([FromBody] TicketFilterParams filterParams)
@@ -628,7 +643,9 @@ namespace GestionTicketsAPI.Controllers
             var role = HttpContext.User.FindFirst(ClaimTypes.Role)!.Value.ToLower();
             var isAllowed = ticket.Projet?.ChefProjet?.Id == currentUserId
                             || ticket.ResponsibleId == currentUserId
-                            || role == "super admin";
+                            || role == "super admin"
+                            || ticket.OwnerId == currentUserId;
+           
             if (!isAllowed)
                 return Unauthorized("Vous n'êtes pas autorisé à terminer ce ticket.");
 
@@ -749,24 +766,47 @@ namespace GestionTicketsAPI.Controllers
         [HttpPost("updateResponsible/{id}")]
         public async Task<IActionResult> UpdateResponsible(int id, [FromBody] TicketResponsibleDto responsibleDto)
         {
+            var dtoJson = System.Text.Json.JsonSerializer.Serialize(responsibleDto);
+            //return NotFound($"{responsibleDto.ResponsibleId}");
+           
             var ticket = await _ticketService.GetTicketEntityByIdAsync(id);
             if (ticket == null)
                 return NotFound("Ticket non trouvé");
+
 
             var currentUserId = int.Parse(HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var role = HttpContext.User.FindFirst(ClaimTypes.Role)!.Value.ToLower();
             var isAllowed = ticket.Projet?.ChefProjet?.Id == currentUserId
                             || ticket.ResponsibleId == currentUserId
-                            || role == "super admin";
-            if (!isAllowed)
-                return Unauthorized("Vous n'êtes pas autorisé à modifier le responsable.");
+                            || role == "Super Admin"
+                            || role == "chef de projet"; 
 
-            if (ticket.ResponsibleId == responsibleDto.ResponsibleId)
-                return BadRequest("Le responsable n'a pas été modifié.");
+            if (!isAllowed)
+                return Unauthorized($"Vous n'êtes pas autorisé à modifier le ticket.{role}");
+
+            //var dtoJson = System.Text.Json.JsonSerializer.Serialize(responsibleDto);
+
+            if ((ticket.ResponsibleId == responsibleDto.ResponsibleId) && (ticket.StatutId == responsibleDto.statut))
+                return BadRequest("Ticket n'a pas été modifié.");
+                // 4) Commentaire interne
+            if (ticket.StatutId != responsibleDto.statut)
+            {
+                var sb = new StringBuilder()
+                    .AppendLine($"Le ticket a été rouvert avec succès.")
+                    // Date de début = date de création du ticket
+                    .AppendLine($"Date : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}");
+                var commentText = sb.ToString();
+                await _commentService.CreateCommentAsync(new CommentCreateDto
+                {
+                    Contenu = commentText,
+                    TicketId = ticket.Id
+                }, currentUserId);
+            }
+
 
             ticket.ResponsibleId = responsibleDto.ResponsibleId;
+            ticket.StatutId = responsibleDto.statut;
             await _ticketService.UpdateTicketAsync(ticket);
-
             if (ticket.Responsible is { } newResp)
             {
                 var notifDto = new NotificationDto
@@ -813,7 +853,7 @@ namespace GestionTicketsAPI.Controllers
                 BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(newResp.Id, notifDto));
                 BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(newResp.Id, notifDto));
             }
-            return NoContent();
+            return Ok();
         }
 
         [HttpGet("status-count")]
@@ -843,12 +883,17 @@ namespace GestionTicketsAPI.Controllers
                 filterParams.UserId = int.Parse(userIdClaim.Value);
                 filterParams.Role = roleClaim.Value;
             }
-
+            
             var tickets = await _ticketService.GetTicketsFilteredAsync(filterParams);
             var ticketExportDtos = _mapper.Map<IEnumerable<TicketExportDto>>(tickets);
             var content = _excelExportService.ExportToExcel(ticketExportDtos, "Tickets");
             return ticketExportDtos; 
         }
 
+          
+
     }
+    
+
+
 }

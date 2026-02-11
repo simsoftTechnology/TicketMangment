@@ -32,7 +32,7 @@ registerLocaleData(localeFr);
 })
 export class TicketDetailsComponent implements OnInit {
   
-
+ selectedFile: File | undefined = undefined;
   ticket: Ticket | null = null;
   currentUser: User | null = null;
   ticketId!: number;
@@ -44,9 +44,17 @@ export class TicketDetailsComponent implements OnInit {
 
   // Propriété pour stocker le responsable sélectionné
   selectedResponsibleId: number | null = null;
+  selectedStatus: number | null = null;
 
   isLoading: boolean = false;
+statutList=[
+  {id:1, name:'—'},
+  {id:2, name:'Accepté'},
+  {id:4, name:'En cours'},
+  {id:5, name:'Résolu'},
+  {id:6, name:'Non Résolu'},
 
+]
   constructor(
     private route: ActivatedRoute,
     private ticketService: TicketService,
@@ -89,6 +97,7 @@ export class TicketDetailsComponent implements OnInit {
      
         // Initialiser le responsable sélectionné avec la valeur actuelle du ticket
         this.selectedResponsibleId = ticket.responsibleId || null;
+        this.selectedStatus= ticket.statutId;
       },
       error: (err) => {
         console.error('Erreur lors de la récupération du ticket', err);
@@ -120,7 +129,7 @@ export class TicketDetailsComponent implements OnInit {
   loadComments(): void {
     this.commentService.getCommentsByTicket(this.ticketId).subscribe({
       next: (comments) => {
-        this.comments = comments;
+        this.comments = comments;         
       },
       error: (err) => {
         console.error('Erreur lors du chargement des commentaires', err);
@@ -128,12 +137,17 @@ export class TicketDetailsComponent implements OnInit {
     });
   }
 
-
+  // File selection handler
+  onFileSelected(event: any): void {
+    if (event.target.files && event.target.files.length > 0) {
+      this.selectedFile = event.target.files[0]; 
+    }
+  }
 
   onAddComment(): void {
     if (!this.newComment || this.newComment.trim() === '') return;
     this.loaderService.showLoader();
-    this.commentService.addComment({ contenu: this.newComment, ticketId: this.ticketId }).subscribe({
+    this.commentService.addCommentwithAttachement({ contenu: this.newComment, ticketId: this.ticketId, file:  this.selectedFile }).subscribe({
       next: (comment) => {
         this.newComment = '';
         this.comments.push(comment);
@@ -159,27 +173,42 @@ export class TicketDetailsComponent implements OnInit {
 
   // Méthode pour déterminer si l'utilisateur peut terminer ou modifier le responsable
   canFinishTicket(): boolean {
-    if (!this.ticket || !this.currentUser) return false;
+  if (!this.ticket || !this.currentUser) return false;
+  const userRole = this.currentUser.role.toLowerCase();
+  const statusName = this.ticket.statut?.name?.toLowerCase();
+  // Clients cannot finish tickets
+  if (userRole === 'client') return false;
 
-    // Les clients ne peuvent pas terminer ni modifier le responsable
-    if (this.currentUser.role.toLowerCase() === 'client') return false;
-
-    // La mise à jour du responsable ne doit être possible que si le ticket a été validé (approvedAt renseigné)
-    if (!this.ticket.approvedAt) return false;
-
-    // Vérifier le statut du ticket : si le ticket est déjà dans un statut final (résolu, non résolu, refusé ou non validé) on bloque
-    const statusName = this.ticket.statut?.name?.toLowerCase();
-    const invalidStatuses = ['—', 'résolu', 'non résolu', 'refusé'];
-    if (statusName && invalidStatuses.includes(statusName)) {
-      return false;
-    }
-
-    const userRole = this.currentUser.role.toLowerCase();
-    return userRole === 'chef de projet' ||
-      userRole === 'super admin' ||
-      (this.ticket.responsibleId === this.currentUser.id);
+  // Block if ticket is in a final/invalid status OR not approved
+  const invalidStatuses = ['—', 'en cours', 'résolu', 'non résolu'];
+  if ((statusName && invalidStatuses.includes(statusName)) || !this.ticket.approvedAt) {
+    return false;
   }
 
+  // Permissions: super admin, project manager, or responsible user
+  return ['chef de projet', 'super admin'].includes(userRole) ||
+         this.ticket.responsibleId === this.currentUser.id;
+  }
+canReopenTicket(): boolean {
+  if (!this.ticket || !this.currentUser) return false;
+
+  const userRole = this.currentUser.role.toLowerCase();
+  const statusName = this.ticket.statut?.name?.toLowerCase();
+
+  return (
+    userRole !== 'client' &&
+    !!statusName &&
+    ['chef de projet', 'super admin'].includes(userRole) &&
+    ['résolu', 'non résolu'].includes(statusName)
+  );
+}
+ReOpenTicket(){
+ console.log(this.ticket);
+ if(this.ticket){
+   this.ticketService.ReOpenTicket( this.ticket.id).subscribe((res)=>{console.log('reopen success');
+   })
+ }
+}
   // Pour garder la même condition pour la mise à jour du responsable
   canUpdateResponsible(): boolean {
     return this.canFinishTicket();
@@ -211,8 +240,9 @@ export class TicketDetailsComponent implements OnInit {
       
       // Appel à la méthode qui gère la validation et les mises à jour
       this.updateTicketCompletion(finishData);
-      this.isLoading = !this.isLoading;
-    });
+      this.isLoading = !this.isLoading; 
+    },
+      (err:Error)=>{this.isLoading = !this.isLoading;});
     modalInstance.closed.subscribe(() => {
       this.overlayModalService.close();
       this.isLoading = !this.isLoading;
@@ -234,6 +264,8 @@ export class TicketDetailsComponent implements OnInit {
         console.error('Erreur lors de la clôture du ticket', err);
         const message = err.error || 'Erreur lors de la clôture du ticket';
         this.toastr.error(message, 'Erreur');
+           this.loaderService.hideLoader();
+             this.overlayModalService.close(); 
       }
     });
   }
@@ -241,21 +273,23 @@ export class TicketDetailsComponent implements OnInit {
 
   // Méthode pour mettre à jour le responsable
   updateResponsible(): void {
-    if (!this.ticket || !this.selectedResponsibleId) {
-      console.error("Ticket ou responsable non défini");
-      this.toastr.error("Ticket ou responsable non défini", 'Erreur');
+    if (!this.ticket || (!this.selectedResponsibleId &&  !this.selectedStatus)) {
+      this.toastr.error("1 statut ou responsable non défini", 'Erreur');
       return;
     }
+    console.log("selectedResponsibleId", this.selectedResponsibleId , "selectedStatus", this.selectedStatus);
+   
     this.loaderService.showLoader();
-    this.ticketService.updateResponsible(this.ticket.id, { responsibleId: this.selectedResponsibleId }).subscribe({
+    this.ticketService.updateResponsible(this.ticket.id,   this.selectedResponsibleId ,  this.selectedStatus).subscribe({
       next: () => {
         this.loadTicket();
-        this.toastr.success('Responsable mis à jour avec succès');
+        this.toastr.success('Ticket mis à jour avec succès');
         this.loaderService.hideLoader();
       },
       error: err => {
-        console.error('Erreur lors de la mise à jour du responsable', err);
-        const message = err.error || 'Erreur lors de la mise à jour du responsable';
+     
+         
+        const message = err || 'Erreur lors de la mise à jour du Ticket';
         this.toastr.error(message, 'Erreur');
         this.loaderService.hideLoader();
       }

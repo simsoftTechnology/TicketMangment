@@ -62,6 +62,10 @@ export class TicketService {
     return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
   }
 
+   ReOpenTicket(id: number): Observable<Ticket> {
+    return this.http.get<Ticket>(`${this.baseUrl}/reopen/${id}`);
+  }
+
   // Convert file to base64 using a Promise; used internally by createTicket when needed.
   convertFileToBase64(file: File): Promise<string> {
     return new Promise<string>((resolve, reject) => {
@@ -117,8 +121,11 @@ export class TicketService {
     return this.http.post(`${this.baseUrl}/finish/${ticketId}`, finishData);
   }
 
-  updateResponsible(ticketId: number, responsibleDto: { responsibleId: number }): Observable<any> {
-    return this.http.post(`${this.baseUrl}/updateResponsible/${ticketId}`, responsibleDto);
+  updateResponsible(ticketId: number, responsibleDto: number|null , statut : number|null): Observable<any> {
+    console.log("service",responsibleDto);
+    console.log("service",statut);
+    
+    return this.http.post(`${this.baseUrl}/updateResponsible/${ticketId}`, {ResponsibleId:responsibleDto, statut:statut});
   }
 
   getTicketCountByStatus(): Observable<any[]> {

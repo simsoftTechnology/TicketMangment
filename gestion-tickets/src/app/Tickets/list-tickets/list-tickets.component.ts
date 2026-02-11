@@ -327,7 +327,7 @@ export class ListTicketsComponent implements OnInit {
   // Export des tickets avec variable de chargement dédiée
   exportTickets(): void { 
         this.ticketService.getExportedTickets(this.currentFilters).subscribe((res)=>{
-          console.log("exported res: ",res);
+      
           
           if(res != null ){       
              let table: any=[]

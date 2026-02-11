@@ -30,7 +30,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
               return throwError(() => error.error);
             }
           case 401:
-            accountService.logout();
+            // accountService.logout();
             return throwError(() => error);
           case 404:
             toastr.error(`L'URL ${req.url} n'a pas été trouvée.`, 'Erreur 404');
