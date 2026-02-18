@@ -18,6 +18,8 @@ import localeFr from '@angular/common/locales/fr';
 import { CommentService } from '../../_services/comment.service';
 import { LoaderService } from '../../_services/loader.service';
 import { GlobalLoaderService } from '../../_services/global-loader.service';
+import { NotificationService } from 'src/app/_services/notification.service';
+import { AppNotification } from 'src/app/_models/notification';
 registerLocaleData(localeFr);
 
 @Component({
@@ -41,7 +43,7 @@ export class TicketDetailsComponent implements OnInit {
   // Pour la gestion des commentaires
   comments: TicketComment[] = [];
   newComment: string = '';
-
+  historyTab:AppNotification[]=[]
   // Propriété pour stocker le responsable sélectionné
   selectedResponsibleId: number | null = null;
   selectedStatus: number | null = null;
@@ -64,12 +66,15 @@ statutList=[
     private commentService: CommentService,
     private loaderService: LoaderService,
     private globalLoaderService: GlobalLoaderService,
+    private notificationService:NotificationService
   ) {
     this.loaderService.isLoading$.subscribe(loading => {
       this.isLoading = loading;
     });
+        // this.accountService.getCurrentUser().subscribe((res)=>console.log("current user",res) );
   }
   ngOnInit(): void {
+   
     // Souscrire aux changements de paramètres
     this.route.paramMap.subscribe(paramMap => {
       // Récupère l'ID depuis la route à chaque changement
@@ -82,10 +87,13 @@ statutList=[
     // Charge une seule fois la liste des développeurs (si elle ne change pas en fonction de l'ID)
     this.loadDevelopers();
     // Récupère l'utilisateur courant
-    this.currentUser = this.accountService.currentUser();
+    this.currentUser = this.getcurrentUser;
   }
   
-
+  get getcurrentUser(): User | null {
+  this.currentUser= this.accountService.currentUser() 
+    return this.currentUser
+  }
   loadTicket(): void {
     this.globalLoaderService.showGlobalLoader();
     this.ticketService.getTicket(this.ticketId).subscribe({
@@ -94,10 +102,10 @@ statutList=[
         if(ticket && ticket.attachments && ticket.attachments.includes('http://192.168.1.230:8055')){
           this.ticket.attachments=   this.ticket.attachments!.replace('http://192.168.1.230:8055', 'https://support.simsoft.tn:8055');
         }
-     
         // Initialiser le responsable sélectionné avec la valeur actuelle du ticket
         this.selectedResponsibleId = ticket.responsibleId || null;
         this.selectedStatus= ticket.statutId;
+        this.getHistory()
       },
       error: (err) => {
         console.error('Erreur lors de la récupération du ticket', err);
@@ -109,7 +117,14 @@ statutList=[
       }
     });
   }  
+getHistory(){
+  if(this.ticket && this.currentUser){
+    this.notificationService.getHistory( this.ticket.ownerId,this.ticket.id ).subscribe((res)=>{
+      this.historyTab =res
+    })
 
+  }
+}
   loadDevelopers(): void {
     forkJoin([
       this.accountService.getUsersByRole('collaborateur'),
@@ -180,10 +195,11 @@ statutList=[
   if (userRole === 'client') return false;
 
   // Block if ticket is in a final/invalid status OR not approved
-  const invalidStatuses = ['—', 'en cours', 'résolu', 'non résolu'];
+  const invalidStatuses = ['—',  'résolu', 'non résolu'];
   if ((statusName && invalidStatuses.includes(statusName)) || !this.ticket.approvedAt) {
     return false;
   }
+  
 
   // Permissions: super admin, project manager, or responsible user
   return ['chef de projet', 'super admin'].includes(userRole) ||
@@ -203,10 +219,30 @@ canReopenTicket(): boolean {
   );
 }
 ReOpenTicket(){
- console.log(this.ticket);
+ 
  if(this.ticket){
-   this.ticketService.ReOpenTicket( this.ticket.id).subscribe((res)=>{console.log('reopen success');
-   })
+   this.ticketService.ReOpenTicket( this.ticket.id).subscribe(
+    {
+     next: () => {
+    
+      
+      if(this.ticket && this.ticket.statut)  { 
+        this.ticket.statutId=4; 
+        this.ticket.statut.name='En cours'; 
+        this.selectedStatus=4
+      }
+      
+      
+       this.toastr.success('Ticket reouvert avec succès');
+     }
+     ,
+      error: err => {
+        
+        this.toastr.error(err.error || 'Erreur lors de la reouverture du ticket', 'Erreur');
+           this.loaderService.hideLoader();
+             this.overlayModalService.close(); 
+      }
+   },  )
  }
 }
   // Pour garder la même condition pour la mise à jour du responsable
@@ -277,7 +313,7 @@ ReOpenTicket(){
       this.toastr.error("1 statut ou responsable non défini", 'Erreur');
       return;
     }
-    console.log("selectedResponsibleId", this.selectedResponsibleId , "selectedStatus", this.selectedStatus);
+    
    
     this.loaderService.showLoader();
     this.ticketService.updateResponsible(this.ticket.id,   this.selectedResponsibleId ,  this.selectedStatus).subscribe({

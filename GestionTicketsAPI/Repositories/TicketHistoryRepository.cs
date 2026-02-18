@@ -23,7 +23,8 @@ namespace GestionTicketsAPI.Repositories
                 Result ret = new Result();
             try
             {
-                await _context.TicketHistories.AddAsync(history);
+                await _context.TicketHistory.AddAsync(history);
+                await _context.SaveChangesAsync();
                 ret.statut = true;
                 ret.reslut = "success";
                 return ret;
@@ -31,7 +32,7 @@ namespace GestionTicketsAPI.Repositories
             catch (Exception ex)
             {               
                 ret.statut = false;
-                ret.reslut = $"Erreur lors de l ajout history : {ex.Message}";
+                ret.reslut = ex.InnerException?.Message ?? ex.Message;
                 return ret; // Retourne false si erreur
             }
         }

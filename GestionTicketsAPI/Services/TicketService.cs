@@ -16,7 +16,41 @@ namespace GestionTicketsAPI.Services
       _ticketRepository = ticketRepository;
       _mapper = mapper;
     }
+  public async Task<Result> ReOpenTicketAsync(int id)
+    {
+      Result ret = new Result();
+        try
+        {
+            var ticket = await _ticketRepository.GetSimpleTicketByIdAsync(id);
 
+            if (ticket == null    )
+              { ret.statut = false;
+               ret.reslut = "null ticket";
+               return ret;
+            }
+          else
+          {              // 🔄 Mettre à jour le statut
+              ticket.StatutId = 4; // Reopened
+              ticket.UpdatedAt = DateTime.UtcNow;
+              //// 💾 Sauvegarder tout en une fois
+              await _ticketRepository.SaveAllAsync(); // ou _context.SaveChangesAsync()
+              if(ticket != null) ret.reslut =  ticket.ToString()  ;
+              
+
+
+
+            
+              return ret;
+          }
+          
+        }
+        catch (Exception ex)
+        {               
+            ret.statut = false;
+            ret.reslut =  ex.InnerException?.Message ?? ex.Message;
+            return ret; // Retourne false si erreur
+        }
+    }
     public async Task<TicketDto?> GetTicketByIdAsync(int id)
     {
       var ticket = await _ticketRepository.GetTicketByIdAsync(id);

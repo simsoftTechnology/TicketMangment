@@ -250,17 +250,25 @@ namespace GestionTicketsAPI.Repositories
             {
                 query = query.Where(t => t.Projet != null && t.Projet.SocieteId == filterParams.Societe);
             }
-            if (filterParams.startDate.HasValue)
-            {
-                var start = filterParams.startDate.Value.Date;
-                query = query.Where(t => t.CreatedAt.Date >= start);
-            }
-
-            //   if (filterParams.endDate.HasValue)
+            // if (filterParams.startDate.HasValue)
             // {
-            //   var end = filterParams.endDate.Value.Date.AddDays(1);
-            //   query = query.Where(t => t.CreatedAt < end);
+            //     var start = filterParams.startDate.Value.Date;
+            //     query = query.Where(t => t.CreatedAt.Date >= start);
             // }
+
+           if (filterParams.startDate.HasValue)
+              {
+                  var date = filterParams.startDate.Value;
+
+                  var startOfMonth = new DateTime(date.Year, date.Month, 1);
+                  var startOfNextMonth = startOfMonth.AddMonths(1);
+
+                  query = query.Where(t =>
+                      t.SolvedAt >= startOfMonth &&
+                      t.SolvedAt < startOfNextMonth
+                  );
+              }
+
             if (!string.IsNullOrWhiteSpace(filterParams.SearchTerm))
             {
                 var term = filterParams.SearchTerm.ToLower();

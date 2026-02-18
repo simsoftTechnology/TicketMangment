@@ -144,6 +144,7 @@
           <p><strong>Mise à jour :</strong> {{ ticket.updatedAt ? (ticket.updatedAt | date:'short') : '-' }}</p>
         </div>
       </div>
+  
     </div>
   </div>
 
@@ -213,6 +214,33 @@
         </ng-template>
       </button>      
     </div>
+    
+  </div>
+
+
+    <!-- Section Commentaires -->
+  <div class="comments-container">
+    <!-- Titre de la section commentaires -->
+    <h2>Historique</h2>
+
+    <!-- Liste des commentaires -->
+    <div class="comments-list" >
+      <div class="comment" *ngFor="let comment of historyTab">
+        <div class="comment-header">       
+              <div class="left-part">
+                   
+        
+          </div>
+          <!-- Partie droite : date -->             
+          <small class="comment-date">{{ comment.dateEnvoi | date:'short' }}</small>
+        </div>
+        <!-- Contenu du commentaire en dessous -->
+        <p class="comment-content" [innerHTML]="comment.message"></p>
+      </div>
+    </div>
+
+ 
+     
     
   </div>
 

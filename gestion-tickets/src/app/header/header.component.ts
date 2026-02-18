@@ -49,15 +49,11 @@ export class HeaderComponent implements OnInit {
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(q => this.executeSearch(q));
+    this.getcurrentUser;
   }
 
   ngOnInit(): void {
-    this.currentUser = this.accountService.currentUser();
-    if (this.currentUser) {
-      this.userInitials =
-        this.currentUser.firstName.charAt(0).toUpperCase() +
-        this.currentUser.lastName.charAt(0).toUpperCase();
-    }
+
 
     const user = this.accountService.currentUser();
     if (user?.id) {
@@ -78,6 +74,7 @@ export class HeaderComponent implements OnInit {
         
       });
     }
+     
   }
 
 toggleNotifications(): void {
@@ -90,6 +87,13 @@ toggleNotifications(): void {
         this.unreadCount = 0;
       });
     }
+  }
+    get getcurrentUser(): User | null {
+       this.currentUser=  JSON.parse(localStorage.getItem('user') || 'null');
+    //  this.accountService.currentUser();
+        if(this.currentUser)
+         this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0); 
+      return this.currentUser
   }
 
 

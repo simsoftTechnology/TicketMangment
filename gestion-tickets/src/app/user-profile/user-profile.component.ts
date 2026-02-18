@@ -165,10 +165,9 @@ export class UserProfileComponent implements OnInit {
           ...updatedUser,
           token: this.userDetails?.token || ''
         };
-        
-  
+          
         // Mettre à jour le local storage et le signal
-        this.accountService.setCurrentUser(mergedUser);
+        this.accountService.UpdateCurrentUser(mergedUser);
   
         // Mettre à jour la variable locale
         this.userDetails = mergedUser;

@@ -9,6 +9,7 @@ namespace GestionTicketsAPI.Interfaces
     public interface ITicketService
     {
         Task<TicketDto?> GetTicketByIdAsync(int id);
+        Task<Result> ReOpenTicketAsync(int id);
         Task<Ticket?> GetSimpleTicketByIdAsync(int id); 
 
         Task<Ticket?> GetTicketEntityByIdAsync(int id);
@@ -25,5 +26,6 @@ namespace GestionTicketsAPI.Interfaces
         Task<IEnumerable<Ticket>> GetTicketsAsync(TicketFilterParams filterParams);
         Task<IEnumerable<Ticket>> GetTicketsFilteredAsync(TicketFilterParams filterParams);
         Task<bool> SaveAllAsync();
+        
     }
 }

@@ -5,6 +5,7 @@ import { AppNotification } from '../_models/notification';
 import { Router } from '@angular/router';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
 import { OverlayModalService } from '../_services/overlay-modal.service';
+import { AccountService } from '../_services/account.service';
 
 @Component({
   selector: 'app-notifications',
@@ -22,14 +23,18 @@ export class NotificationsComponent implements OnInit {
   private notificationToDelete?: AppNotification;
 
   constructor(
+    private accountService : AccountService,
     private notifSvc: NotificationService,
     private router: Router,
     private overlayModal: OverlayModalService
   ) { }
 ngOnInit(): void {
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) { return; }
-    this.userId = JSON.parse(storedUser).id.toString();
+  // const storedUser =this.accountService.currentUser();
+  const storedUser = localStorage.getItem('user');
+    if (!storedUser) return;
+    const user = JSON.parse(storedUser);
+    this.userId = user.id.toString();
+    
   
     // Historique + fusion
     this.notifSvc.getNotifications(this.userId).subscribe({

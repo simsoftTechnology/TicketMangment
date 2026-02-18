@@ -8,6 +8,7 @@ using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
 using GestionTicketsAPI.Services;
 using Hangfire;
+using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -50,7 +51,7 @@ namespace GestionTicketsAPI.Controllers
       }
       catch (Exception ex)
       {
-        _logger.LogError(ex, "Échec de l'abonnement push");
+     
         return StatusCode(500, new
         {
           error = ex.Message,
@@ -99,7 +100,36 @@ namespace GestionTicketsAPI.Controllers
       return Ok(dtos);
     }
 
+    [HttpGet("history/{ticketId}/{userId}")]
+    public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications(int ticketId, int userId)
+    {
+      var entities = await _context.Notification
+          .Where(n => n.UtilisateurId == userId && !n.IsDeleted)
+          .Where(n => n.EntityId == ticketId)
+          .OrderBy(n => n.DateEnvoi)
+          .ToListAsync();
+     
+ // Remplacer "votre" par "le"
+      foreach (var item in entities)
+      {
+          if (!string.IsNullOrEmpty(item.Message))
+          {
+              item.Message = item.Message.Replace("Votre", "le");
+          }
+      }
 
+      var dtos = entities.Select(n => new NotificationDto
+      {
+        Id = n.Id,
+        Message = n.Message,
+        DateEnvoi = n.DateEnvoi,
+        IsRead = n.IsRead,
+        EntityType = n.EntityType,
+        EntityId = n.EntityId
+      });
+
+      return Ok(dtos);
+    }
     // 4) Marquer toutes les notifications comme lues
     [HttpPost("markasread/{userId}")]
     public async Task<IActionResult> MarkAllAsRead(int userId)

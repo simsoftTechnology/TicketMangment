@@ -3,9 +3,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace GestionTicketsAPI.Services
 {
@@ -16,21 +18,43 @@ namespace GestionTicketsAPI.Services
     private readonly IUserRepository _userRepository;
     private readonly ITokenService _tokenService;
     private readonly IMapper _mapper;
-
+  private readonly DataContext _context;
+       
     public AccountService(
         IUserRepository userRepository,
         IAccountRepository accountRepository,
         ISocieteRepository societeRepository,
         ITokenService tokenService,
-        IMapper mapper)
+        IMapper mapper,
+        DataContext context)
     {
+        _context = context;
       _accountRepository = accountRepository;
       _societeRepository = societeRepository;
       _userRepository = userRepository;
       _tokenService = tokenService;
       _mapper = mapper;
     }
+  public async Task<UserDto> getCurrentUser(string userId){
 
+    try
+    {
+       var user = await _context.Users
+    .Include(u => u.Role)
+    .FirstOrDefaultAsync(u => u.Id.ToString() == userId);   
+      if (user == null) return null;
+     
+      var userDto = _mapper.Map<UserDto>(user);
+      userDto.Token = _tokenService.CreateToken(user);
+      return userDto;
+    }
+    catch (System.Exception)
+    {
+      
+      throw;
+    }
+     
+  }
     public async Task<UserDto> RegisterAsync(RegisterDto registerDto)
     {
       // 1. Vérifier si l'utilisateur existe déjà

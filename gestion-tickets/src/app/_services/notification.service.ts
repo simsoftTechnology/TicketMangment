@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environment/environment';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AppNotification } from '../_models/notification';
 
@@ -63,6 +63,9 @@ export class NotificationService {
       );
   }
 
+   getHistory(userId: number, ticketId: number) : Observable<AppNotification[]> {
+    return this.http.get<AppNotification[]>(`${this.baseUrl}history/${ticketId}/${userId}`);
+  }
   markAllAsRead(userId: string) {
     return this.http.post<void>(`${this.baseUrl}markasread/${userId}`, {});
   }

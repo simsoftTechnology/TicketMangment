@@ -48,7 +48,9 @@ export class LoginComponent {
 
     this.accountService.login(this.loginForm.value).subscribe({
       next: () => {
+     
         this.router.navigateByUrl('/home/dashboard');
+        
         this.loaderService.hideLoader();
       },
       error: (error) => {

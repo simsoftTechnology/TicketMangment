@@ -43,6 +43,7 @@ export class AppComponent implements OnInit {
   
 
 ngOnInit(): void {
+
     this.setCurrentUser();
 
     if ('serviceWorker' in navigator) {
@@ -52,7 +53,8 @@ ngOnInit(): void {
     }
     // 1) Récupérer l’ID utilisateur (ex. via localStorage ou token)
     const user = JSON.parse(localStorage.getItem('user') || 'null');
-    if (user && user.id) {
+    // const user = this.accountService.currentUser()
+    if (user && user.id) {      
       const userIdStr = user.id.toString();
       this.notificationService.startConnection(userIdStr);
 
@@ -73,19 +75,20 @@ ngOnInit(): void {
   }
 
   private setCurrentUser() {
-    const userString = localStorage.getItem('user');
-    if (!userString) return;
-    const user = JSON.parse(userString);
-    this.accountService.currentUser.set(user);
+     
+    const userString =JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if(userString && userString.token){
 
-    // Valider le token avec le backend
-    setTimeout(() => {
-      this.accountService.validateToken().subscribe({
-        error: () => {
-          this.accountService.logout();
-          this.router.navigate(['/login']);
-        }
-      });
-    }, 0);
+      // Valider le token avec le backend
+      setTimeout(() => {
+        this.accountService.validateToken().subscribe({
+          error: () => {
+            this.accountService.logout();
+            this.router.navigate(['/login']);
+          }
+        });
+      }, 0);
+    }
   }
 }

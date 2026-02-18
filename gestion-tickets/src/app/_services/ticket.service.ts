@@ -122,8 +122,7 @@ export class TicketService {
   }
 
   updateResponsible(ticketId: number, responsibleDto: number|null , statut : number|null): Observable<any> {
-    console.log("service",responsibleDto);
-    console.log("service",statut);
+ 
     
     return this.http.post(`${this.baseUrl}/updateResponsible/${ticketId}`, {ResponsibleId:responsibleDto, statut:statut});
   }

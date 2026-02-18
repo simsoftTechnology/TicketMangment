@@ -13,14 +13,12 @@ import { environment } from '../../environment/environment';
 })
 export class AccountService {
   private http = inject(HttpClient);
-  baseUrl = environment.URLAPI;
-  currentUser = signal<User | null>(this.getUserFromLocalStorage());
+  baseUrl = environment.URLAPI;  
+  currentUser = signal<User>(JSON.parse(localStorage.getItem('user') || 'null'));
+  token = signal<string>('');
   paginatedResult = signal<PaginatedResult<User[]> | null>(null);
 
-  private getUserFromLocalStorage(): User | null {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  }
+  
 
   login(model: any) {
     return this.http.post<User>(this.baseUrl + 'account/login', model).pipe(
@@ -28,6 +26,7 @@ export class AccountService {
         if (user) {
           localStorage.setItem('user', JSON.stringify(user));
           this.currentUser.set(user);
+          this.token.set(user.token)
         }
       })
     );
@@ -35,7 +34,7 @@ export class AccountService {
 
   logout() {
     localStorage.removeItem('user');
-    this.currentUser.set(null);
+    this.currentUser.set(new User());
   }
 
   register(model: any) {
@@ -47,11 +46,16 @@ export class AccountService {
   getPays(): Observable<Pays[]> {
     return this.http.get<Pays[]>(this.baseUrl + 'users/pays');
   }
-
-  setCurrentUser(user: User) {
-    localStorage.setItem('user', JSON.stringify(user));
-    this.currentUser.set(user);
+UpdateCurrentUser(user :User) {
+ this.currentUser.set(user);
   }
+  setCurrentUser(user :User) {
+    this.currentUser.set(user)
+  //  this.getCurrentUser().subscribe((res)=>this.currentUser.set(res))
+  }
+  //   getCurrentUser() : Observable<User>{
+  //  return this.http.get<User>(this.baseUrl + 'account/current');
+  // }
 
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.baseUrl + 'users');

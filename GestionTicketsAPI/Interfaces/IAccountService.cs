@@ -10,4 +10,5 @@ namespace GestionTicketsAPI.Interfaces;
         Task<UserDto> LoginAsync(LoginDto loginDto);
         Task SaveResetTokenAsync(int userId, string token, DateTime expires);
         Task<User> GetUserByResetTokenAsync(string token);
+        Task<UserDto> getCurrentUser(string userId);
     }

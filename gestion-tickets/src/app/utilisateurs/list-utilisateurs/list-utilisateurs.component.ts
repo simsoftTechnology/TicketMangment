@@ -82,9 +82,10 @@ export class ListUtilisateursComponent implements OnInit {
   }
 
   setCurrentUser(): void {
-    const userString = localStorage.getItem('user');
+    
+      const userString = JSON.parse(localStorage.getItem('user') || 'null');
     if (!userString) return;
-    const user = JSON.parse(userString);
+    const user = userString;
     this.accountService.currentUser.set(user);
   }
 

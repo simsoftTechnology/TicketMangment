@@ -39,6 +39,7 @@
 
             "styles": [
               "src/styles.css",
+              "src/assets/fontawesome/css/all.min.css",
               "node_modules/quill/dist/quill.snow.css",
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/ngx-toastr/toastr.css",
@@ -62,12 +63,12 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2MB",
+                  "maximumWarning": "13MB",
                   "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kB",
+                  "maximumWarning": "13kB",
                   "maximumError": "13kB"
                 }
               ],

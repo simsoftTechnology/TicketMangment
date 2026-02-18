@@ -30,14 +30,14 @@ namespace GestionTicketsAPI.Controllers
         private readonly NotificationService _notifService;
         private readonly IWebHostEnvironment _env;
       
-        private readonly TicketHistryService _ticketHistoryService;
+   
 
 
 
-        public TicketsController(TicketHistryService ticketHistoryService, ITicketRepository ticketRepository, IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService,
+        public TicketsController(  ITicketRepository ticketRepository, IWebHostEnvironment env, ExcelExportServiceClosedXML excelExportService, ITicketService ticketService, IMapper mapper, IPhotoService photoService, IUserService userService, EmailService emailService, ICommentService commentService,
         NotificationService notifService)
         {
-            _ticketHistoryService = ticketHistoryService;
+            
             _ticketRepository = ticketRepository;
             _ticketService = ticketService;
             _mapper = mapper;
@@ -52,8 +52,34 @@ namespace GestionTicketsAPI.Controllers
         [HttpGet("reopen/{id}")]
         public async Task<IActionResult> ReOpenTickets(int id)
         {
-            var result = await _ticketHistoryService.ReOpenTicketAsync(id);
+            var result = await _ticketService.ReOpenTicketAsync(id);
+            var ticketFromDb = await _ticketService.GetTicketByIdAsync(id);
+            if (ticketFromDb == null)
+                return NotFound();
 
+            var notifDto = new NotificationDto
+                {
+                    Message = $"Le ticket #{id} est reouvert.",
+                    DateEnvoi = DateTime.UtcNow,
+                    EntityType = "Tickets",
+                    EntityId = id
+                };
+            if (ticketFromDb.Projet?.ChefProjet is { } chef)
+            {
+                BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(chef.Id, notifDto));
+                BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(chef.Id, notifDto));
+            }
+              if (ticketFromDb.Owner is { } client)
+            { BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(client.Id, notifDto));
+              BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(client.Id, notifDto));
+            }
+             var superAdmins = await _userService.GetUsersByRoleAsync("super admin");
+            foreach (var admin in superAdmins)
+            {                
+                BackgroundJob.Enqueue(() => _notifService.NotifyRealtimeAsync(admin.Id, notifDto));
+                BackgroundJob.Enqueue(() => _notifService.NotifyPushAsync(admin.Id, notifDto));
+            }
+               
             return Ok(result);
         }
         // GET api/tickets?...
@@ -366,7 +392,7 @@ namespace GestionTicketsAPI.Controllers
                 {
                     var notifDto = new NotificationDto
                     {
-                        Message = $"Votre ticket #{ticket.Id} a été accepté.",
+                        Message = $"le ticket #{ticket.Id} a été accepté.",
                         DateEnvoi = DateTime.UtcNow,
                         EntityType = "Tickets",
                         EntityId = ticket.Id
@@ -385,7 +411,7 @@ namespace GestionTicketsAPI.Controllers
 
                 <p>                    Ceci est une notification de validation de ticket de support .                </p>
 
-                <p>                    Votre ticket a été accepté avec succée.                </p>
+                <p>                    le ticket a été accepté avec succée.                </p>
 
                 <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
 
@@ -395,7 +421,7 @@ namespace GestionTicketsAPI.Controllers
                     <li><strong>Statut :</strong> En cours</li>
                 </ul>
 
-                <p style='margin-top: 20px;'>      Nous restons à votre disposition pour toute information complémentaire.    </p>
+                <p style='margin-top: 20px;'>      Nous restons à le disposition pour toute information complémentaire.    </p>
 
                 <p> Cordialement, </p>
 
@@ -486,7 +512,7 @@ namespace GestionTicketsAPI.Controllers
                 {
                     var notifDto = new NotificationDto
                     {
-                        Message = $"Votre ticket #{ticket.Id} a été refusé. Raison : {validationDto.Reason}",
+                        Message = $"le ticket #{ticket.Id} a été refusé. Raison : {validationDto.Reason}",
                         DateEnvoi = DateTime.UtcNow,
                         EntityType = "Tickets",
                         EntityId = ticket.Id
@@ -506,7 +532,7 @@ namespace GestionTicketsAPI.Controllers
                         </p>
 
                         <p>
-                            Votre ticket a été  refusé.
+                            le ticket a été  refusé.
                         </p>
 
                         <p>
@@ -519,7 +545,7 @@ namespace GestionTicketsAPI.Controllers
                             <li><strong>Raison :</strong>  {ticket.ValidationReason} </li>
                         </ul>
 
-                        <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+                        <p style='margin-top: 20px;'> Nous restons à le disposition pour toute information complémentaire.    </p>
 
                         <p> Cordialement, </p>
                         <p><strong>  Support Technique</strong> </p>
@@ -566,7 +592,7 @@ namespace GestionTicketsAPI.Controllers
                             <li><strong>Raison :</strong>  {validationDto.Reason} </li>
                         </ul>
 
-                        <p style='margin-top: 20px;'> Nous restons à votre disposition pour toute information complémentaire.    </p>
+                        <p style='margin-top: 20px;'> Nous restons à le disposition pour toute information complémentaire.    </p>
 
                         <p> Cordialement, </p>
                         <p><strong>  Support Technique</strong> </p>
@@ -657,8 +683,8 @@ namespace GestionTicketsAPI.Controllers
 
             ticket.StatutId = newStatus.Id;
             ticket.CompletionComment = completionDto.Comment;
-            ticket.HoursSpent = completionDto.DurationInMinutes / 60;
-            ticket.MinutesSpent = completionDto.DurationInMinutes % 60;
+            ticket.HoursSpent = ticket.HoursSpent + completionDto.DurationInMinutes / 60;
+            ticket.MinutesSpent =ticket.MinutesSpent+ completionDto.DurationInMinutes % 60;
             ticket.SolvedAt = completionDto.CompletionDate;
             ticket.UpdatedAt = DateTime.UtcNow;
 
@@ -669,7 +695,7 @@ namespace GestionTicketsAPI.Controllers
             {
                 var notifDto = new NotificationDto
                 {
-                    Message = $"Votre ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}.",
+                    Message = $"le ticket #{ticket.Id} est {(completionDto.IsResolved ? "résolu" : "non résolu")}.",
                     DateEnvoi = DateTime.UtcNow,
                     EntityType = "Tickets",
                     EntityId = ticket.Id
@@ -685,7 +711,7 @@ namespace GestionTicketsAPI.Controllers
 
                             <p>              Ceci est une notification  de ticket de support .               </p>
 
-                            <p>                    Votre ticket  #{ticket.Id}  est {(completionDto.IsResolved ? "résolu" : "non résolu")}.              </p>
+                            <p>                    le ticket  #{ticket.Id}  est {(completionDto.IsResolved ? "résolu" : "non résolu")}.              </p>
                             <p>                 Vous pouvez consulter ce ticket à tout moment ici :   <a href='https://simsoft-gt.tn/#/home/Tickets/details/{ticket.Id}'  style='color: #de0b0b;  font-weight: bold; font-family: Arial, sans-serif;'>   Ticket N° {ticket.Id}     </a>    </p>
                             <ul>
                                 <li><strong>Sujet :</strong> {ticket.Title}</li>
@@ -739,26 +765,26 @@ namespace GestionTicketsAPI.Controllers
             }
 
             // 4) Commentaire interne
-            var totalMinutes = completionDto.DurationInMinutes;
-            var hours = totalMinutes / 60;
-            var minutes = totalMinutes % 60;
+            // var totalMinutes = completionDto.DurationInMinutes;
+            // var hours = totalMinutes / 60;
+            // var minutes = totalMinutes % 60;
 
-            var sb = new StringBuilder()
-                .AppendLine($"Votre ticket est {(completionDto.IsResolved ? "résolu" : "non résolu")}.")
-                // Date de début = date de création du ticket
-                .AppendLine($"Date de début : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}")
-                // Date de fin = date fournie dans le DTO
-                .AppendLine($"Date de fin   : {completionDto.CompletionDate.ToLocalTime():dd/MM/yyyy HH:mm}")
-                // Temps passé en heures et minutes
-                .AppendLine($"Temps passé   : {hours} h {minutes} min");
+            // var sb = new StringBuilder()
+            //     .AppendLine($"le ticket est {(completionDto.IsResolved ? "résolu" : "non résolu")}.")
+            //     // Date de début = date de création du ticket
+            //     .AppendLine($"Date de début : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}")
+            //     // Date de fin = date fournie dans le DTO
+            //     .AppendLine($"Date de fin   : {completionDto.CompletionDate.ToLocalTime():dd/MM/yyyy HH:mm}")
+            //     // Temps passé en heures et minutes
+            //     .AppendLine($"Temps passé   : {hours} h {minutes} min");
 
-            var commentText = sb.ToString();
+            // var commentText = sb.ToString();
 
-            await _commentService.CreateCommentAsync(new CommentCreateDto
-            {
-                Contenu = commentText,
-                TicketId = ticket.Id
-            }, currentUserId);
+            // await _commentService.CreateCommentAsync(new CommentCreateDto
+            // {
+            //     Contenu = commentText,
+            //     TicketId = ticket.Id
+            // }, currentUserId);
 
             return NoContent();
         }
@@ -791,16 +817,17 @@ namespace GestionTicketsAPI.Controllers
                 // 4) Commentaire interne
             if (ticket.StatutId != responsibleDto.statut)
             {
-                var sb = new StringBuilder()
-                    .AppendLine($"Le ticket a été rouvert avec succès.")
-                    // Date de début = date de création du ticket
-                    .AppendLine($"Date : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}");
-                var commentText = sb.ToString();
-                await _commentService.CreateCommentAsync(new CommentCreateDto
-                {
-                    Contenu = commentText,
-                    TicketId = ticket.Id
-                }, currentUserId);
+                // var sb = new StringBuilder()
+                //     .AppendLine($"Le ticket a été rouvert avec succès.")
+                //     // Date de début = date de création du ticket
+                //     .AppendLine($"Date : {ticket.CreatedAt.ToLocalTime():dd/MM/yyyy HH:mm}");
+                // var commentText = sb.ToString();
+                // await _commentService.CreateCommentAsync(new CommentCreateDto
+                // {
+                //     Contenu = commentText,
+                //     TicketId = ticket.Id
+                // }, currentUserId);
+             
             }
 
 

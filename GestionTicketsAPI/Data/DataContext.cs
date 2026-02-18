@@ -28,13 +28,16 @@ namespace GestionTicketsAPI.Data
 
     public DbSet<SocieteUser> SocieteUsers { get; set; }
     public DbSet<PushSubscriptionEntity> PushSubscriptions { get; set; }
-    public DbSet<TicketHistory> TicketHistories { get; set; }
+    public DbSet<TicketHistory> TicketHistory { get; set; }
 
     public IEnumerable<object> PushSubscriptionEntity { get; internal set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
       base.OnModelCreating(modelBuilder);
+
+      modelBuilder.Entity<TicketHistory>()
+        .ToTable("tickethistory");  
 
       // ----- Configuration de la table de jointure ProjetUser -----
       modelBuilder.Entity<ProjetUser>()

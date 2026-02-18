@@ -21,3 +21,23 @@ export interface User {
   projetMembers?: ProjetMember[]; 
   createdAt?: Date;
 }
+
+export class User {
+  id!: number;
+  firstName!: string;
+  lastName!: string;
+  numTelephone!: string;
+  pays!: string;
+  email!: string;
+  role!: string;
+  actif!: boolean;
+  contrat?: Contrat;
+  dateDebut?: Date;
+  dateFin?: Date;
+  selected?: boolean;
+  token!: string;
+  societeId?: number;
+  societe?: Societe;
+  projetMembers?: ProjetMember[]; 
+  createdAt?: Date;
+}

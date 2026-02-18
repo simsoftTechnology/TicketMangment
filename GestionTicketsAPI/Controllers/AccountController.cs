@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using AutoMapper;
+using GestionTicketsAPI.Data;
 using GestionTicketsAPI.DTOs;
 using GestionTicketsAPI.Entities;
 using GestionTicketsAPI.Interfaces;
@@ -8,6 +10,8 @@ using GestionTicketsAPI.Services;
 using Hangfire; // N'oubliez pas d'ajouter la référence à Hangfire
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace GestionTicketsAPI.Controllers;
 
@@ -18,18 +22,46 @@ public class AccountController : BaseApiController
   private readonly IAccountRepository _accountRepository;
   private readonly IUserService _userService;
   private readonly EmailService _emailService; // Injection du service email
-
-  public AccountController(
+ 
+  public AccountController(    
       IAccountRepository accountRepository,
       IAccountService accountService,
       IUserService userService,
-      EmailService emailService)
+      EmailService emailService
+     )
   {
-    _accountService = accountService;
+     _accountService = accountService;
     _accountRepository = accountRepository;
     _userService = userService;
-    _emailService = emailService;
+    _emailService = emailService; 
   }
+ [HttpGet("current")]
+    public async Task<IActionResult> GetCurrentUser()
+    {
+     try
+       {
+         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+         if (string.IsNullOrEmpty(userId))
+             return Unauthorized("User ID not found in token.");
+
+         var user = await _accountService.getCurrentUser(userId);
+
+         if (user == null)
+             return NotFound("User not found.");
+
+         return Ok(user);
+       }
+       catch (Exception ex)
+       {
+         return StatusCode(500, new
+         {
+             message = "An error occurred while retrieving user.",
+             detail = ex.Message
+         });
+       }
+     }
+
 
   [HttpPost("register")]
   public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)

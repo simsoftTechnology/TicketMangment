@@ -44,7 +44,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   // Pour le menu déroulant dans le menu principal
   isBaseDataOpen = false;
   isAccountOpen = false;
-
+  currentUser: User= new User();
   // Pour les notifications (sidenav droit)
   isNotificationSidenavOpen: boolean = false;
 
@@ -57,12 +57,13 @@ export class LayoutComponent implements OnInit, OnDestroy {
     private breakpointObserver: BreakpointObserver,
     public route: ActivatedRoute,
     private accountService: AccountService,
-  ) { }
+  ) { 
+   this.getcurrentUser
+  }
 
   ngOnInit() {
-    if (this.currentUser) {
-      this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);
-    }
+
+  
 
     // Abonnement au sidenav principal (géré par le service)
     this.sidenavSubscription = this.sidenavService.sidenavState$.subscribe(state => {
@@ -98,8 +99,10 @@ export class LayoutComponent implements OnInit, OnDestroy {
   }
 
   // Méthode pour récupérer l'utilisateur courant
-  get currentUser(): User | null {
-    return this.accountService.currentUser();
+  get getcurrentUser(): User | null {  
+     this.currentUser= this.accountService.currentUser() 
+     this.userInitials = this.currentUser.firstName.charAt(0) + this.currentUser.lastName.charAt(0);   
+    return this.currentUser
   }
 
   isSuperAdmin(): boolean {

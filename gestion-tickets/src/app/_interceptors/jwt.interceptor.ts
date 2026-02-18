@@ -14,6 +14,8 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
       },
       withCredentials: true
     });
+   
+    
   } else {
     console.warn('Aucun token trouvé ou endpoint login, pas d\'Authorization.');
   }
